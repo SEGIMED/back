@@ -22,15 +22,15 @@ enum RoleType {
 model User {
   id          String      @id @default(uuid())
   name        String
-  email       String      @unique
+  email       String?     @unique
   password    String?
   googleId    String?     @unique
   role        RoleType
   tenantId    String
-  nationality String
-  gender      String
-  phonePrefix String?
-  phone       String?
+  nationality String?
+  gender      String?
+  phonePrefix String
+  phone       String
   image       String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
