@@ -53,3 +53,33 @@ model Physician {
   user      User   @relation(fields: [userId], references: [id])
   tenantId  String
 }
+
+model Appointment {
+  id               String   @id @default(uuid())
+  start            DateTime
+  end              DateTime
+  patient_id       String
+  physician_id     String
+  status           status_type
+  cancelation_reason String?
+  tenant_id        String
+}
+
+model MedicalEvent {
+  id                  String   @id @default(uuid())
+  appointment_id      String
+  consultation_reason String
+  physician_comments  String?
+  main_diagnostic_cie String
+  evolution           String?
+  procedure           String?
+  treatment           String?
+  comments            String?
+  tenant_id           String
+}
+
+enum status_type {
+  scheduled
+  completed
+  cancelled
+}
