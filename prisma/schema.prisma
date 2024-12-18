@@ -39,22 +39,15 @@ model User {
 }
 
 model Patient {
-  id               String   @id @default(uuid())
-  name             String
+  id               String @id @default(uuid())
   healthCareNumber String
   userId           String
-  user             User     @relation(fields: [userId], references: [id])
+  user             User   @relation(fields: [userId], references: [id])
   tenantId         String
-  birthdate        DateTime
-  nationality      String
-  gender           String
-  phonePrefix      String?
-  phone            String?
 }
 
 model Physician {
   id        String @id @default(uuid())
-  name      String
   specialty String
   userId    String
   user      User   @relation(fields: [userId], references: [id])
