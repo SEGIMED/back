@@ -62,8 +62,8 @@ model Appointment {
   patient_id       String
   physician_id     String
   status           status_type
-  cancelation_reason String?
-  comments         String?
+  cancelation_reason String
+  comments         String
   tenant_id        String
 }
 
@@ -72,12 +72,11 @@ model MedicalEvent {
   appointment_id      String
   patient_id          String
   physician_id        String
-  physician_comments  String?
+  physician_comments  String
   main_diagnostic_cie String
-  consultation_reason String
-  evolution           String?
-  procedure           String?
-  treatment           String?
+  evolution           String
+  procedure           String
+  treatment           String
   tenant_id           String
 }
 
