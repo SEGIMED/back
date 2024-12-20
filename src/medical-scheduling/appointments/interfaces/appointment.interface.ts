@@ -6,7 +6,7 @@ export interface Appointment {
   patient_id: string;
   physician_id: string;
   status: 'Atendida' | 'Cancelada' | 'Pendiente';
-  cancelation_reason?: string;
-  comments?: string;
+  cancelation_reason: string;
+  comments: string;
   tenant_id: string;
 }

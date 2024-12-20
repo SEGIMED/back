@@ -4,6 +4,6 @@ export class CreateAppointmentDto {
   end: Date;
   patient_id: string;
   physician_id: string;
-  status?: 'Atendida' | 'Cancelada' | 'Pendiente';
+  status: 'Atendida' | 'Cancelada' | 'Pendiente';
   tenant_id: string;
 }
