@@ -34,10 +34,6 @@ export class CreateAppointmentDto {
 
   @IsOptional()
   @IsString()
-  cancelation_reason?: string;
-
-  @IsOptional()
-  @IsString()
   comments?: string;
 
   @IsNotEmpty()

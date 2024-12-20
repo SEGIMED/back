@@ -24,8 +24,14 @@ export class AppointmentsController {
   async getAppointmentsByUser(
     @Param('userId') userId: string,
     @Query('status') status?: status_type,
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
   ) {
-    return this.appointmentsService.getAppointmentsByUser(userId, { status });
+    return this.appointmentsService.getAppointmentsByUser(userId, {
+      status,
+      page,
+      pageSize,
+    });
   }
 
   @Patch(':id/status')
