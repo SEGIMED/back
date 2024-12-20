@@ -4,7 +4,7 @@ export interface Appointment {
   end: Date;
   patient_id: string;
   physician_id: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
+  status: 'Atendida' | 'Cancelada' | 'Pendiente';
   cancelation_reason?: string;
   tenant_id: string;
 }

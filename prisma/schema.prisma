@@ -79,7 +79,7 @@ model MedicalEvent {
 }
 
 enum status_type {
-  scheduled
-  completed
-  cancelled
+  Atendida
+  Cancelada
+  Pendiente
 }
