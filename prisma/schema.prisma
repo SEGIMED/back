@@ -28,15 +28,15 @@ enum status_type {
 model User {
   id          String      @id @default(uuid())
   name        String
-  email       String?     @unique
+  email       String      @unique
   password    String?
   googleId    String?     @unique
   role        RoleType
   tenantId    String
-  nationality String?
-  gender      String?
-  phonePrefix String
-  phone       String
+  nationality String
+  gender      String
+  phonePrefix String?
+  phone       String?
   image       String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -45,11 +45,17 @@ model User {
 }
 
 model Patient {
-  id               String @id @default(uuid())
+  id               String   @id @default(uuid())
+  name             String
   healthCareNumber String
   userId           String
-  user             User   @relation(fields: [userId], references: [id])
+  user             User     @relation(fields: [userId], references: [id])
   tenantId         String
+  birthdate        DateTime
+  nationality      String
+  gender           String
+  phonePrefix      String?
+  phone            String?
 
   appointments Appointment[]
   medical_events MedicalEvent[]
@@ -57,6 +63,7 @@ model Patient {
 
 model Physician {
   id        String @id @default(uuid())
+  name      String
   specialty String
   userId    String
   user      User   @relation(fields: [userId], references: [id])
