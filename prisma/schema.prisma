@@ -19,6 +19,12 @@ enum RoleType {
   ORGANIZATION_OWNER
 }
 
+enum status_type {
+  Atendida
+  Cancelada
+  Pendiente
+}
+
 model User {
   id          String      @id @default(uuid())
   name        String
@@ -44,6 +50,8 @@ model Patient {
   userId           String
   user             User   @relation(fields: [userId], references: [id])
   tenantId         String
+
+  appointments Appointment[]
 }
 
 model Physician {
@@ -52,6 +60,8 @@ model Physician {
   userId    String
   user      User   @relation(fields: [userId], references: [id])
   tenantId  String
+
+  appointments Appointment[]
 }
 
 model Appointment {
@@ -65,6 +75,12 @@ model Appointment {
   cancelation_reason String
   comments         String
   tenant_id        String
+
+  // Relaciones
+  patient Patient @relation(fields: [patient_id], references: [id])
+  physician Physician @relation(fields: [physician_id], references: [id])
+  medical_events MedicalEvent[]
+  // tenant Tenant @relation(fields: [tenant_id], references: [id])
 }
 
 model MedicalEvent {
@@ -78,10 +94,8 @@ model MedicalEvent {
   procedure           String
   treatment           String
   tenant_id           String
-}
 
-enum status_type {
-  Atendida
-  Cancelada
-  Pendiente
+  // Relaciones
+  appointment         Appointment @relation(fields: [appointment_id], references: [id])
+  // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
