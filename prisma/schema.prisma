@@ -56,25 +56,28 @@ model Physician {
 
 model Appointment {
   id               String   @id @default(uuid())
+  consultation_reason String
   start            DateTime
   end              DateTime
   patient_id       String
   physician_id     String
   status           status_type
   cancelation_reason String?
+  comments         String?
   tenant_id        String
 }
 
 model MedicalEvent {
   id                  String   @id @default(uuid())
   appointment_id      String
-  consultation_reason String
+  patient_id          String
+  physician_id        String
   physician_comments  String?
   main_diagnostic_cie String
+  consultation_reason String
   evolution           String?
   procedure           String?
   treatment           String?
-  comments            String?
   tenant_id           String
 }
 
