@@ -19,6 +19,12 @@ enum RoleType {
   ORGANIZATION_OWNER
 }
 
+enum status_type {
+  Atendida
+  Cancelada
+  Pendiente
+}
+
 model User {
   id          String      @id @default(uuid())
   name        String
@@ -50,6 +56,9 @@ model Patient {
   gender           String
   phonePrefix      String?
   phone            String?
+
+  appointments Appointment[]
+  medical_events MedicalEvent[]
 }
 
 model Physician {
@@ -59,4 +68,48 @@ model Physician {
   userId    String
   user      User   @relation(fields: [userId], references: [id])
   tenantId  String
+
+  appointments Appointment[]
+  medical_events MedicalEvent[]
+}
+
+model Appointment {
+  id               String   @id @default(uuid())
+  consultation_reason String
+  start            DateTime
+  end              DateTime
+  patient_id       String
+  physician_id     String
+  status           status_type
+  cancelation_reason String?
+  comments         String?
+  tenant_id        String
+
+  // Relaciones
+  patient          Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician        Physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
+  medical_events MedicalEvent[]
+  // tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@index([physician_id, start, end])
+}
+
+model MedicalEvent {
+  id                  String   @id @default(uuid())
+  appointment_id      String
+  patient_id          String
+  physician_id        String
+  physician_comments  String?
+  main_diagnostic_cie String?
+  evolution           String?
+  procedure           String?
+  treatment           String?
+  tenant_id           String
+
+  // Relaciones
+  appointment         Appointment @relation(fields: [appointment_id], references: [id])
+  patient     Patient    @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician   Physician  @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
