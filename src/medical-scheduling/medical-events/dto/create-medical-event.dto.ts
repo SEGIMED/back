@@ -1,39 +1,38 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsString, IsNotEmpty, IsUUID, IsOptional } from 'class-validator';
 
 export class CreateMedicalEventDto {
+  @IsUUID()
   @IsNotEmpty()
-  @IsString()
   appointment_id: string;
 
+  @IsUUID()
   @IsNotEmpty()
-  @IsString()
   patient_id: string;
 
+  @IsUUID()
   @IsNotEmpty()
-  @IsString()
   physician_id: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   physician_comments?: string;
 
-  @IsNotEmpty()
   @IsString()
-  main_diagnostic_cie: string;
-
   @IsOptional()
+  main_diagnostic_cie?: string;
+
   @IsString()
+  @IsOptional()
   evolution?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   procedure?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   treatment?: string;
 
-  @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   tenant_id: string;
 }

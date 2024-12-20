@@ -52,6 +52,7 @@ model Patient {
   tenantId         String
 
   appointments Appointment[]
+  medical_events MedicalEvent[]
 }
 
 model Physician {
@@ -62,6 +63,7 @@ model Physician {
   tenantId  String
 
   appointments Appointment[]
+  medical_events MedicalEvent[]
 }
 
 model Appointment {
@@ -72,15 +74,18 @@ model Appointment {
   patient_id       String
   physician_id     String
   status           status_type
-  cancelation_reason String
-  comments         String
+  cancelation_reason String?
+  comments         String?
   tenant_id        String
 
   // Relaciones
-  patient Patient @relation(fields: [patient_id], references: [id])
-  physician Physician @relation(fields: [physician_id], references: [id])
+  patient          Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician        Physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
   medical_events MedicalEvent[]
   // tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@index([physician_id, start, end])
 }
 
 model MedicalEvent {
@@ -88,14 +93,16 @@ model MedicalEvent {
   appointment_id      String
   patient_id          String
   physician_id        String
-  physician_comments  String
-  main_diagnostic_cie String
-  evolution           String
-  procedure           String
-  treatment           String
+  physician_comments  String?
+  main_diagnostic_cie String?
+  evolution           String?
+  procedure           String?
+  treatment           String?
   tenant_id           String
 
   // Relaciones
   appointment         Appointment @relation(fields: [appointment_id], references: [id])
+  patient     Patient    @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician   Physician  @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }

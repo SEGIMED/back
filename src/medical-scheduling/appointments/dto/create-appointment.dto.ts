@@ -1,3 +1,4 @@
+import { status_type } from '@prisma/client';
 import {
   IsNotEmpty,
   IsString,
@@ -29,7 +30,7 @@ export class CreateAppointmentDto {
 
   @IsNotEmpty()
   @IsEnum(['Atendida', 'Cancelada', 'Pendiente'])
-  status: string;
+  status: status_type;
 
   @IsOptional()
   @IsString()
