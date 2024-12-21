@@ -33,11 +33,11 @@ model user {
   googleId    String?     @unique
   role        role_type
   tenantId    String
-  nationality String
-  gender      String
-  phonePrefix String?
-  phone       String?
-  image       String?
+  nationality String?
+  gender      String?
+  phonePrefix String
+  phone       String
+  image       String      @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   patients    patient[]
@@ -45,17 +45,11 @@ model user {
 }
 
 model patient {
-  id               String   @id @default(uuid())
-  name             String
-  healthCareNumber String
-  userId           String
-  user             user     @relation(fields: [userId], references: [id])
-  tenantId         String
-  birthdate        DateTime
-  nationality      String
-  gender           String
-  phonePrefix      String?
-  phone            String?
+  id                 String  @id @default(uuid())
+  health_care_number String?
+  userId             String
+  user               user    @relation(fields: [userId], references: [id])
+  tenantId           String
 
   appointments   appointment[]
   medical_events medical_event[]
@@ -63,7 +57,6 @@ model patient {
 
 model physician {
   id        String @id @default(uuid())
-  name      String
   specialty String
   userId    String
   user      user   @relation(fields: [userId], references: [id])
