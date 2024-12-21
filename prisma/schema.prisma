@@ -26,22 +26,23 @@ enum status_type {
 }
 
 model user {
-  id          String      @id @default(uuid())
+  id          String        @id @default(uuid())
   name        String
-  email       String      @unique
+  email       String        @unique
   password    String?
-  googleId    String?     @unique
+  googleId    String?       @unique
   role        role_type
   tenantId    String
   nationality String?
   gender      String?
   phonePrefix String
   phone       String
-  image       String      @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  image       String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
   patients    patient[]
   physicians  physician[]
+  Transaction transaction[]
 }
 
 model patient {
@@ -106,14 +107,15 @@ model medical_event {
   physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
+
 //paypal model
-model Transaction {
-  id           String   @id @default(uuid())
-  orderId      String   // ID de la orden de PayPal
-  status       String   // Estado de la transacción (COMPLETED, FAILED, etc.)
-  amount       Float    // Monto de la transacción
-  currency     String   // Moneda de la transacción (USD, EUR, etc.)
-  userId       String   // Relación con el usuario que realizó el pago
-  user         User     @relation(fields: [userId], references: [id])
-  createdAt    DateTime @default(now())
+model transaction {
+  id        String   @id @default(uuid())
+  orderId   String // ID de la orden de PayPal
+  status    String // Estado de la transacción (COMPLETED, FAILED, etc.)
+  amount    Float // Monto de la transacción
+  currency  String // Moneda de la transacción (USD, EUR, etc.)
+  userId    String // Relación con el usuario que realizó el pago
+  user      user     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
