@@ -13,43 +13,103 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum RoleType {
+enum role_type {
   PATIENT
   PHYSICIAN
   ORGANIZATION_OWNER
 }
 
-model User {
+enum status_type {
+  Atendida
+  Cancelada
+  Pendiente
+}
+
+model user {
   id          String      @id @default(uuid())
   name        String
-  email       String?     @unique
+  email       String      @unique
   password    String?
   googleId    String?     @unique
-  role        RoleType
+  role        role_type
   tenantId    String
-  nationality String?
-  gender      String?
-  phonePrefix String
-  phone       String
+  nationality String
+  gender      String
+  phonePrefix String?
+  phone       String?
   image       String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  patients    Patient[]
-  physicians  Physician[]
+  patients    patient[]
+  physicians  physician[]
 }
 
-model Patient {
-  id               String @id @default(uuid())
+model patient {
+  id               String   @id @default(uuid())
+  name             String
   healthCareNumber String
   userId           String
-  user             User   @relation(fields: [userId], references: [id])
+  user             user     @relation(fields: [userId], references: [id])
   tenantId         String
+  birthdate        DateTime
+  nationality      String
+  gender           String
+  phonePrefix      String?
+  phone            String?
+
+  appointments   appointment[]
+  medical_events medical_event[]
 }
 
-model Physician {
+model physician {
   id        String @id @default(uuid())
+  name      String
   specialty String
   userId    String
-  user      User   @relation(fields: [userId], references: [id])
+  user      user   @relation(fields: [userId], references: [id])
   tenantId  String
+
+  appointments   appointment[]
+  medical_events medical_event[]
+}
+
+model appointment {
+  id                  String      @id @default(uuid())
+  consultation_reason String
+  start               DateTime
+  end                 DateTime
+  patient_id          String
+  physician_id        String
+  status              status_type
+  cancelation_reason  String?
+  comments            String?
+  tenant_id           String
+
+  // Relaciones
+  patient   patient   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
+  medical_events medical_event[]
+  // tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@index([physician_id, start, end])
+}
+
+model medical_event {
+  id                  String  @id @default(uuid())
+  appointment_id      String
+  patient_id          String
+  physician_id        String
+  physician_comments  String?
+  main_diagnostic_cie String?
+  evolution           String?
+  procedure           String?
+  treatment           String?
+  tenant_id           String
+
+  // Relaciones
+  appointment appointment @relation(fields: [appointment_id], references: [id])
+  patient     patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
