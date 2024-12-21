@@ -3,7 +3,9 @@ import * as paypal from '@paypal/checkout-server-sdk';
 
 @Injectable()
 export class PayPalService {
-  private environment: paypal.core.SandboxEnvironment | paypal.core.LiveEnvironment;
+  private environment:
+    | paypal.core.SandboxEnvironment
+    | paypal.core.LiveEnvironment;
   private client: paypal.core.PayPalHttpClient;
 
   constructor() {
@@ -11,7 +13,10 @@ export class PayPalService {
     const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
 
     // Configura el entorno (Sandbox o Live)
-    this.environment = new paypal.core.SandboxEnvironment(clientId, clientSecret);
+    this.environment = new paypal.core.SandboxEnvironment(
+      clientId,
+      clientSecret,
+    );
     this.client = new paypal.core.PayPalHttpClient(this.environment);
   }
 
