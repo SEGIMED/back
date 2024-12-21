@@ -26,23 +26,23 @@ enum status_type {
 }
 
 model user {
-  id          String        @id @default(uuid())
-  name        String
-  email       String        @unique
-  password    String?
-  googleId    String?       @unique
-  role        role_type
-  tenantId    String
-  nationality String?
-  gender      String?
-  phonePrefix String
-  phone       String
-  image       String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
-  created_at  DateTime      @default(now())
-  updated_at  DateTime      @updatedAt
-  patients    patient[]
-  physicians  physician[]
-  Transaction transaction[]
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String?
+  googleId     String?       @unique
+  role         role_type
+  tenantId     String
+  nationality  String?
+  gender       String?
+  phonePrefix  String
+  phone        String
+  image        String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  patients     patient[]
+  physicians   physician[]
+  transactions transaction[]
 }
 
 model patient {
