@@ -106,3 +106,14 @@ model medical_event {
   physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
+//paypal model
+model Transaction {
+  id           String   @id @default(uuid())
+  orderId      String   // ID de la orden de PayPal
+  status       String   // Estado de la transacción (COMPLETED, FAILED, etc.)
+  amount       Float    // Monto de la transacción
+  currency     String   // Moneda de la transacción (USD, EUR, etc.)
+  userId       String   // Relación con el usuario que realizó el pago
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+}
