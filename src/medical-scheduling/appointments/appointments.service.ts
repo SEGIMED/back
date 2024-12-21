@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { status_type } from '@prisma/client';
-import { Appointment } from '@prisma/client';
+import { appointment } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AppointmentsService {
@@ -49,7 +49,7 @@ export class AppointmentsService {
       });
 
       // Crear el evento médico asociado a la cita
-      await prisma.medicalEvent.create({
+      await prisma.medical_event.create({
         data: {
           appointment_id: appointment.id, // Relacionar con la cita
           patient_id: data.patient_id, // ID del paciente
@@ -122,7 +122,7 @@ export class AppointmentsService {
     id: string,
     status: status_type,
     reason?: string,
-  ): Promise<Appointment> {
+  ): Promise<appointment> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
     });

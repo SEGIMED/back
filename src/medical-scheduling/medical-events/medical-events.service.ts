@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class MedicalEventsService {
   }
 
   async createMedicalEvent(data: CreateMedicalEventDto) {
-    return this.prisma.medicalEvent.create({
+    return this.prisma.medical_event.create({
       data: {
         appointment_id: data.appointment_id,
         patient_id: data.patient_id,
@@ -57,7 +57,7 @@ export class MedicalEventsService {
 
     try {
       const [medicalEvents, totalMedicalEvents] = await Promise.all([
-        this.prisma.medicalEvent.findMany({
+        this.prisma.medical_event.findMany({
           where: {
             ...(filters?.patient_id && { patient_id: filters.patient_id }),
             ...(filters?.physician_id && {
@@ -68,7 +68,7 @@ export class MedicalEventsService {
           take, // Limitar la cantidad
           orderBy: { appointment_id: 'asc' }, // Ordenar por appointment_id o el campo que consideres necesario
         }),
-        this.prisma.medicalEvent.count({
+        this.prisma.medical_event.count({
           where: {
             ...(filters?.patient_id && { patient_id: filters.patient_id }),
             ...(filters?.physician_id && {
