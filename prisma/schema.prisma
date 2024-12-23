@@ -42,6 +42,9 @@ model user {
   updatedAt   DateTime    @updatedAt
   patients    patient[]
   physicians  physician[]
+  transactions Transaction[] // Relación con Transaction
+  subscriptions subscription[] // Relación con Subscription
+  payments     payment[] // Relación con Payment
 }
 
 model patient {
@@ -106,6 +109,7 @@ model medical_event {
   physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
+
 //paypal model
 model Transaction {
   id           String   @id @default(uuid())
@@ -114,6 +118,59 @@ model Transaction {
   amount       Float    // Monto de la transacción
   currency     String   // Moneda de la transacción (USD, EUR, etc.)
   userId       String   // Relación con el usuario que realizó el pago
-  user         User     @relation(fields: [userId], references: [id])
+  user         user     @relation(fields: [userId], references: [id])
   createdAt    DateTime @default(now())
+}
+
+// SUBSCRIPCIONES
+model subscription {
+  id               String                @id @default(uuid())
+  tenant_id        String
+  user_id          String
+  user             user                  @relation(fields: [user_id], references: [id])
+  status           subscription_status_type
+  type             String                @default("trial")
+  start_date       DateTime
+  end_date         DateTime
+  last_payment_date DateTime?
+  payment_method   String?
+
+  payments         payment[] // Relación con Payment
+}
+
+model subscription_type {
+  id               String @id @default(uuid())
+  name             String
+  price            Float
+  trial_period_days Int
+  features         Json
+}
+
+enum subscription_status_type {
+  active
+  trial
+  cancelled
+  expired
+}
+
+//PAGOS
+model payment {
+  id               String               @id @default(uuid())
+  user_id          String
+  user             user                 @relation(fields: [user_id], references: [id])
+  tenant_id        String
+  subscription_id  String
+  subscription     subscription         @relation(fields: [subscription_id], references: [id])
+  amount           Float
+  currency         String
+  payment_method   String
+  transaction_id   String?
+  payment_date     DateTime
+  status           payment_status_type
+}
+
+enum payment_status_type {
+  success
+  failed
+  pending
 }
