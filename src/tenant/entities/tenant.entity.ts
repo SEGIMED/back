@@ -12,13 +12,13 @@ export class Tenant {
     id: string;
 
     @Column({
-        type: 'string',
+        type: 'varchar',
         length: 20
     })
     type: Tenants
 
     @Column({
-        type: 'string',
+        type: 'varchar',
         length: 30
     })
     db_name: string;

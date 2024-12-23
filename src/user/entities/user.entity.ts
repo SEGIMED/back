@@ -50,18 +50,18 @@ export class User {
     gender: string;
 
     @Column({
-        type: "int",
+        type: "varchar",
         length: 3,
         nullable: true
     })
-    phone_prefix: number;
+    phone_prefix: string;
 
     @Column({
-        type: "int",
+        type: "varchar",
         length: 15,
         nullable: true,
     })
-    phone: number;
+    phone: string;
 
     @Column({
         type: "varchar",

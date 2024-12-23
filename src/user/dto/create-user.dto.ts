@@ -4,18 +4,18 @@ import { IsDate, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPa
 
 export class CreateUserDto {
     /**
-     * Set full user's name
-     * @example "Carlos Alberto Simancas Cuenca"
+     * Set full users name
+     * @example 'Carlos Alberto Simancas Cuenca'
      */
     @IsString()
-    @Length(2, 15)
+    @Length(2, 50)
     @IsString()
     @IsNotEmpty()
     name: string;
 
     /**
      * Set the user's email
-     * @example "carlos@email.com"
+     * @example 'carlos@email.com'
      */
     @IsEmail()
     @IsNotEmpty()
@@ -23,20 +23,19 @@ export class CreateUserDto {
 
     /**
      * Set the user's dni
-     * @example "ABX11503476"
+     * @example 'ABX11503476'
      */
     @IsString()
     @Length(10, 15)
     @IsOptional()
-    dni: string;
+    dni?: string;
 
     /**
      * Set the user's birthdate
      * @example '23/05/1995'
      */
-    @IsDate()
     @IsOptional()
-    birthdate: Date;
+    birthdate?: Date;
 
     /**
      * Set the user's nationality
@@ -45,7 +44,7 @@ export class CreateUserDto {
     @IsString()
     @Length(3, 50)
     @IsOptional()
-    nationality: string;
+    nationality?: string;
 
     /**
      * Set the user's gender
@@ -54,29 +53,29 @@ export class CreateUserDto {
     @IsString()
     @Length(1, 14)
     @IsOptional()
-    gender: string;
+    gender?: string;
 
     /**
      * Set the user's country phone prefix
      * @example '0054'
      */
-    @IsNumber()
+    @IsString()
     @Length(1,4)
     @IsOptional()
-    phone_prefix: number;
+    phone_prefix?: string;
 
     /**
      * Set the user's phone number
      * @example '857823456'
      */
-    @IsNumber()
+    @IsString()
     @Length(4, 20)
     @IsOptional()
-    phone: number;
+    phone?: string;
 
     /**
      * Set the user's password
-     * @example "MyUs3er@175"
+     * @example 'MyUs3er@175'
      */
     @IsNotEmpty()
     @IsStrongPassword({
@@ -94,15 +93,15 @@ export class CreateUserDto {
      */
     @IsString()
     @IsOptional()
-    google_id: string;
+    google_id?: string;
 
     /**
      * The user can change their image at any time; the default is a brand image
-     * @example "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o="
+     * @example 'https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o='
      */
     @IsUrl()
     @IsOptional()
-    image: string
+    image?: string
 
     /**
      * The type of role depends on the type of user
@@ -110,11 +109,11 @@ export class CreateUserDto {
      */
     @IsString()
     @IsOptional()
-    role_type: Rol;
+    role_type?: Rol;
 
     /**
      * Represent the ID of the Organization
      */
     @IsOptional()
-    tenant_id: Tenant;
+    tenant_id?: Tenant;
 }
