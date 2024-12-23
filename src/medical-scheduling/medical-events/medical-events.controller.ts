@@ -19,12 +19,16 @@ export class MedicalEventsController {
     @Query('physician_id') physician_id?: string,
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
+    @Query('orderBy') orderBy?: string,
+    @Query('orderDirection') orderDirection?: 'asc' | 'desc',
   ) {
     const filters = {
       patient_id,
       physician_id,
       page,
       pageSize,
+      orderBy,
+      orderDirection,
     };
     return this.medicalEventsService.getMedicalEvents(filters);
   }
