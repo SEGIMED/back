@@ -10,9 +10,16 @@ import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { config } from 'dotenv';
 config({ path: '.env' });
+import { PayPalModule } from './suscription/paypal/paypal.module';
+import { AppointmentsModule } from './medical-scheduling/appointments/appointments.module';
+import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
+    AppointmentsModule, 
+    MedicalEventsModule, 
+    PrismaModule,
     UserModule, 
     TenantModule,
     ConfigModule.forRoot({
@@ -33,6 +40,6 @@ config({ path: '.env' });
     })
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PayPalModule, PrismaModule],
 })
 export class AppModule {}

@@ -13,43 +13,109 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum RoleType {
+enum role_type {
   PATIENT
   PHYSICIAN
   ORGANIZATION_OWNER
 }
 
-model User {
-  id          String      @id @default(uuid())
-  name        String
-  email       String?     @unique
-  password    String?
-  googleId    String?     @unique
-  role        RoleType
-  tenantId    String
-  nationality String?
-  gender      String?
-  phonePrefix String
-  phone       String
-  image       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  patients    Patient[]
-  physicians  Physician[]
+enum status_type {
+  Atendida
+  Cancelada
+  Pendiente
 }
 
-model Patient {
-  id               String @id @default(uuid())
-  healthCareNumber String
-  userId           String
-  user             User   @relation(fields: [userId], references: [id])
-  tenantId         String
+model user {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  password     String?
+  googleId     String?       @unique
+  role         role_type
+  tenantId     String
+  nationality  String?
+  gender       String?
+  phonePrefix  String
+  phone        String
+  image        String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  patients     patient[]
+  physicians   physician[]
+  transactions transaction[]
 }
 
-model Physician {
+model patient {
+  id                 String  @id @default(uuid())
+  health_care_number String?
+  userId             String
+  user               user    @relation(fields: [userId], references: [id])
+  tenantId           String
+
+  appointments   appointment[]
+  medical_events medical_event[]
+}
+
+model physician {
   id        String @id @default(uuid())
   specialty String
   userId    String
-  user      User   @relation(fields: [userId], references: [id])
+  user      user   @relation(fields: [userId], references: [id])
   tenantId  String
+
+  appointments   appointment[]
+  medical_events medical_event[]
+}
+
+model appointment {
+  id                  String      @id @default(uuid())
+  consultation_reason String
+  start               DateTime
+  end                 DateTime
+  patient_id          String
+  physician_id        String
+  status              status_type
+  cancelation_reason  String?
+  comments            String?
+  tenant_id           String
+
+  // Relaciones
+  patient   patient   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
+  medical_events medical_event[]
+  // tenant Tenant @relation(fields: [tenant_id], references: [id])
+
+  @@index([physician_id, start, end])
+}
+
+model medical_event {
+  id                  String  @id @default(uuid())
+  appointment_id      String
+  patient_id          String
+  physician_id        String
+  physician_comments  String?
+  main_diagnostic_cie String?
+  evolution           String?
+  procedure           String?
+  treatment           String?
+  tenant_id           String
+
+  // Relaciones
+  appointment appointment @relation(fields: [appointment_id], references: [id])
+  patient     patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
+}
+
+//paypal model
+model transaction {
+  id        String   @id @default(uuid())
+  orderId   String // ID de la orden de PayPal
+  status    String // Estado de la transacción (COMPLETED, FAILED, etc.)
+  amount    Float // Monto de la transacción
+  currency  String // Moneda de la transacción (USD, EUR, etc.)
+  userId    String // Relación con el usuario que realizó el pago
+  user      user     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
 }
