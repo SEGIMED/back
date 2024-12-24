@@ -1,15 +1,14 @@
 import { IsEnum, IsNotEmpty, IsString } from "class-validator";
-import { Tenants } from "../tenants.enum";
-import { Type } from "class-transformer";
+import { TenantType } from "@prisma/client";
 
 export class CreateTenantDto {
     /**
      * Set tenatn's type
-     * @Example individual
+     * @Example "INDIVIDUAL"
      */
     @IsNotEmpty()
-    @IsEnum(Tenants)
-    type: Tenants
+    @IsEnum(TenantType)
+    type: TenantType
 
     /**
      * Set database name

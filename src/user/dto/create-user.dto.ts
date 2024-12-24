@@ -1,6 +1,5 @@
-import { Tenant } from "src/tenant/entities/tenant.entity";
-import { Rol } from "../roles.enum";
-import { IsDate, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsStrongPassword, IsUrl, Length } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsStrongPassword, IsUrl, Length } from "class-validator";
+import { RoleType } from "@prisma/client";
 
 export class CreateUserDto {
     /**
@@ -32,10 +31,10 @@ export class CreateUserDto {
 
     /**
      * Set the user's birthdate
-     * @example '23/05/1995'
+     * @example '2004-12-24T05:44:49.842Z'
      */
     @IsOptional()
-    birthdate?: Date;
+    birthdate: Date;
 
     /**
      * Set the user's nationality
@@ -44,7 +43,7 @@ export class CreateUserDto {
     @IsString()
     @Length(3, 50)
     @IsOptional()
-    nationality?: string;
+    nationality: string;
 
     /**
      * Set the user's gender
@@ -53,7 +52,7 @@ export class CreateUserDto {
     @IsString()
     @Length(1, 14)
     @IsOptional()
-    gender?: string;
+    gender: string;
 
     /**
      * Set the user's country phone prefix
@@ -62,7 +61,7 @@ export class CreateUserDto {
     @IsString()
     @Length(1,4)
     @IsOptional()
-    phone_prefix?: string;
+    phone_prefix: string;
 
     /**
      * Set the user's phone number
@@ -71,7 +70,7 @@ export class CreateUserDto {
     @IsString()
     @Length(4, 20)
     @IsOptional()
-    phone?: string;
+    phone: string;
 
     /**
      * Set the user's password
@@ -101,19 +100,26 @@ export class CreateUserDto {
      */
     @IsUrl()
     @IsOptional()
-    image?: string
+    image: string
 
     /**
      * The type of role depends on the type of user
-     * @example 'Patient'
+     * @example 'PATIENT'
      */
     @IsString()
     @IsOptional()
-    role_type?: Rol;
+    role_type: RoleType;
 
     /**
      * Represent the ID of the Organization
      */
+    tenant: any;
+
     @IsOptional()
-    tenant_id?: Tenant;
+    tenant_id?: String;
+
+    // createdAt   DateTime    @default(now())
+    // updatedAt   DateTime    @updatedAt
+    // patients    Patient[]
+    // physicians  Physician[]
 }

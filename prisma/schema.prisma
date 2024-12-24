@@ -19,37 +19,36 @@ enum RoleType {
   ORGANIZATION_OWNER
 }
 
+enum TenantType {
+  INDIVIDUAL
+  ORGANIZATION
+}
+
 model User {
-  id          String      @id @default(uuid())
-  name        String
-  email       String?     @unique
-  password    String?
-  googleId    String?     @unique
-  role        RoleType
-  tenantId    String
-  nationality String?
-  gender      String?
-  phonePrefix String
-  phone       String
-  image       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  patients    Patient[]
-  physicians  Physician[]
+  id            String     @id @default(uuid())
+  name          String
+  email         String?    @unique
+  dni           String?    @unique
+  birthdate     DateTime
+  nationality   String
+  gender        String
+  phone_prefix  String
+  phone         String
+  password      String
+  google_id     String?    @unique
+  image         String
+  role_type     RoleType
+  tenant        Tenant      @relation(fields: [tenant_id], references: [id])
+  tenant_id     String      
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
-model Patient {
-  id               String @id @default(uuid())
-  healthCareNumber String
-  userId           String
-  user             User   @relation(fields: [userId], references: [id])
-  tenantId         String
-}
-
-model Physician {
-  id        String @id @default(uuid())
-  specialty String
-  userId    String
-  user      User   @relation(fields: [userId], references: [id])
-  tenantId  String
+model Tenant {
+  id            String      @id @default(uuid())
+  type          TenantType
+  db_name       String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  users         User[]
 }
