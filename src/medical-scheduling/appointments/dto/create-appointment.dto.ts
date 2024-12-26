@@ -5,6 +5,7 @@ import {
   IsDate,
   IsEnum,
   IsOptional,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateAppointmentDto {
@@ -21,11 +22,11 @@ export class CreateAppointmentDto {
   end: Date;
 
   @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   patient_id: string;
 
   @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   physician_id: string;
 
   @IsNotEmpty()
@@ -37,6 +38,6 @@ export class CreateAppointmentDto {
   comments?: string;
 
   @IsNotEmpty()
-  @IsString()
+  @IsUUID()
   tenant_id: string;
 }

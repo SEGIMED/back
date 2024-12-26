@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -22,7 +23,7 @@ export class AppointmentsController {
 
   @Get(':userId')
   async getAppointmentsByUser(
-    @Param('userId') userId: string,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
     @Query('status') status?: status_type,
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
@@ -40,7 +41,7 @@ export class AppointmentsController {
 
   @Patch(':id/status')
   async updateAppointmentStatus(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body('status') status: status_type,
     @Body('reason') reason?: string,
   ) {
