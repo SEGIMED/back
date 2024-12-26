@@ -1,18 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { status_type, Appointment } from '@prisma/client';
+import { Appointment, status_type } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import {
   PaginationParams,
   parsePaginationAndSorting,
 } from 'src/utils/pagination.helper';
+import { MedicalEventsService } from '../medical-events/medical-events.service';
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private medicalEventsService: MedicalEventsService,
+  ) {}
 
-  async createAppointment(data: CreateAppointmentDto) {
+  async createAppointment(
+    data: CreateAppointmentDto,
+  ): Promise<{ message: string }> {
     if (!data.start || !data.end || data.start >= data.end) {
       throw new Error('La fecha de inicio debe ser anterior a la fecha de fin');
     }
@@ -29,75 +35,55 @@ export class AppointmentsService {
     }
 
     // Iniciar una transacción para asegurar la consistencia de los datos
-    return await this.prisma.$transaction(async (prisma) => {
+    await this.prisma.$transaction(async (prisma) => {
       // Crear la cita
-      const appointment = await prisma.appointment.create({
-        data,
-      });
+      const appointment = await prisma.appointment.create({ data });
 
-      // Crear el evento médico asociado a la cita
-      await prisma.medicalEvent.create({
-        data: {
-          appointment_id: appointment.id, // Relacionar con la cita
-          patient_id: data.patient_id, // ID del paciente
-          physician_id: data.physician_id, // ID del médico
-          physician_comments: '', // Comentarios del médico (vacío o valor predeterminado)
-          main_diagnostic_cie: '', // Diagnóstico principal (vacío o valor predeterminado)
-          evolution: '', // Evolución (vacío o valor predeterminado)
-          procedure: '', // Procedimiento (vacío o valor predeterminado)
-          treatment: '', // Tratamiento (vacío o valor predeterminado)
-          tenant_id: data.tenant_id, // ID del tenant
-        },
-      });
+      // Crear el evento médico asociado a la cita utilizando el servicio MedicalEventsService
+      const medicalEventMessage =
+        await this.medicalEventsService.createMedicalEvent({
+          appointment_id: appointment.id,
+          patient_id: data.patient_id,
+          physician_id: data.physician_id,
+          physician_comments: '',
+          main_diagnostic_cie: '',
+          evolution: '',
+          procedure: '',
+          treatment: '',
+          tenant_id: data.tenant_id,
+        });
 
-      // Retornar la cita creada
-      return appointment;
+      return medicalEventMessage;
     });
+
+    return { message: 'Cita creada exitosamente' };
   }
 
   async getAppointmentsByUser(
     userId: string,
     params: { status?: status_type } & PaginationParams,
-  ): Promise<any> {
+  ): Promise<Appointment[]> {
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(params);
 
-    const [appointments, totalAppointments] = await Promise.all([
-      this.prisma.appointment.findMany({
-        where: {
-          patient_id: userId,
-          ...(params.status && { status: params.status }),
-        },
-        skip,
-        take,
-        orderBy: { [orderBy]: orderDirection },
-      }),
-      this.prisma.appointment.count({
-        where: {
-          patient_id: userId,
-          ...(params.status && { status: params.status }),
-        },
-      }),
-    ]);
-
-    const totalPages = Math.ceil(totalAppointments / take);
-
-    return {
-      data: appointments,
-      meta: {
-        page: params.page || 1,
-        pageSize: take,
-        totalPages,
-        totalItems: totalAppointments,
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        patient_id: userId,
+        ...(params.status && { status: params.status }),
       },
-    };
+      skip,
+      take,
+      orderBy: { [orderBy]: orderDirection },
+    });
+
+    return appointments;
   }
 
   async updateAppointmentStatus(
     id: string,
     status: status_type,
     reason?: string,
-  ): Promise<Appointment> {
+  ): Promise<{ message: string }> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
     });
@@ -120,10 +106,12 @@ export class AppointmentsService {
     }
 
     try {
-      return await this.prisma.appointment.update({
+      await this.prisma.appointment.update({
         where: { id },
         data: { status, cancelation_reason: reason || null },
       });
+
+      return { message: `Estado de la cita actualizado a "${status}"` };
     } catch (error) {
       if (
         error instanceof PrismaClientKnownRequestError &&
