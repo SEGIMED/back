@@ -25,17 +25,24 @@ enum status_type {
   Pendiente
 }
 
+enum tenant_type {
+  INDIVIDUAL
+  ORGANIZATION
+}
+
 model user {
   id           String        @id @default(uuid())
   name         String
   email        String        @unique
   password     String?
-  googleId     String?       @unique
+  google_id    String?       @unique
   role         role_type
-  tenantId     String
+  tenant_id    String
   nationality  String?
   gender       String?
-  phonePrefix  String
+  dni          String
+  birthdate    DateTime?
+  phone_prefix String
   phone        String
   image        String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
   created_at   DateTime      @default(now())
