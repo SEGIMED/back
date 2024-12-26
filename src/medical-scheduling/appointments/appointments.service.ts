@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { Appointment, status_type } from '@prisma/client';
@@ -20,46 +24,57 @@ export class AppointmentsService {
     data: CreateAppointmentDto,
   ): Promise<{ message: string }> {
     if (!data.start || !data.end || data.start >= data.end) {
-      throw new Error('La fecha de inicio debe ser anterior a la fecha de fin');
+      throw new BadRequestException(
+        'La fecha de inicio debe ser anterior a la fecha de fin',
+      );
     }
 
-    const conflict = await this.prisma.appointment.findFirst({
-      where: {
-        physician_id: data.physician_id,
-        AND: [
-          { start: { lte: data.end } },
-          { end: { gte: data.start } },
-          { status: { not: 'Cancelada' } },
-        ],
-      },
-    });
-
-    if (conflict) {
-      throw new Error('El médico ya tiene una cita en ese horario');
-    }
-
-    // Iniciar una transacción para asegurar la consistencia de los datos
-    await this.prisma.$transaction(async (prisma) => {
-      // Crear la cita
-      const appointment = await prisma.appointment.create({ data });
-      // Crear el evento médico asociado a la cita utilizando el servicio MedicalEventsService
-      const medicalEventMessage =
-        await this.medicalEventsService.createMedicalEvent({
-          appointment_id: appointment.id,
-          patient_id: data.patient_id,
+    try {
+      const conflict = await this.prisma.appointment.findFirst({
+        where: {
           physician_id: data.physician_id,
-          physician_comments: '',
-          main_diagnostic_cie: '',
-          evolution: '',
-          procedure: '',
-          treatment: '',
-          tenant_id: data.tenant_id,
-        });
+          AND: [
+            { start: { lte: data.end } },
+            { end: { gte: data.start } },
+            { status: { not: 'Cancelada' } },
+          ],
+        },
+      });
 
-      return medicalEventMessage;
-    });
+      if (conflict) {
+        throw new BadRequestException(
+          'El médico ya tiene una cita en ese horario',
+        );
+      }
 
-    return { message: 'Cita creada exitosamente' };
+      // Iniciar una transacción para asegurar la consistencia de los datos
+      await this.prisma.$transaction(async (prisma) => {
+        // Crear la cita
+        const appointment = await prisma.appointment.create({ data });
+        // Crear el evento médico asociado a la cita utilizando el servicio MedicalEventsService
+        const medicalEventMessage =
+          await this.medicalEventsService.createMedicalEvent({
+            appointment_id: appointment.id,
+            patient_id: data.patient_id,
+            physician_id: data.physician_id,
+            physician_comments: '',
+            main_diagnostic_cie: '',
+            evolution: '',
+            procedure: '',
+            treatment: '',
+            tenant_id: data.tenant_id,
+          });
+
+        return medicalEventMessage;
+      });
+
+      return { message: 'Cita creada exitosamente' };
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException('Error al crear la cita');
+      }
+      throw error;
+    }
   }
 
   async getAppointmentsByUser(
@@ -69,17 +84,23 @@ export class AppointmentsService {
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(params);
 
-    const appointments = await this.prisma.appointment.findMany({
-      where: {
-        patient_id: userId,
-        ...(params.status && { status: params.status }),
-      },
-      skip,
-      take,
-      orderBy: { [orderBy]: orderDirection },
-    });
+    try {
+      const appointments = await this.prisma.appointment.findMany({
+        where: {
+          patient_id: userId,
+          ...(params.status && { status: params.status }),
+        },
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      });
 
-    return appointments;
+      return appointments;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error al obtener las citas: ${error.message}`,
+      );
+    }
   }
 
   async updateAppointmentStatus(

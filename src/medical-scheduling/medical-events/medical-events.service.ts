@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
 import { parsePaginationAndSorting } from 'src/utils/pagination.helper';
@@ -28,7 +28,9 @@ export class MedicalEventsService {
 
       return { message: `Evento médico creado exitosamente` };
     } catch (error) {
-      throw new Error(`Error al crear el evento médico: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Error al crear el evento médico: ${error.message}`,
+      );
     }
   }
 
@@ -56,7 +58,10 @@ export class MedicalEventsService {
 
       return medicalEvents;
     } catch (error) {
-      throw new Error(`Error al obtener eventos médicos: ${error.message}`);
+      throw new InternalServerErrorException(
+        'Error al obtener los eventos médicos',
+        error.message,
+      );
     }
   }
 }
