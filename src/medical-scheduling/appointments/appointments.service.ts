@@ -26,7 +26,11 @@ export class AppointmentsService {
     const conflict = await this.prisma.appointment.findFirst({
       where: {
         physician_id: data.physician_id,
-        AND: [{ start: { lte: data.end } }, { end: { gte: data.start } }],
+        AND: [
+          { start: { lte: data.end } },
+          { end: { gte: data.start } },
+          { status: { not: 'Cancelada' } },
+        ],
       },
     });
 
@@ -38,7 +42,6 @@ export class AppointmentsService {
     await this.prisma.$transaction(async (prisma) => {
       // Crear la cita
       const appointment = await prisma.appointment.create({ data });
-
       // Crear el evento médico asociado a la cita utilizando el servicio MedicalEventsService
       const medicalEventMessage =
         await this.medicalEventsService.createMedicalEvent({

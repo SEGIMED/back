@@ -2,12 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
 import { parsePaginationAndSorting } from 'src/utils/pagination.helper';
+import { MedicalEvent } from '@prisma/client';
 
 @Injectable()
 export class MedicalEventsService {
   constructor(private prisma: PrismaService) {}
 
-  async createMedicalEvent(data: CreateMedicalEventDto): Promise<string> {
+  async createMedicalEvent(
+    data: CreateMedicalEventDto,
+  ): Promise<{ message: string }> {
     try {
       await this.prisma.medicalEvent.create({
         data: {
@@ -23,7 +26,7 @@ export class MedicalEventsService {
         },
       });
 
-      return 'Evento médico creado exitosamente';
+      return { message: `Evento médico creado exitosamente` };
     } catch (error) {
       throw new Error(`Error al crear el evento médico: ${error.message}`);
     }
@@ -36,7 +39,7 @@ export class MedicalEventsService {
     pageSize?: number;
     orderBy?: string;
     orderDirection?: 'asc' | 'desc';
-  }) {
+  }): Promise<MedicalEvent[]> {
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(filters);
 
