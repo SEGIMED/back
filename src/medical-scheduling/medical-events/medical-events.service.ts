@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
 import { parsePaginationAndSorting } from 'src/utils/pagination.helper';
-import { MedicalEvent } from '@prisma/client';
+import { medical_event } from '@prisma/client';
 
 @Injectable()
 export class MedicalEventsService {
@@ -12,7 +12,7 @@ export class MedicalEventsService {
     data: CreateMedicalEventDto,
   ): Promise<{ message: string }> {
     try {
-      await this.prisma.medicalEvent.create({
+      await this.prisma.medical_event.create({
         data: {
           appointment_id: data.appointment_id,
           patient_id: data.patient_id,
@@ -41,12 +41,12 @@ export class MedicalEventsService {
     pageSize?: number;
     orderBy?: string;
     orderDirection?: 'asc' | 'desc';
-  }): Promise<MedicalEvent[]> {
+  }): Promise<medical_event[]> {
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(filters);
 
     try {
-      const medicalEvents = await this.prisma.medicalEvent.findMany({
+      const medicalEvents = await this.prisma.medical_event.findMany({
         where: {
           ...(filters?.patient_id && { patient_id: filters.patient_id }),
           ...(filters?.physician_id && { physician_id: filters.physician_id }),
