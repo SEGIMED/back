@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
 import { parsePaginationAndSorting } from 'src/utils/pagination.helper';
 import { MedicalEvent } from '@prisma/client';

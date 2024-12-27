@@ -3,9 +3,9 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { PrismaService } from 'prisma/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { Appointment, status_type } from '@prisma/client';
+import { appointment, status_type } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import {
   PaginationParams,
@@ -80,7 +80,7 @@ export class AppointmentsService {
   async getAppointmentsByUser(
     userId: string,
     params: { status?: status_type } & PaginationParams,
-  ): Promise<Appointment[]> {
+  ): Promise<appointment[]> {
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(params);
 
