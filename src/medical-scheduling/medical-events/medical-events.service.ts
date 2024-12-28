@@ -22,7 +22,6 @@ export class MedicalEventsService {
           evolution: data.evolution ?? '',
           procedure: data.procedure ?? '',
           treatment: data.treatment ?? '',
-          tenant_id: data.tenant_id,
         },
       });
 

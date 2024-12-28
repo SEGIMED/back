@@ -30,6 +30,22 @@ export class AppointmentsService {
     }
 
     try {
+      // Verificar si el paciente y el médico existen
+      const patientExists = await this.prisma.patient.findUnique({
+        where: { id: data.patient_id },
+      });
+      if (!patientExists) {
+        throw new BadRequestException('El paciente no existe');
+      }
+
+      const physicianExists = await this.prisma.physician.findUnique({
+        where: { id: data.physician_id },
+      });
+      if (!physicianExists) {
+        throw new BadRequestException('El médico no existe');
+      }
+
+      // Verificar si hay conflicto de citas
       const conflict = await this.prisma.appointment.findFirst({
         where: {
           physician_id: data.physician_id,
@@ -51,21 +67,21 @@ export class AppointmentsService {
       await this.prisma.$transaction(async (prisma) => {
         // Crear la cita
         const appointment = await prisma.appointment.create({ data });
-        // Crear el evento médico asociado a la cita utilizando el servicio MedicalEventsService
-        const medicalEventMessage =
-          await this.medicalEventsService.createMedicalEvent({
+
+        if (!appointment) {
+          throw new InternalServerErrorException('Error al crear la cita');
+        }
+
+        // Crear el evento médico asociado directamente con Prisma
+        const medicalEvent = await prisma.medical_event.create({
+          data: {
             appointment_id: appointment.id,
             patient_id: data.patient_id,
             physician_id: data.physician_id,
-            physician_comments: '',
-            main_diagnostic_cie: '',
-            evolution: '',
-            procedure: '',
-            treatment: '',
-            tenant_id: data.tenant_id,
-          });
+          },
+        });
 
-        return medicalEventMessage;
+        console.log(medicalEvent); // Log para depuración
       });
 
       return { message: 'Cita creada exitosamente' };

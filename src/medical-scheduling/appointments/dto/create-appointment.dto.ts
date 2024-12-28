@@ -1,43 +1,46 @@
-import { status_type } from '@prisma/client';
 import {
-  IsNotEmpty,
+  IsUUID,
   IsString,
   IsDate,
   IsEnum,
   IsOptional,
-  IsUUID,
+  IsNotEmpty,
 } from 'class-validator';
+import { status_type } from '@prisma/client';
+import { Transform } from 'class-transformer';
 
 export class CreateAppointmentDto {
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   consultation_reason: string;
 
-  @IsNotEmpty()
   @IsDate()
+  @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
   start: Date;
 
-  @IsNotEmpty()
   @IsDate()
+  @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
   end: Date;
 
-  @IsNotEmpty()
   @IsUUID()
+  @IsNotEmpty()
   patient_id: string;
 
-  @IsNotEmpty()
   @IsUUID()
+  @IsNotEmpty()
   physician_id: string;
 
-  @IsNotEmpty()
   @IsEnum(['Atendida', 'Cancelada', 'Pendiente'])
-  status: status_type;
-
   @IsOptional()
+  status?: status_type;
+
   @IsString()
+  @IsOptional()
   comments?: string;
 
-  @IsNotEmpty()
-  @IsUUID()
-  tenant_id: string;
+  // @IsUUID()
+  // @IsNotEmpty()
+  // tenant_id: string;
 }
