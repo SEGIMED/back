@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsUUID, IsOptional } from 'class-validator';
+import { IsUUID, IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateMedicalEventDto {
   @IsUUID()
@@ -33,6 +33,7 @@ export class CreateMedicalEventDto {
   @IsOptional()
   treatment?: string;
 
-  @IsUUID()
-  tenant_id: string;
+  // @IsUUID()
+  // @IsNotEmpty()
+  // tenant_id: string;
 }

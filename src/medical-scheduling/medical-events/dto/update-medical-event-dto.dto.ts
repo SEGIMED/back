@@ -1,16 +1,16 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class UpdateMedicalEventDto {
   @IsOptional()
-  @IsString()
+  @IsUUID()
   appointment_id?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   patient_id?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   physician_id?: string;
 
   @IsOptional()
@@ -34,6 +34,6 @@ export class UpdateMedicalEventDto {
   treatment?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   tenant_id?: string;
 }
