@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { MedicalEventsService } from './medical-events.service';
 import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
+import { MedicalEventsService } from './medical-events.service';
 
 @Controller('medical-events')
 export class MedicalEventsController {

@@ -3,26 +3,23 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import { appointment, status_type } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import {
   PaginationParams,
   parsePaginationAndSorting,
 } from 'src/utils/pagination.helper';
-import { MedicalEventsService } from '../medical-events/medical-events.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { appointment, status_type } from '@prisma/client';
 
 @Injectable()
 export class AppointmentsService {
-  constructor(
-    private prisma: PrismaService,
-    private medicalEventsService: MedicalEventsService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async createAppointment(
     data: CreateAppointmentDto,
   ): Promise<{ message: string }> {
+    // Verificar que las fechas de inicio y fin sean válidas
     if (!data.start || !data.end || data.start >= data.end) {
       throw new BadRequestException(
         'La fecha de inicio debe ser anterior a la fecha de fin',
@@ -30,7 +27,6 @@ export class AppointmentsService {
     }
 
     try {
-      // Verificar si el paciente y el médico existen
       const patientExists = await this.prisma.patient.findUnique({
         where: { id: data.patient_id },
       });
@@ -81,7 +77,7 @@ export class AppointmentsService {
           },
         });
 
-        console.log(medicalEvent); // Log para depuración
+        console.log(medicalEvent);
       });
 
       return { message: 'Cita creada exitosamente' };
@@ -97,13 +93,14 @@ export class AppointmentsService {
     userId: string,
     params: { status?: status_type } & PaginationParams,
   ): Promise<appointment[]> {
+    // Desestructurar los parámetros de paginación y ordenación
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(params);
 
     try {
       const appointments = await this.prisma.appointment.findMany({
         where: {
-          patient_id: userId,
+          OR: [{ patient_id: userId }, { physician_id: userId }],
           ...(params.status && { status: params.status }),
         },
         skip,
