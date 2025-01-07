@@ -8,8 +8,8 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { AppointmentsService } from './appointments.service';
 import { status_type } from '@prisma/client';
 
 @Controller('appointments')

@@ -6,8 +6,8 @@ import {
   IsOptional,
   IsNotEmpty,
 } from 'class-validator';
-import { status_type } from '@prisma/client';
 import { Transform } from 'class-transformer';
+import { status_type } from '@prisma/client';
 
 export class CreateAppointmentDto {
   @IsString()

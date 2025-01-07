@@ -1,14 +1,16 @@
 export interface PaginationParams {
-  page?: number;
-  pageSize?: number;
+  page?: number | string;
+  pageSize?: number | string;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
 }
 
 export function parsePaginationAndSorting(params: PaginationParams) {
-  const page = params.page && params.page > 0 ? params.page : 1;
+  const page = params.page && Number(params.page) > 0 ? Number(params.page) : 1;
   const pageSize =
-    params.pageSize && params.pageSize > 0 ? params.pageSize : 10;
+    params.pageSize && Number(params.pageSize) > 0
+      ? Number(params.pageSize)
+      : 10;
   const skip = (page - 1) * pageSize;
   const take = pageSize;
 
