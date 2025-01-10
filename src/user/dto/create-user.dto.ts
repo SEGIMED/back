@@ -121,7 +121,7 @@ export class CreateUserDto {
   /**
    * Represent the ID of the Organization
    */
-
+  @IsOptional()
   tenant_id: string;
 
   // createdAt   DateTime    @default(now())

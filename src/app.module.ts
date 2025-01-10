@@ -10,6 +10,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { AppointmentsModule } from './medical-scheduling/appointments/appointments.module';
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
+import { PatientModule } from './patient/patient.module';
 config({ path: '.env' });
 
 @Module({
@@ -35,6 +36,7 @@ config({ path: '.env' });
         expiresIn: '1h',
       },
     }),
+    PatientModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

@@ -21,22 +21,29 @@ model user {
   birthdate    DateTime?
   phone_prefix String
   phone        String
-  image        String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  patients     patient[]
+  image        String         @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at   DateTime       @default(now())
+  updated_at   DateTime       @updatedAt
+  patient      patient? 
   physicians   physician[]
   transactions transaction[]
 }
 
 model patient {
-  id                 String          @id @default(uuid())
-  health_care_number String?
-  userId             String
-  tenantId           String
-  appointments       appointment[]
-  medical_events     medical_event[]
-  user               user            @relation(fields: [userId], references: [id])
+  id                  String          @id @default(uuid())
+  last_name           String
+  direction           String
+  country             String
+  province            String
+  city                String
+  postal_code         String
+  direction_number    String
+  apparment           String
+  health_care_number  String?
+  userId              String          @unique
+  appointments        appointment[]
+  medical_events      medical_event[]
+  user                user            @relation(fields: [userId], references: [id])
 }
 
 model physician {
