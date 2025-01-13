@@ -25,33 +25,10 @@ enum status_type {
   Pendiente
 }
 
-model user {
-  id          String      @id @default(uuid())
-  name        String
-  email       String      @unique
-  password    String?
-  googleId    String?     @unique
-  role        role_type
-  tenantId    String
-  nationality String?
-  gender      String?
-  phonePrefix String
-  phone       String
-  image       String      @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  patients    patient[]
-  physicians  physician[]
-  transactions Transaction[] // Relación con Transaction
-  subscriptions subscription[] // Relación con Subscription
-  payments     payment[] // Relación con Payment
-}
-
 model patient {
   id                 String  @id @default(uuid())
   health_care_number String?
   userId             String
-  user               user    @relation(fields: [userId], references: [id])
   tenantId           String
 
   appointments   appointment[]
@@ -62,7 +39,6 @@ model physician {
   id        String @id @default(uuid())
   specialty String
   userId    String
-  user      user   @relation(fields: [userId], references: [id])
   tenantId  String
 
   appointments   appointment[]
@@ -86,7 +62,6 @@ model appointment {
   physician physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
 
   medical_events medical_event[]
-  // tenant Tenant @relation(fields: [tenant_id], references: [id])
 
   @@index([physician_id, start, end])
 }
@@ -107,7 +82,6 @@ model medical_event {
   appointment appointment @relation(fields: [appointment_id], references: [id])
   patient     patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
-  // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
 
 //paypal model
@@ -117,9 +91,10 @@ model Transaction {
   status       String   // Estado de la transacción (COMPLETED, FAILED, etc.)
   amount       Float    // Monto de la transacción
   currency     String   // Moneda de la transacción (USD, EUR, etc.)
-  userId       String   // Relación con el usuario que realizó el pago
-  user         user     @relation(fields: [userId], references: [id])
+  
   createdAt    DateTime @default(now())
+
+  @@map("transaction")  // Esto indica que Prisma debe usar 'transaction' en minúsculas
 }
 
 // SUBSCRIPCIONES
@@ -127,7 +102,6 @@ model subscription {
   id               String                @id @default(uuid())
   tenant_id        String
   user_id          String
-  user             user                  @relation(fields: [user_id], references: [id])
   status           subscription_status_type
   type             String                @default("trial")
   start_date       DateTime
@@ -157,7 +131,6 @@ enum subscription_status_type {
 model payment {
   id               String               @id @default(uuid())
   user_id          String
-  user             user                 @relation(fields: [user_id], references: [id])
   tenant_id        String
   subscription_id  String
   subscription     subscription         @relation(fields: [subscription_id], references: [id])
