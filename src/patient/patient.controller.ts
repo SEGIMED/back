@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PatientService } from './patient.service';
 import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { MedicalPatientDto } from './dto/medical-patient.dto';
 
 @Controller('patient')
 export class PatientController {
@@ -11,6 +12,11 @@ export class PatientController {
   create(@Body() createPatientDto: CreatePatientDto) {
     console.log(createPatientDto)
     return this.patientService.create(createPatientDto);
+  }
+
+  @Post('medical')
+  createPatient(@Body() medicalPatientDto: MedicalPatientDto) {
+    return this.patientService.createMedical(medicalPatientDto);
   }
 
   @Get()

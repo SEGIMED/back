@@ -2,7 +2,18 @@ import { PickType } from "@nestjs/swagger";
 import { IsOptional, IsString, Length } from "class-validator";
 import { CreateUserDto } from "src/user/dto/create-user.dto";
 
-export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
+export class MedicalPatientDto extends PickType(CreateUserDto, [
+    "name",
+    "last_name",
+    "birthdate",
+    "gender",
+    "email",
+    "phone",
+    "phone_prefix",
+    "dni",
+    "role",
+    "tenant_id"
+    ]) {
 
 
     /**
@@ -12,7 +23,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
     @IsString()
     @Length(3, 50)
     @IsOptional()
-    direction?:string;
+    direction:string;
 
     /**
      * User's city
@@ -20,7 +31,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
      */
     @IsString()
     @Length(3, 50)
-    country?:String;
+    country:string;
 
     /**
      * User's province
@@ -28,7 +39,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
      */
     @IsString()
     @Length(3, 50)
-    province?:String;
+    province:string;
 
     /**
      * User's city
@@ -36,7 +47,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
      */
     @IsString()
     @Length(3, 50)
-    city?:String;
+    city:string;
 
     /**
      * User's postal code
@@ -44,7 +55,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
      */
     @IsString()
     @Length(3, 50)
-    postal_code?:String;
+    postal_code:string;
 
     /**
      * User's direction
@@ -52,7 +63,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
      */
     @IsString()
     @Length(3, 50)
-    direction_number?:String;
+    direction_number?:string;
 
     /**
      * User's apparment
@@ -60,7 +71,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
      */
     @IsString()
     @Length(3, 50)
-    apparment?:String;
+    apparment?:string;
 
     /**
      * User's health care nuber unique number
@@ -68,9 +79,9 @@ export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
      */
     @IsString()
     @Length(3, 50)
-    health_care_number?:String;
+    health_care_number?:string;
     
-    userId:String;
+    userId?:string;
     appointments?:any[];
     medical_events?:any[];
 }
