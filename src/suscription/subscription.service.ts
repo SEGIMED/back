@@ -1,58 +1,49 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateSubscriptionDto, UpdateSubscriptionDto } from './dto';
+import { CreateSubscriptionDto } from './dto/create_subscription.dto';
+import { v4 as uuidv4 } from 'uuid'; // Importar función para generar UUID
 
 @Injectable()
 export class SubscriptionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    return this.prisma.subscription.findMany({
-      include: { user: true },
+  async createSubscription(createSubscriptionDto: CreateSubscriptionDto) {
+    const subscriptionId = uuidv4(); // Generar UUID único
+    const paymentId = uuidv4();
+    
+    // Asegurarse de que las fechas se convierten correctamente a formato ISO-8601
+    const startDate = new Date(createSubscriptionDto.startDate + "T00:00:00Z"); // UTC
+    const endDate = new Date(createSubscriptionDto.endDate + "T00:00:00Z"); // UTC
+  
+    const subscription = await this.prisma.subscription.create({
+      data: {
+        id: subscriptionId, // Asignar el UUID generado
+        plan: createSubscriptionDto.plan,
+        amount: createSubscriptionDto.amount,
+        startDate: startDate,
+        endDate: endDate,
+        paymentId: paymentId, // Generar UUID para paymentId
+        status: 'pending', // Estado inicial
+      },
     });
+  
+    const approvalUrl = `https://sandbox.paypal.com/checkout?subscriptionId=${subscriptionId}`;
+  
+    return { approvalUrl, subscription };
   }
 
-  async findOne(id: string) {
-    const subscription = await this.prisma.subscription.findUnique({
-      where: { id },
-      include: { user: true },
-    });
-
-    if (!subscription) {
-      throw new NotFoundException(`Subscription with ID ${id} not found`);
-    }
-
-    return subscription;
-  }
-
-  async create(data: CreateSubscriptionDto) {
-    return this.prisma.subscription.create({
-      data,
-    });
-  }
-
-  async update(id: string, data: UpdateSubscriptionDto) {
-    const subscription = await this.findOne(id);
-
-    if (!subscription) {
-      throw new NotFoundException(`Subscription with ID ${id} not found`);
-    }
-
+  async updateSubscriptionStatus(paymentId: string, status: string) {
     return this.prisma.subscription.update({
-      where: { id },
-      data,
+      where: { id: paymentId },
+      data: { status },
     });
   }
 
-  async remove(id: string) {
-    const subscription = await this.findOne(id);
+  async getById(id: string) {
+    return this.prisma.subscription.findUnique({ where: { id } });
+  }
 
-    if (!subscription) {
-      throw new NotFoundException(`Subscription with ID ${id} not found`);
-    }
-
-    return this.prisma.subscription.delete({
-      where: { id },
-    });
+  async getAll() {
+    return this.prisma.subscription.findMany();
   }
 }

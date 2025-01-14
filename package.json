@@ -27,9 +27,12 @@
     "@nestjs/platform-express": "^10.0.0",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@prisma/client": "^6.1.0",
+    "axios": "^1.7.9",
     "class-validator": "^0.14.1",
+    "cors": "^2.8.5",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

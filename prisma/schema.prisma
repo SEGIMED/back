@@ -84,66 +84,16 @@ model medical_event {
   physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
 }
 
-//paypal model
-model Transaction {
-  id           String   @id @default(uuid())
-  orderId      String   // ID de la orden de PayPal
-  status       String   // Estado de la transacción (COMPLETED, FAILED, etc.)
-  amount       Float    // Monto de la transacción
-  currency     String   // Moneda de la transacción (USD, EUR, etc.)
-  
-  createdAt    DateTime @default(now())
-
-  @@map("transaction")  // Esto indica que Prisma debe usar 'transaction' en minúsculas
-}
-
 // SUBSCRIPCIONES
 model subscription {
-  id               String                @id @default(uuid())
-  tenant_id        String
-  user_id          String
-  status           subscription_status_type
-  type             String                @default("trial")
-  start_date       DateTime
-  end_date         DateTime
-  last_payment_date DateTime?
-  payment_method   String?
-
-  payments         payment[] // Relación con Payment
-}
-
-model subscription_type {
-  id               String @id @default(uuid())
-  name             String
-  price            Float
-  trial_period_days Int
-  features         Json
-}
-
-enum subscription_status_type {
-  active
-  trial
-  cancelled
-  expired
-}
-
-//PAGOS
-model payment {
-  id               String               @id @default(uuid())
-  user_id          String
-  tenant_id        String
-  subscription_id  String
-  subscription     subscription         @relation(fields: [subscription_id], references: [id])
-  amount           Float
-  currency         String
-  payment_method   String
-  transaction_id   String?
-  payment_date     DateTime
-  status           payment_status_type
-}
-
-enum payment_status_type {
-  success
-  failed
-  pending
+  id             String       @id @default(uuid())
+  plan           String
+  status         String
+  paymentId      String
+  startDate      DateTime
+  endDate        DateTime
+  amount         Float
+  // userId       Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
