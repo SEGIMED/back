@@ -12,7 +12,9 @@ export class MedicalPatientDto extends PickType(CreateUserDto, [
     "phone_prefix",
     "dni",
     "role",
-    "tenant_id"
+    "tenant_id",
+    "dniType",
+    "nationality"
     ]) {
 
 

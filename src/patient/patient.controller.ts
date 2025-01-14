@@ -9,15 +9,14 @@ export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
-  create(@Body() createPatientDto: CreatePatientDto) {
-    console.log(createPatientDto)
+  create(@Body() createPatientDto: MedicalPatientDto) {
     return this.patientService.create(createPatientDto);
   }
 
-  @Post('medical')
-  createPatient(@Body() medicalPatientDto: MedicalPatientDto) {
-    return this.patientService.createMedical(medicalPatientDto);
-  }
+  // @Post('medical')
+  // createPatient(@Body() medicalPatientDto: MedicalPatientDto) {
+  //   return this.patientService.createMedical(medicalPatientDto);
+  // }
 
   @Get()
   findAll() {

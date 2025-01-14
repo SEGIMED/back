@@ -47,6 +47,15 @@ export class CreateUserDto {
   dni: string;
 
   /**
+   * Set the user's dni
+   * @example 'ABX11503476'
+   */
+  @IsString()
+  @Length(10, 15)
+  @IsOptional()
+  dniType: string;
+  
+  /**
    * Set the user's birthdate
    * @example '2004-12-24T05:44:49.842Z'
    */

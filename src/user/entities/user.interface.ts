@@ -4,8 +4,10 @@ import { role_type } from '@prisma/client';
 export interface User {
   id?: string;
   name?: string;
+  last_name?:string;
   email?: string;
   dni?: string;
+  dniType?: string;
   birthdate?: Date;
   nationality?: string;
   gender?: string;
@@ -14,7 +16,7 @@ export interface User {
   password?: string;
   google_id?: string;
   image?: string;
-  role_type?: role_type;
+  role?: role_type;
   /*   tenant?: Tenant; */
   tenant_id?: string;
   createdAt?: Date;
