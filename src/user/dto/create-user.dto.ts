@@ -21,6 +21,15 @@ export class CreateUserDto {
   name: string;
 
   /**
+   * User's last Name
+   * @example Simancas
+   */
+  @IsString()
+  @Length(3, 50)
+  @IsOptional()
+  last_name: string;
+
+  /**
    * Set the user's email
    * @example 'carlos@email.com'
    */
@@ -36,6 +45,15 @@ export class CreateUserDto {
   @Length(10, 15)
   @IsOptional()
   dni: string;
+
+  /**
+   * Set the user's dni
+   * @example 'ABX11503476'
+   */
+  @IsString()
+  @Length(10, 15)
+  @IsOptional()
+  dniType: string;
 
   /**
    * Set the user's birthdate

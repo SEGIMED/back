@@ -1,6 +1,5 @@
 export interface Patient {
   id?: string;
-  last_name?: string;
   direction?: string;
   country?: string;
   province?: string;

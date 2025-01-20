@@ -2,16 +2,20 @@ import { PickType } from '@nestjs/swagger';
 import { IsOptional, IsString, Length } from 'class-validator';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
-export class CreatePatientDto extends PickType(CreateUserDto, ['email']) {
-  /**
-   * User's last Name
-   * @example Simancas
-   */
-  @IsString()
-  @Length(3, 50)
-  @IsOptional()
-  last_name: string;
-
+export class MedicalPatientDto extends PickType(CreateUserDto, [
+  'name',
+  'last_name',
+  'birthdate',
+  'gender',
+  'email',
+  'phone',
+  'phone_prefix',
+  'dni',
+  'role',
+  'tenant_id',
+  'dniType',
+  'nationality',
+]) {
   /**
    * User's direction
    * @example Arequipa y Moncayo
@@ -19,7 +23,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ['email']) {
   @IsString()
   @Length(3, 50)
   @IsOptional()
-  direction?: string;
+  direction: string;
 
   /**
    * User's city
@@ -27,7 +31,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ['email']) {
    */
   @IsString()
   @Length(3, 50)
-  country?: string;
+  country: string;
 
   /**
    * User's province
@@ -35,7 +39,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ['email']) {
    */
   @IsString()
   @Length(3, 50)
-  province?: string;
+  province: string;
 
   /**
    * User's city
@@ -43,7 +47,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ['email']) {
    */
   @IsString()
   @Length(3, 50)
-  city?: string;
+  city: string;
 
   /**
    * User's postal code
@@ -51,7 +55,7 @@ export class CreatePatientDto extends PickType(CreateUserDto, ['email']) {
    */
   @IsString()
   @Length(3, 50)
-  postal_code?: string;
+  postal_code: string;
 
   /**
    * User's direction
