@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PasswordHelper } from 'src/utils/passwordHash.helper';
+import { GoogleUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,27 +11,84 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
   ) {}
-  async login(createAuthDto: CreateAuthDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: createAuthDto.email },
-    });
-    if (user) {
-      const isValid = await bcrypt.compare(
+  async login(createAuthDto: CreateAuthDto): Promise<object> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: createAuthDto.email },
+      });
+
+      if (!user) {
+        throw new BadRequestException('El email no está registrado');
+      }
+
+      const isPasswordValid = await PasswordHelper.comparePasswords(
         createAuthDto.password,
         user.password,
       );
-      if (!isValid) {
-        throw new BadRequestException('Email o password incorrectos');
+
+      if (!isPasswordValid) {
+        throw new BadRequestException('La contraseña es incorrecta');
       }
-      const payload = {
+      const jwtPayload = {
+        email: user.email,
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name,
+        tenant_id: user.tenant_id,
+        role: user.role,
+        image: user.image,
+      };
+      const jwt = await this.jwtService.signAsync(jwtPayload);
+
+      return { message: 'Login exitoso', jwt: jwt, user: jwtPayload };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new Error('Error al procesar la solicitud de login');
+    }
+  }
+
+  async googleLogin(GoogleUserDto: GoogleUserDto): Promise<object> {
+    try {
+      let user = await this.prisma.user.findUnique({
+        where: { email: GoogleUserDto.email },
+      });
+
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            email: GoogleUserDto.email,
+            name: GoogleUserDto.name ?? '',
+            image: GoogleUserDto.image ?? '',
+            tenant_id: '',
+            password: '',
+          },
+        });
+      }
+
+      if (!user) {
+        throw new Error('Error al crear el usuario o el usuario no existe');
+      }
+
+      const jwtPayload = {
         id: user.id,
         email: user.email,
         name: user.name,
+        image: user.image,
+        tenant_id: user.tenant_id,
+        role: user.role,
       };
-      console.log(payload);
-      const jwt = this.jwtService.sign(payload);
-      return { success: 'User Login', token: jwt };
+      const token = await this.jwtService.signAsync(jwtPayload);
+
+      return {
+        message: 'Login exitoso',
+        token: token,
+        user: jwtPayload,
+      };
+    } catch {
+      throw new Error('Error al procesar la solicitud de Google Login');
     }
-    return 'This action adds a new auth';
   }
 }

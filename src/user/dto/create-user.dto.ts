@@ -86,3 +86,15 @@ export class CreateUserDto {
   @IsOptional()
   tenant_id: string;
 }
+
+export class GoogleUserDto {
+  @IsOptional()
+  name: string;
+
+  @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
+  @IsNotEmpty({ message: 'El correo electrónico es obligatorio.' })
+  email: string;
+
+  @IsOptional()
+  image: string;
+}
