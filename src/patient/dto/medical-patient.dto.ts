@@ -13,7 +13,6 @@ export class MedicalPatientDto extends PickType(CreateUserDto, [
   'dni',
   'role',
   'tenant_id',
-  'dniType',
   'nationality',
 ]) {
   /**

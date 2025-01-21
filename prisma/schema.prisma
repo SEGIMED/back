@@ -10,51 +10,61 @@ datasource db {
 model user {
   id           String        @id @default(uuid())
   name         String
-  last_name    String?
+  last_name    String
   email        String        @unique
   password     String?
   google_id    String?       @unique
-  role         role_type
-  tenant_id    String
+  role         role_type     @default(physician)
   nationality  String?
   gender       String?
-  dniType      String?
-  dni          String         @unique
-  birthdate    DateTime?
-  phone_prefix String?
-  phone        String?
-  image        String         @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
-  patient      patient? 
-  physicians   physician[]
+  dni          String?       @unique
+  birth_date   DateTime?
+  phone_prefix String
+  phone        String
+  image        String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
   transactions transaction[]
+
+  tenant_id String?
+  patient   patient?
+}
+
+model organization {
+  id      String @id @default(uuid())
+  user_id String
+
+  tenant_id String
+  db_name   String
 }
 
 model patient {
-  id                  String          @id @default(uuid())
-  direction           String?
-  country             String?
-  province            String?
-  city                String?
-  postal_code         String?
-  direction_number    String?
-  apparment           String?
-  health_care_number  String?
-  userId              String          @unique
-  appointments        appointment[]
-  medical_events      medical_event[]
-  user                user            @relation(fields: [userId], references: [id])
+  id                 String          @id @default(uuid())
+  direction          String?
+  country            String?
+  province           String?
+  city               String?
+  postal_code        String?
+  direction_number   String?
+  apartment          String?
+  health_care_number String?
+  user_id            String          @unique
+  appointments       appointment[]
+  medical_events     medical_event[]
+  user               user            @relation(fields: [user_id], references: [id])
+
+  tenant_id String
 }
 
 model physician {
-  id             String          @id @default(uuid())
-  specialty      String
-  userId         String
-  tenantId       String
+  id        String @id @default(uuid())
+  specialty String
+  user_id   String
+
   appointments   appointment[]
   medical_events medical_event[]
-  user           user            @relation(fields: [userId], references: [id])
+
+  tenant_id String
 }
 
 model appointment {
@@ -64,14 +74,14 @@ model appointment {
   end                 DateTime
   patient_id          String
   physician_id        String
-  status              status_type     @default(Pendiente)
+  status              status_type     @default(pendiente)
   cancelation_reason  String?
   comments            String?
   patient             patient         @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician           physician       @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   medical_events      medical_event[]
 
-  @@index([physician_id, start, end])
+  tenant_id String
 }
 
 model medical_event {
@@ -87,32 +97,36 @@ model medical_event {
   appointment         appointment @relation(fields: [appointment_id], references: [id])
   patient             patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician           physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
+  tenant_id String
 }
 
 model transaction {
-  id        String   @id @default(uuid())
-  orderId   String
-  status    String
-  amount    Float
-  currency  String
-  userId    String
-  createdAt DateTime @default(now())
-  user      user     @relation(fields: [userId], references: [id])
+  id         String   @id @default(uuid())
+  orderId    String
+  status     String
+  amount     Float
+  currency   String
+  userId     String
+  created_at DateTime @default(now())
+  user       user     @relation(fields: [userId], references: [id])
+
+  tenant_id String
 }
 
 enum role_type {
-  PATIENT
-  PHYSICIAN
-  ORGANIZATION_OWNER
+  patient
+  physician
+  organization_owner
 }
 
 enum status_type {
-  Atendida
-  Cancelada
-  Pendiente
+  atendida
+  cancelada
+  pendiente
 }
 
 enum tenant_type {
-  INDIVIDUAL
-  ORGANIZATION
+  individual
+  organization
 }

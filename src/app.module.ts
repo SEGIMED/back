@@ -11,6 +11,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { AppointmentsModule } from './medical-scheduling/appointments/appointments.module';
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
 import { PatientModule } from './patient/patient.module';
+import { ConfigModule } from '@nestjs/config';
 config({ path: '.env' });
 
 @Module({
@@ -18,15 +19,10 @@ config({ path: '.env' });
     AppointmentsModule,
     MedicalEventsModule,
     UserModule,
-    /*     TenantModule, */
-    // ConfigModule.forRoot({
-    //   isGlobal: true,
-    //   load: [typeOrmConfig]
-    // }),
-    // TypeOrmModule.forRootAsync({
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => configService.get('typeorm')
-    // }),
+    ConfigModule.forRoot({
+      isGlobal: true, // Esto hace que las configuraciones sean accesibles globalmente
+      envFilePath: '.env', // El archivo de configuración (debería estar en la raíz)
+    }),
     PrismaModule,
     AuthModule,
     JwtModule.register({

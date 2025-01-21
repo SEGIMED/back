@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { MedicalPatientDto } from './dto/medical-patient.dto';
+/* import { MedicalPatientDto } from './dto/medical-patient.dto'; */
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -11,8 +11,8 @@ export class PatientService {
     private readonly userService: UserService,
   ) {}
 
-  async create(medicalPatientDto: MedicalPatientDto) {
-    try {
+  async create(/* medicalPatientDto: MedicalPatientDto */) {
+    /*     try {
       const newUser = {
         name: medicalPatientDto.name,
         last_name: medicalPatientDto.last_name,
@@ -22,7 +22,6 @@ export class PatientService {
         phone: medicalPatientDto.phone,
         phone_prefix: medicalPatientDto.phone_prefix,
         dni: medicalPatientDto.dni,
-        dniType: medicalPatientDto.dniType,
         password: medicalPatientDto.dni,
         nationality: medicalPatientDto.nationality,
         gender: medicalPatientDto.gender,
@@ -43,7 +42,7 @@ export class PatientService {
               province: medicalPatientDto.province,
               postal_code: medicalPatientDto.postal_code,
               direction_number: medicalPatientDto.direction_number,
-              apparment: medicalPatientDto.apparment,
+              appartment: medicalPatientDto.appartment,
               userId: user['user'].id,
             },
           })
@@ -56,7 +55,7 @@ export class PatientService {
       }
     } catch (error) {
       return { message: 'Error al crear el usuario', Error: error };
-    }
+    } */
   }
 
   async findAll() {

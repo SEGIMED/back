@@ -1,30 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 // import { Tenant } from 'src/tenant/entities/tenant.entity';
-import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { PasswordHelper } from 'src/utils/passwordHash.helper';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
-    // @InjectRepository(User) private readonly userRepository: Repository<User>,
-    // @InjectRepository(Tenant) private readonly tenantRepository: Repository<Tenant>
+    private readonly configService: ConfigService,
   ) {}
-  async create(data: Prisma.userCreateInput): Promise<object> {
-    const salt = await bcrypt.genSalt(10);
-    data.password = await bcrypt.hash(data.password, salt);
+  async create(data: CreateUserDto): Promise<object> {
+    const saltRounds = parseInt(
+      this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+    );
+    data.password = await PasswordHelper.hashPassword(
+      data.password,
+      saltRounds,
+    );
 
-    const user = await this.prisma.user
+    await this.prisma.user
       .create({
         data: data,
       })
       .catch((err) => {
-        throw new Error(err);
+        if (err.code === 'P2002') {
+          throw new BadRequestException(
+            'El correo electrónico ya está registrado.',
+          );
+        }
+        throw new BadRequestException('No se pudo crear el usuario.');
       });
-    return { message: 'El usuario se ha creado con éxito', user: user };
+    return { message: 'El usuario se ha creado con éxito' };
   }
+
+  /*   async onboarding(data: any) {} */
 
   async findAll(): Promise<any[]> {
     const users = await this.prisma.user.findMany();
