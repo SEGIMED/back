@@ -50,6 +50,7 @@ model user {
   patients     patient[]
   physicians   physician[]
   transactions transaction[]
+  physical_examinations physical_examination[]        
 }
 
 model patient {
@@ -112,6 +113,7 @@ model medical_event {
   appointment appointment @relation(fields: [appointment_id], references: [id])
   patient     patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  physical_examination      physical_examination[]
   // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
 }
 
@@ -125,4 +127,24 @@ model transaction {
   userId    String // Relación con el usuario que realizó el pago
   user      user     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+}
+
+model physical_subsystem{
+  id                      String              @id @default(uuid())
+  name                    String    
+  physical_examinations   physical_examination[]
+}
+
+model physical_examination {
+  id                      String              @id @default(uuid())
+  physical_subsystem_id   String?
+  userId                  String
+  description             String
+  medical_event_id        String
+  tenant_id               String
+  medical_event           medical_event       @relation(fields: [medical_event_id], references: [id])
+  user                    user                @relation(fields: [userId], references: [id])
+  physical_subsystem      physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
+  createdAt               DateTime            @default(now())
+  updated_at              DateTime            @updatedAt
 }

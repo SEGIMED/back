@@ -10,6 +10,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PrismaService } from './prisma/prisma.service';
 import { AppointmentsModule } from './medical-scheduling/appointments/appointments.module';
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
+import { PhysicalExaminationService } from './services/physical-examination/physical-examination.service';
+import { PhysicalSubsystemService } from './services/physical_subsystem/physical_subsystem.service';
 config({ path: '.env' });
 
 @Module({
@@ -37,6 +39,6 @@ config({ path: '.env' });
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, PhysicalExaminationService, PhysicalSubsystemService],
 })
 export class AppModule {}
