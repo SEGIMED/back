@@ -3,7 +3,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PasswordHelper } from 'src/utils/passwordHash.helper';
+import { AuthHelper } from 'src/utils/auth.helper';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -16,10 +16,7 @@ export class UserService {
     const saltRounds = parseInt(
       this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
     );
-    data.password = await PasswordHelper.hashPassword(
-      data.password,
-      saltRounds,
-    );
+    data.password = await AuthHelper.hashPassword(data.password, saltRounds);
 
     await this.prisma.user
       .create({

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PasswordHelper } from 'src/utils/passwordHash.helper';
+import { AuthHelper } from 'src/utils/auth.helper';
 import { GoogleUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class AuthService {
         throw new BadRequestException('El email no está registrado');
       }
 
-      const isPasswordValid = await PasswordHelper.comparePasswords(
+      const isPasswordValid = await AuthHelper.comparePasswords(
         createAuthDto.password,
         user.password,
       );

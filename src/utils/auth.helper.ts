@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 
-export class PasswordHelper {
+export class AuthHelper {
   static async hashPassword(
     password: string,
     saltRounds: number,
