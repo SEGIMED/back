@@ -12,6 +12,7 @@ import { AppointmentsModule } from './medical-scheduling/appointments/appointmen
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
 import { PatientModule } from './patient/patient.module';
 import { ConfigModule } from '@nestjs/config';
+import { EmailModule } from './utils/email/email.module';
 config({ path: '.env' });
 
 @Module({
@@ -33,6 +34,7 @@ config({ path: '.env' });
       },
     }),
     PatientModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthHelper } from 'src/utils/auth.helper';
 import { GoogleUserDto } from 'src/user/dto/create-user.dto';
+import { RequestPasswordDto } from './dto/password-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -89,6 +90,32 @@ export class AuthService {
       };
     } catch {
       throw new Error('Error al procesar la solicitud de Google Login');
+    }
+  }
+
+  async requestPasswordReset(
+    RequestPasswordDto: RequestPasswordDto,
+  ): Promise<object> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: RequestPasswordDto.email },
+      });
+
+      if (!user) {
+        throw new BadRequestException('El email no está registrado');
+      }
+
+      return {
+        message:
+          'Se ha enviado un correo electrónico para restablecer la contraseña',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(
+        'Error al procesar la solicitud de restablecimiento de contraseña',
+      );
     }
   }
 }
