@@ -33,7 +33,7 @@ export class CreateMedicalEventDto {
   @IsOptional()
   treatment?: string;
 
-  // @IsUUID()
-  // @IsNotEmpty()
-  // tenant_id: string;
+  @IsUUID()
+  @IsNotEmpty()
+  tenant_id: string;
 }

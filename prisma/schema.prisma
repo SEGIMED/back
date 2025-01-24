@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,91 +7,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum role_type {
-  PATIENT
-  PHYSICIAN
-  ORGANIZATION_OWNER
-}
-
-enum status_type {
-  Atendida
-  Cancelada
-  Pendiente
-}
-
-enum tenant_type {
-  INDIVIDUAL
-  ORGANIZATION
-}
-
 model user {
   id           String        @id @default(uuid())
   name         String
+  last_name    String?
   email        String        @unique
   password     String?
   google_id    String?       @unique
-  role         role_type
-  tenant_id    String
+  role         role_type     @default(physician)
   nationality  String?
   gender       String?
-  dni          String
-  birthdate    DateTime?
-  phone_prefix String
-  phone        String
+  dni          String?       @unique
+  birth_date   DateTime?
+  phone_prefix String?
+  phone        String?
   image        String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
-  patients     patient[]
-  physicians   physician[]
   transactions transaction[]
+
+  tenant_id String?
+  patient   patient?
+}
+
+model organization {
+  id      String @id @default(uuid())
+  user_id String
+
+  tenant_id String
+  db_name   String
 }
 
 model patient {
-  id                 String  @id @default(uuid())
+  id                 String          @id @default(uuid())
+  direction          String?
+  country            String?
+  province           String?
+  city               String?
+  postal_code        String?
+  direction_number   String?
+  apartment          String?
   health_care_number String?
-  userId             String
-  user               user    @relation(fields: [userId], references: [id])
-  tenantId           String
+  user_id            String          @unique
+  appointments       appointment[]
+  medical_events     medical_event[]
+  user               user            @relation(fields: [user_id], references: [id])
 
-  appointments   appointment[]
-  medical_events medical_event[]
+  tenant_id String
 }
 
 model physician {
   id        String @id @default(uuid())
   specialty String
-  userId    String
-  user      user   @relation(fields: [userId], references: [id])
-  tenantId  String
+  user_id   String
 
   appointments   appointment[]
   medical_events medical_event[]
+
+  tenant_id String
 }
 
 model appointment {
-  id                  String      @id @default(uuid())
+  id                  String          @id @default(uuid())
   consultation_reason String
   start               DateTime
   end                 DateTime
   patient_id          String
   physician_id        String
-  status              status_type @default(Pendiente)
+  status              status_type     @default(pendiente)
   cancelation_reason  String?
   comments            String?
-  // tenant_id           String
+  patient             patient         @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician           physician       @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  medical_events      medical_event[]
 
-  // Relaciones
-  patient   patient   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
-  physician physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
-
-  medical_events medical_event[]
-  // tenant tenant @relation(fields: [tenant_id], references: [id])
-
-  @@index([physician_id, start, end])
+  tenant_id String
 }
 
 model medical_event {
-  id                  String  @id @default(uuid())
+  id                  String      @id @default(uuid())
   appointment_id      String
   patient_id          String
   physician_id        String
@@ -106,23 +94,46 @@ model medical_event {
   evolution           String?
   procedure           String?
   treatment           String?
-  // tenant_id           String
+  appointment         appointment @relation(fields: [appointment_id], references: [id])
+  patient             patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician           physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
 
-  // Relaciones
-  appointment appointment @relation(fields: [appointment_id], references: [id])
-  patient     patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
-  physician   physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
-  // tenant              Tenant      @relation(fields: [tenant_id], references: [id])
+  tenant_id String
 }
 
-//paypal model
 model transaction {
-  id        String   @id @default(uuid())
-  orderId   String // ID de la orden de PayPal
-  status    String // Estado de la transacción (COMPLETED, FAILED, etc.)
-  amount    Float // Monto de la transacción
-  currency  String // Moneda de la transacción (USD, EUR, etc.)
-  userId    String // Relación con el usuario que realizó el pago
-  user      user     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  orderId    String
+  status     String
+  amount     Float
+  currency   String
+  userId     String
+  created_at DateTime @default(now())
+  user       user     @relation(fields: [userId], references: [id])
+
+  tenant_id String
+}
+
+model password_reset {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  email      String
+  created_at DateTime @default(now())
+}
+
+enum role_type {
+  patient
+  physician
+  organization_owner
+}
+
+enum status_type {
+  atendida
+  cancelada
+  pendiente
+}
+
+enum tenant_type {
+  individual
+  organization
 }

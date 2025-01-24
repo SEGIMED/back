@@ -11,6 +11,7 @@ export class TransactionService {
     amount: number;
     currency: string;
     userId: string;
+    tenant_id: string;
   }) {
     return this.prisma.transaction.create({ data });
   }

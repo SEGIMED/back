@@ -23,6 +23,7 @@ export class PayPalController {
       amount: parseFloat(captureResult.purchase_units[0].amount.value),
       currency: captureResult.purchase_units[0].amount.currency_code,
       userId: body.userId,
+      tenant_id: body.userId,
     });
 
     return captureResult;
