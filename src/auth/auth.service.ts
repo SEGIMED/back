@@ -1,16 +1,20 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
-import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthHelper } from 'src/utils/auth.helper';
 import { GoogleUserDto } from 'src/user/dto/create-user.dto';
 import { RequestPasswordDto } from './dto/password-auth.dto';
+import { EmailService } from 'src/utils/email/email.service';
+import { Request } from 'express';
+import { recoverPasswordHtml } from 'src/utils/email/templates/recoverPasswordHtml';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
   async login(createAuthDto: CreateAuthDto): Promise<object> {
     try {
@@ -39,14 +43,13 @@ export class AuthService {
         role: user.role,
         image: user.image,
       };
-      const jwt = await this.jwtService.signAsync(jwtPayload);
+      const jwt = AuthHelper.generateToken(jwtPayload);
 
       return { message: 'Login exitoso', jwt: jwt, user: jwtPayload };
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      console.log(error);
       throw new Error('Error al procesar la solicitud de login');
     }
   }
@@ -81,20 +84,24 @@ export class AuthService {
         tenant_id: user.tenant_id,
         role: user.role,
       };
-      const token = await this.jwtService.signAsync(jwtPayload);
+      const token = AuthHelper.generateToken(jwtPayload);
 
       return {
         message: 'Login exitoso',
         token: token,
         user: jwtPayload,
       };
-    } catch {
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new Error('Error al procesar la solicitud de Google Login');
     }
   }
 
   async requestPasswordReset(
     RequestPasswordDto: RequestPasswordDto,
+    req: Request,
   ): Promise<object> {
     try {
       const user = await this.prisma.user.findUnique({
@@ -104,6 +111,29 @@ export class AuthService {
       if (!user) {
         throw new BadRequestException('El email no está registrado');
       }
+      const origin =
+        req.headers.origin || req.protocol + '://' + req.headers.host;
+
+      const jwtPayload = {
+        email: user.email,
+      };
+
+      const token = AuthHelper.generateToken(jwtPayload, '1h');
+
+      await this.prisma.password_reset.create({
+        data: {
+          email: user.email,
+          token: token,
+        },
+      });
+
+      const resetUrl = `${origin}/reset-password?token=${token}`;
+
+      this.emailService.sendMail(
+        RequestPasswordDto.email,
+        recoverPasswordHtml(resetUrl),
+        'Recuperar contraseña',
+      );
 
       return {
         message:
@@ -116,6 +146,35 @@ export class AuthService {
       throw new Error(
         'Error al procesar la solicitud de restablecimiento de contraseña',
       );
+    }
+  }
+
+  async resetPassword(token: string, password: string): Promise<object> {
+    try {
+      const jwtVerification = AuthHelper.verifyToken(token);
+      if (!jwtVerification || typeof jwtVerification === 'string') {
+        throw new BadRequestException('El token no es válido');
+      }
+      const validToken = await this.prisma.password_reset.findUnique({
+        where: { token: token, email: jwtVerification.email },
+      });
+      if (!validToken) {
+        throw new BadRequestException('El token no es válido');
+      }
+      const saltRounds = parseInt(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
+      const hashPassword = await AuthHelper.hashPassword(password, saltRounds);
+      await this.prisma.user.update({
+        where: { email: jwtVerification.email },
+        data: { password: hashPassword },
+      });
+      return { message: 'Contraseña restablecida con éxito.' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('El token no es válido o ha expirado.');
     }
   }
 }

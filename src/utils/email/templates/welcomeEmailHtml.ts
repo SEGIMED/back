@@ -1,4 +1,4 @@
-const welcomeEmailHtml = (name) => {
+const welcomeEmailHtml = (name: string): string => {
   return `<!DOCTYPE html>
   <html>
     <head>

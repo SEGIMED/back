@@ -114,6 +114,13 @@ model transaction {
   tenant_id String
 }
 
+model password_reset {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  email      String
+  created_at DateTime @default(now())
+}
+
 enum role_type {
   patient
   physician
