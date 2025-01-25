@@ -114,4 +114,65 @@ export class PhysicalExaminationService {
       return { message: 'Error al buscar los exámenes', Error: error };
     }
   }
+
+  async update(physicalExaminations: physicalExaminationDto[]) {
+    const failedExams = [];
+
+    try {
+      await this.prisma.$transaction(async (prisma) => {
+        for (const exam of physicalExaminations) {
+          const phy_exa = await prisma.physical_examination.findUnique({
+            where: { id: exam.id },
+          });
+
+          if (!phy_exa) {
+            failedExams.push({
+              id: exam.id,
+              message: 'El examen físico no existe',
+            });
+            continue;
+          }
+
+          await prisma.physical_examination.update({
+            where: { id: exam.id },
+            data: exam,
+          });
+        }
+      });
+
+      if (failedExams.length === 0) {
+        return {
+          message: 'Todos los exámenes fueron actualizados correctamente',
+        };
+      } else {
+        return {
+          message:
+            'Algunos exámenes no pudieron ser actualizados. Vuelva a intentarlo',
+          failedExams,
+        };
+      }
+    } catch (error) {
+      return { message: 'Error al actualizar los exámenes', Error: error };
+    }
+  }
+
+  async delete(id: string) {
+    try {
+      const phy_exa = await this.prisma.physical_examination.findUnique({
+        where: { id },
+      });
+
+      if (!phy_exa) {
+        return { message: 'El examen físico no existe' };
+      }
+
+      await this.prisma.physical_examination.delete({
+        where: { id },
+      });
+
+      return { message: 'El examen físico ha sido eliminado' };
+    } catch (error) {
+      return { message: 'Error al eliminar el examen', error };
+    }
+  }
 }
