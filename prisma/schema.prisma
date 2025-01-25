@@ -8,23 +8,24 @@ datasource db {
 }
 
 model user {
-  id           String        @id @default(uuid())
-  name         String
-  last_name    String?
-  email        String        @unique
-  password     String?
-  google_id    String?       @unique
-  role         role_type     @default(physician)
-  nationality  String?
-  gender       String?
-  dni          String?       @unique
-  birth_date   DateTime?
-  phone_prefix String?
-  phone        String?
-  image        String        @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  transactions transaction[]
+  id                    String                 @id @default(uuid())
+  name                  String
+  last_name             String?
+  email                 String                 @unique
+  password              String?
+  google_id             String?                @unique
+  role                  role_type              @default(physician)
+  nationality           String?
+  gender                String?
+  dni                   String?                @unique
+  birth_date            DateTime?
+  phone_prefix          String?
+  phone                 String?
+  image                 String                 @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+  transactions          transaction[]
+  physical_examinations physical_examination[]
 
   tenant_id String?
   patient   patient?
@@ -85,18 +86,19 @@ model appointment {
 }
 
 model medical_event {
-  id                  String      @id @default(uuid())
-  appointment_id      String
-  patient_id          String
-  physician_id        String
-  physician_comments  String?
-  main_diagnostic_cie String?
-  evolution           String?
-  procedure           String?
-  treatment           String?
-  appointment         appointment @relation(fields: [appointment_id], references: [id])
-  patient             patient     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
-  physician           physician   @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  id                   String                 @id @default(uuid())
+  appointment_id       String
+  patient_id           String
+  physician_id         String
+  physician_comments   String?
+  main_diagnostic_cie  String?
+  evolution            String?
+  procedure            String?
+  treatment            String?
+  appointment          appointment            @relation(fields: [appointment_id], references: [id])
+  patient              patient                @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician            physician              @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  physical_examination physical_examination[]
 
   tenant_id String
 }
@@ -136,4 +138,24 @@ enum status_type {
 enum tenant_type {
   individual
   organization
+}
+
+model cat_physical_subsystem {
+  id                    String                 @id @default(uuid())
+  name                  String
+  physical_examinations physical_examination[]
+}
+
+model physical_examination {
+  id                    String                  @id @default(uuid())
+  physical_subsystem_id String?
+  patient_id            String
+  description           String
+  medical_event_id      String
+  tenant_id             String
+  medical_event         medical_event           @relation(fields: [medical_event_id], references: [id])
+  user                  user                    @relation(fields: [patient_id], references: [id])
+  physical_subsystem    cat_physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
+  createdAt             DateTime                @default(now())
+  updated_at            DateTime                @updatedAt
 }
