@@ -32,7 +32,7 @@ export class CreateAppointmentDto {
   @IsNotEmpty()
   physician_id: string;
 
-  @IsEnum(['Atendida', 'Cancelada', 'Pendiente'])
+  @IsEnum(['atendida', 'cancelada', 'pendiente'])
   @IsOptional()
   status?: status_type;
 
@@ -40,7 +40,7 @@ export class CreateAppointmentDto {
   @IsOptional()
   comments?: string;
 
-  // @IsUUID()
-  // @IsNotEmpty()
-  // tenant_id: string;
+  @IsUUID()
+  @IsNotEmpty()
+  tenant_id: string;
 }

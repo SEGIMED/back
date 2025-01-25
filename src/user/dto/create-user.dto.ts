@@ -10,122 +10,91 @@ import {
 import { role_type } from '@prisma/client';
 
 export class CreateUserDto {
-  /**
-   * Set full users name
-   * @example 'Carlos Alberto Simancas Cuenca'
-   */
-  @IsString()
-  @Length(2, 50)
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'El nombre debe ser un texto válido.' })
+  @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres.' })
+  @IsNotEmpty({ message: 'El nombre es obligatorio.' })
   name: string;
 
-  /**
-   * Set the user's email
-   * @example 'carlos@email.com'
-   */
-  @IsEmail()
-  @IsNotEmpty()
+  @IsString({ message: 'El apellido debe ser un texto válido.' })
+  @Length(3, 50, { message: 'El apellido debe tener entre 3 y 50 caracteres.' })
+  last_name: string;
+
+  @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
+  @IsNotEmpty({ message: 'El correo electrónico es obligatorio.' })
   email: string;
 
-  /**
-   * Set the user's dni
-   * @example 'ABX11503476'
-   */
-  @IsString()
-  @Length(10, 15)
+  @IsString({ message: 'El DNI debe ser un texto válido.' })
+  @Length(7, 9, { message: 'El DNI debe tener entre 10 y 15 caracteres.' })
   @IsOptional()
-  dni: string;
+  dni?: string;
 
-  /**
-   * Set the user's birthdate
-   * @example '2004-12-24T05:44:49.842Z'
-   */
   @IsOptional()
   birthdate?: Date;
 
-  /**
-   * Set the user's nationality
-   * @example 'Spanish'
-   */
-  @IsString()
-  @Length(3, 50)
+  @IsString({ message: 'La nacionalidad debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'La nacionalidad debe tener entre 3 y 50 caracteres.',
+  })
   @IsOptional()
   nationality: string;
 
-  /**
-   * Set the user's gender
-   * @example 'Male'
-   */
-  @IsString()
-  @Length(1, 14)
+  @IsString({ message: 'El género debe ser un texto válido.' })
+  @Length(1, 14, { message: 'El género debe tener entre 1 y 14 caracteres.' })
   @IsOptional()
   gender: string;
 
-  /**
-   * Set the user's country phone prefix
-   * @example '0054'
-   */
-  @IsString()
-  @Length(1, 4)
-  @IsOptional()
+  @IsString({ message: 'El prefijo del teléfono debe ser un texto válido.' })
+  @Length(1, 4, {
+    message: 'El prefijo del teléfono debe tener entre 1 y 4 caracteres.',
+  })
   phone_prefix: string;
 
-  /**
-   * Set the user's phone number
-   * @example '857823456'
-   */
-  @IsString()
-  @Length(4, 20)
-  @IsOptional()
+  @IsString({ message: 'El número de teléfono debe ser un texto válido.' })
+  @Length(4, 20, {
+    message: 'El número de teléfono debe tener entre 4 y 20 caracteres.',
+  })
   phone: string;
 
-  /**
-   * Set the user's password
-   * @example 'MyUs3er@175'
-   */
-  @IsNotEmpty()
-  @IsStrongPassword({
-    minLength: 8,
-    minNumbers: 1,
-    minLowercase: 1,
-    minUppercase: 1,
-    minSymbols: 1,
-  })
+  @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
+  @IsStrongPassword(
+    {
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    },
+    {
+      message:
+        'La contraseña debe tener al menos 8 caracteres, incluyendo 1 número, 1 letra minúscula, 1 letra mayúscula y 1 símbolo.',
+    },
+  )
   password: string;
 
-  /**
-   * The Google ID is optional and depends on the type of registration
-   * @example ''
-   */
-  @IsString()
+  @IsString({ message: 'El ID de Google debe ser un texto válido.' })
   @IsOptional()
   google_id?: string;
 
-  /**
-   * The user can change their image at any time; the default is a brand image
-   * @example 'https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o='
-   */
-  @IsUrl()
+  @IsUrl({}, { message: 'La URL de la imagen no tiene un formato válido.' })
   @IsOptional()
   image: string;
 
-  /**
-   * The type of role depends on the type of user
-   * @example 'PATIENT'
-   */
-  @IsString()
+  @IsString({ message: 'El rol debe ser un texto válido.' })
   @IsOptional()
   role: role_type;
 
-  /**
-   * Represent the ID of the Organization
-   */
-
+  @IsOptional()
   tenant_id: string;
+}
 
-  // createdAt   DateTime    @default(now())
-  // updatedAt   DateTime    @updatedAt
-  // patients    Patient[]
-  // physicians  Physician[]
+export class GoogleUserDto {
+  @IsOptional()
+  name: string;
+
+  @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
+  @IsNotEmpty({ message: 'El correo electrónico es obligatorio.' })
+  email: string;
+
+  @IsOptional()
+  image: string;
 }

@@ -48,7 +48,7 @@ export class AppointmentsService {
           AND: [
             { start: { lte: data.end } },
             { end: { gte: data.start } },
-            { status: { not: 'Cancelada' } },
+            { status: { not: 'cancelada' } },
           ],
         },
       });
@@ -69,15 +69,14 @@ export class AppointmentsService {
         }
 
         // Crear el evento médico asociado directamente con Prisma
-        const medicalEvent = await prisma.medical_event.create({
+        await prisma.medical_event.create({
           data: {
             appointment_id: appointment.id,
             patient_id: data.patient_id,
             physician_id: data.physician_id,
+            tenant_id: data.tenant_id,
           },
         });
-
-        console.log(medicalEvent);
       });
 
       return { message: 'Cita creada exitosamente' };
@@ -128,14 +127,14 @@ export class AppointmentsService {
     if (!appointment) {
       throw new Error('Cita no encontrada');
     }
-    if (status === 'Cancelada' && !reason) {
+    if (status === 'cancelada' && !reason) {
       throw new Error('Se requiere una razón para cancelar la cita');
     }
     if (
-      (appointment.status === 'Pendiente' &&
-        !['Atendida', 'Cancelada'].includes(status)) ||
-      (appointment.status === 'Atendida' && status !== 'Cancelada') ||
-      appointment.status === 'Cancelada'
+      (appointment.status === 'pendiente' &&
+        !['atendida', 'cancelada'].includes(status)) ||
+      (appointment.status === 'atendida' && status !== 'cancelada') ||
+      appointment.status === 'cancelada'
     ) {
       throw new Error(
         `Transición no permitida desde el estado ${appointment.status} a ${status}`,

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-/* import { TenantModule } from './tenant/tenant.module'; */
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { config } from 'dotenv';
@@ -12,6 +11,9 @@ import { AppointmentsModule } from './medical-scheduling/appointments/appointmen
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
 import { PhysicalExaminationService } from './services/physical-examination/physical-examination.service';
 import { PhysicalSubsystemService } from './services/physical_subsystem/physical_subsystem.service';
+import { PatientModule } from './patient/patient.module';
+import { ConfigModule } from '@nestjs/config';
+import { EmailModule } from './utils/email/email.module';
 config({ path: '.env' });
 
 @Module({
@@ -19,15 +21,10 @@ config({ path: '.env' });
     AppointmentsModule,
     MedicalEventsModule,
     UserModule,
-    /*     TenantModule, */
-    // ConfigModule.forRoot({
-    //   isGlobal: true,
-    //   load: [typeOrmConfig]
-    // }),
-    // TypeOrmModule.forRootAsync({
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService) => configService.get('typeorm')
-    // }),
+    ConfigModule.forRoot({
+      isGlobal: true, // Esto hace que las configuraciones sean accesibles globalmente
+      envFilePath: '.env', // El archivo de configuración (debería estar en la raíz)
+    }),
     PrismaModule,
     AuthModule,
     JwtModule.register({
@@ -37,8 +34,15 @@ config({ path: '.env' });
         expiresIn: '1h',
       },
     }),
+    PatientModule,
+    EmailModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, PhysicalExaminationService, PhysicalSubsystemService],
+  providers: [
+    AppService,
+    PrismaService,
+    PhysicalExaminationService,
+    PhysicalSubsystemService,
+  ],
 })
 export class AppModule {}
