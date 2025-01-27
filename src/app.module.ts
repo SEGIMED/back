@@ -11,6 +11,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { AppointmentsModule } from './medical-scheduling/appointments/appointments.module';
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
 import { PatientModule } from './patient/patient.module';
+import { PatientStudiesModule } from './patient-studies/patient-studies.module';
 config({ path: '.env' });
 
 @Module({
@@ -18,6 +19,7 @@ config({ path: '.env' });
     AppointmentsModule,
     MedicalEventsModule,
     UserModule,
+    PatientStudiesModule,
     /*     TenantModule, */
     // ConfigModule.forRoot({
     //   isGlobal: true,
