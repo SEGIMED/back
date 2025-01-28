@@ -7,6 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model tenant {
+  id         String      @id @default(uuid())
+  name       String
+  type       tenant_type
+  db_name    String?
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+
+  users          user[]
+  organizations  organization[]
+  patients       patient[]
+  physicians     physician[]
+  appointments   appointment[]
+  medical_events medical_event[]
+}
+
 model user {
   id                    String                 @id @default(uuid())
   name                  String
@@ -29,6 +45,8 @@ model user {
 
   tenant_id String?
   patient   patient?
+  tenant    tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 model organization {
@@ -37,6 +55,8 @@ model organization {
 
   tenant_id String
   db_name   String
+  tenant    tenant? @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 model patient {
@@ -55,6 +75,8 @@ model patient {
   user               user            @relation(fields: [user_id], references: [id])
 
   tenant_id String
+  tenant    tenant? @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 model physician {
@@ -66,6 +88,8 @@ model physician {
   medical_events medical_event[]
 
   tenant_id String
+  tenant    tenant? @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 model appointment {
@@ -83,6 +107,8 @@ model appointment {
   medical_events      medical_event[]
 
   tenant_id String
+  tenant    tenant? @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 model medical_event {
@@ -101,6 +127,8 @@ model medical_event {
   physical_examination physical_examination[]
 
   tenant_id String
+  tenant    tenant? @relation(fields: [tenantId], references: [id])
+  tenantId  String?
 }
 
 model transaction {

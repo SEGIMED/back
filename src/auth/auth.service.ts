@@ -39,7 +39,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         last_name: user.last_name,
-        tenant_id: user.tenant_id,
+        tenant_id: user.tenant_id || '',
         role: user.role,
         image: user.image,
       };

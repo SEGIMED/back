@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -14,6 +14,7 @@ import { PhysicalSubsystemService } from './services/physical_subsystem/physical
 import { PatientModule } from './patient/patient.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './utils/email/email.module';
+import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 config({ path: '.env' });
 
 @Module({
@@ -45,4 +46,14 @@ config({ path: '.env' });
     PhysicalSubsystemService,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantMiddleware)
+      .exclude(
+        { path: 'auth/login', method: RequestMethod.POST },
+        { path: 'auth/register', method: RequestMethod.POST },
+      )
+      .forRoutes('*');
+  }
+}
