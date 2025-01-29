@@ -1,48 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 // import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { AuthHelper } from 'src/utils/auth.helper';
-import { ConfigService } from '@nestjs/config';
-import { EmailService } from 'src/utils/email/email.service';
-import welcomeEmailHtml from 'src/utils/email/templates/welcomeEmailHtml';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
-    private readonly emailService: EmailService,
-  ) {}
-  async create(data: CreateUserDto): Promise<object> {
-    try {
-      const saltRounds = parseInt(
-        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
-      );
-      data.password = await AuthHelper.hashPassword(data.password, saltRounds);
-
-      await this.prisma.user.create({
-        data: data,
-      });
-
-      const htmlContent = welcomeEmailHtml(data.name);
-      await this.emailService.sendMail(
-        data.email,
-        htmlContent,
-        'Bienvenido a Segimed',
-      );
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new BadRequestException(
-          'El correo electrónico ya está registrado.',
-        );
-      }
-      throw new BadRequestException('No se pudo crear el usuario.');
-    }
-
-    return { message: 'El usuario se ha creado con éxito' };
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   /*   async onboarding(data: any) {} */
 

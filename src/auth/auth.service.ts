@@ -2,12 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthHelper } from 'src/utils/auth.helper';
-import { GoogleUserDto } from 'src/user/dto/create-user.dto';
+import { CreateUserDto, GoogleUserDto } from 'src/user/dto/create-user.dto';
 import { RequestPasswordDto } from './dto/password-auth.dto';
 import { EmailService } from 'src/utils/email/email.service';
 import { Request } from 'express';
 import { recoverPasswordHtml } from 'src/utils/email/templates/recoverPasswordHtml';
 import { ConfigService } from '@nestjs/config';
+import welcomeEmailHtml from 'src/utils/email/templates/welcomeEmailHtml';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,35 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
   ) {}
+  async create(data: CreateUserDto): Promise<object> {
+    try {
+      const saltRounds = parseInt(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
+      data.password = await AuthHelper.hashPassword(data.password, saltRounds);
+
+      await this.prisma.user.create({
+        data: data,
+      });
+
+      const htmlContent = welcomeEmailHtml(data.name);
+      await this.emailService.sendMail(
+        data.email,
+        htmlContent,
+        'Bienvenido a Segimed',
+      );
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado.',
+        );
+      }
+      console.log(error);
+      throw new BadRequestException('No se pudo crear el usuario.');
+    }
+
+    return { message: 'El usuario se ha creado con éxito' };
+  }
   async login(createAuthDto: CreateAuthDto): Promise<object> {
     try {
       const user = await this.prisma.user.findUnique({

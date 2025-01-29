@@ -32,7 +32,6 @@ export class TenantMiddleware implements NestMiddleware {
       throw new UnauthorizedException('Invalid tenant');
     }
 
-    // Agregar el tenantId al request
     req['tenant_id'] = tenant_id;
 
     next();

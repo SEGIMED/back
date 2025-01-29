@@ -51,8 +51,11 @@ export class AppModule {
     consumer
       .apply(TenantMiddleware)
       .exclude(
-        { path: 'auth/login', method: RequestMethod.POST },
         { path: 'auth/register', method: RequestMethod.POST },
+        { path: 'auth/', method: RequestMethod.POST },
+        { path: 'auth/google', method: RequestMethod.POST },
+        { path: 'auth/request-password', method: RequestMethod.POST },
+        { path: 'auth/reset-password', method: RequestMethod.POST },
       )
       .forRoutes('*');
   }
