@@ -1,4 +1,6 @@
 import {
+  IsBoolean,
+  IsDate,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -55,6 +57,24 @@ export class CreateUserDto {
   })
   phone: string;
 
+  @IsBoolean({
+    message: 'El estado de verificación debe ser un valor booleano.',
+  })
+  is_phone_verified: boolean;
+
+  @IsOptional()
+  @IsString({ message: 'El código de verificación debe ser un texto válido.' })
+  @Length(4, 4, {
+    message: 'El código de verificación debe tener entre 4  caracteres.',
+  })
+  verification_code?: string;
+
+  @IsOptional()
+  @IsDate({
+    message: 'La fecha de expiración del código debe ser una fecha válida.',
+  })
+  code_expires_at?: Date;
+
   @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
   @IsStrongPassword(
     {
@@ -70,10 +90,6 @@ export class CreateUserDto {
     },
   )
   password: string;
-
-  @IsString({ message: 'El ID de Google debe ser un texto válido.' })
-  @IsOptional()
-  google_id?: string;
 
   @IsUrl({}, { message: 'La URL de la imagen no tiene un formato válido.' })
   @IsOptional()
