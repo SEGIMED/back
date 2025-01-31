@@ -13,8 +13,9 @@ import { PhysicalExaminationService } from './services/physical-examination/phys
 import { PhysicalSubsystemService } from './services/physical_subsystem/physical_subsystem.service';
 import { PatientModule } from './patient/patient.module';
 import { ConfigModule } from '@nestjs/config';
-import { EmailModule } from './utils/email/email.module';
+import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
+import { TwilioModule } from './services/twilio/twilio.module';
 config({ path: '.env' });
 
 @Module({
@@ -37,6 +38,7 @@ config({ path: '.env' });
     }),
     PatientModule,
     EmailModule,
+    TwilioModule,
   ],
   controllers: [AppController],
   providers: [
@@ -56,6 +58,8 @@ export class AppModule {
         { path: 'auth/google', method: RequestMethod.POST },
         { path: 'auth/request-password', method: RequestMethod.POST },
         { path: 'auth/reset-password', method: RequestMethod.POST },
+        { path: 'auth/send-otp', method: RequestMethod.POST },
+        { path: 'auth/verify-otp', method: RequestMethod.POST },
       )
       .forRoutes('*');
   }

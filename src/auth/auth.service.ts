@@ -4,11 +4,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthHelper } from 'src/utils/auth.helper';
 import { CreateUserDto, GoogleUserDto } from 'src/user/dto/create-user.dto';
 import { RequestPasswordDto } from './dto/password-auth.dto';
-import { EmailService } from 'src/utils/email/email.service';
+import { EmailService } from 'src/services/email/email.service';
 import { Request } from 'express';
-import { recoverPasswordHtml } from 'src/utils/email/templates/recoverPasswordHtml';
+import { recoverPasswordHtml } from 'src/services/email/templates/recoverPasswordHtml';
 import { ConfigService } from '@nestjs/config';
-import welcomeEmailHtml from 'src/utils/email/templates/welcomeEmailHtml';
+import welcomeEmailHtml from 'src/services/email/templates/welcomeEmailHtml';
+import { TwilioService } from 'src/services/twilio/twilio.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly otpService: TwilioService,
   ) {}
   async create(data: CreateUserDto): Promise<object> {
     try {
@@ -205,6 +207,80 @@ export class AuthService {
         throw error;
       }
       throw new BadRequestException('El token no es válido o ha expirado.');
+    }
+  }
+
+  async sendVerificationCodePhone(
+    user_id: string,
+    phone_prefix: string,
+    phone: string,
+  ): Promise<object> {
+    try {
+      const verification_code = this.otpService.generateOtp();
+      const phoneNumber = phone_prefix + phone;
+      const code_expires_at = new Date(Date.now() + 5 * 60 * 1000);
+
+      await this.prisma.$transaction(async (transaction) => {
+        await transaction.user.update({
+          where: { id: user_id },
+          data: {
+            verification_code,
+            code_expires_at,
+            phone_prefix,
+            phone,
+          },
+        });
+
+        await this.otpService.sendOtp(phoneNumber, verification_code);
+      });
+
+      return { message: 'Código de verificación enviado.' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException(
+        'Error al enviar el código de verificación.',
+      );
+    }
+  }
+
+  async verifyPhoneCode(user_id: string, code: string): Promise<object> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: user_id },
+      });
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
+      }
+      if (user.verification_code !== code) {
+        throw new BadRequestException(
+          'El código de verificación es incorrecto',
+        );
+      }
+      if (user.code_expires_at < new Date()) {
+        throw new BadRequestException('El código de verificación ha expirado');
+      }
+      await this.prisma.user.update({
+        where: { id: user_id },
+        data: {
+          verification_code: null,
+          code_expires_at: null,
+          is_phone_verified: true,
+        },
+      });
+      return {
+        message: 'Código de verificación verificado.',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException(
+        'Error al verificar el código de verificación.',
+      );
     }
   }
 }

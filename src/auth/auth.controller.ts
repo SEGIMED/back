@@ -40,4 +40,25 @@ export class AuthController {
       ResetPasswordDto.password,
     );
   }
+
+  @Post('send-otp')
+  async sendVerificationCodePhone(
+    @Body('user_id') user_id: string,
+    @Body('phone_prefix') phone_prefix: string,
+    @Body('phone') phone: string,
+  ): Promise<object> {
+    return this.authService.sendVerificationCodePhone(
+      user_id,
+      phone_prefix,
+      phone,
+    );
+  }
+
+  @Post('verify-otp')
+  async verifyPhoneCode(
+    @Body('user_id') user_id: string,
+    @Body('code') code: string,
+  ): Promise<object> {
+    return this.authService.verifyPhoneCode(user_id, code);
+  }
 }
