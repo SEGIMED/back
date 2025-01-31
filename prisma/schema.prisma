@@ -37,8 +37,6 @@ model user {
   phone_prefix          String?
   phone                 String?
   is_phone_verified     Boolean                @default(false)
-  verification_code     String?
-  code_expires_at       DateTime?
   image                 String                 @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
   created_at            DateTime               @default(now())
   updated_at            DateTime               @updatedAt
@@ -188,4 +186,10 @@ model physical_examination {
   physical_subsystem    cat_physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
   createdAt             DateTime                @default(now())
   updated_at            DateTime                @updatedAt
+}
+
+model otp_code {
+  id              String    @id
+  code            String
+  code_expires_at DateTime?
 }

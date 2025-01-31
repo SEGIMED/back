@@ -221,11 +221,22 @@ export class AuthService {
       const code_expires_at = new Date(Date.now() + 5 * 60 * 1000);
 
       await this.prisma.$transaction(async (transaction) => {
+        await transaction.otp_code.upsert({
+          where: { id: user_id },
+          create: {
+            id: user_id,
+            code: verification_code,
+            code_expires_at: code_expires_at,
+          },
+          update: {
+            code: verification_code,
+            code_expires_at: code_expires_at,
+          },
+        });
+
         await transaction.user.update({
           where: { id: user_id },
           data: {
-            verification_code,
-            code_expires_at,
             phone_prefix,
             phone,
           },
@@ -251,22 +262,30 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({
         where: { id: user_id },
       });
+      const otp_exists = await this.prisma.otp_code.findUnique({
+        where: {
+          id: user_id,
+        },
+      });
       if (!user) {
         throw new BadRequestException('El usuario no existe');
       }
-      if (user.verification_code !== code) {
+      if (!otp_exists) {
+        throw new BadRequestException(
+          'El usuario no tiene un código de verificación',
+        );
+      }
+      if (otp_exists.code !== code) {
         throw new BadRequestException(
           'El código de verificación es incorrecto',
         );
       }
-      if (user.code_expires_at < new Date()) {
+      if (otp_exists.code_expires_at < new Date()) {
         throw new BadRequestException('El código de verificación ha expirado');
       }
       await this.prisma.user.update({
         where: { id: user_id },
         data: {
-          verification_code: null,
-          code_expires_at: null,
           is_phone_verified: true,
         },
       });
