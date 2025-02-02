@@ -290,7 +290,7 @@ export class AuthService {
         },
       });
       return {
-        message: 'Código de verificación verificado.',
+        message: 'Número de teléfono verificado.',
       };
     } catch (error) {
       if (error instanceof BadRequestException) {

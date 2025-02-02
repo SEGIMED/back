@@ -1,12 +1,26 @@
-import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Post,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { OnboardingDto } from './dto/onboarding-user.dto';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Post('onboarding')
+  onboarding(@Body() onboardingDto: OnboardingDto) {
+    return this.userService.onboarding(onboardingDto);
+  }
 
   @Get()
   findAll() {

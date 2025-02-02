@@ -2,12 +2,23 @@ import { Injectable } from '@nestjs/common';
 // import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { OnboardingDto } from './dto/onboarding-user.dto';
+import { tenant_type } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /*   async onboarding(data: any) {} */
+  async onboarding(onboardingDto: OnboardingDto): Promise<object> {
+    try {
+      await this.prisma.organization.create({
+        data: { type: onboardingDto.type as tenant_type, ...onboardingDto },
+      });
+      return { message: 'Onboarding exitoso.' };
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async findAll(): Promise<any[]> {
     const users = await this.prisma.user.findMany();
