@@ -10,6 +10,9 @@ import {
 } from 'class-validator';
 
 export class OnboardingDto {
+  @IsNotEmpty({ message: 'El id del usuario es obligatorio' })
+  user_id: string;
+
   @IsString()
   @IsNotEmpty({ message: 'El nombre es obligatorio' })
   @MaxLength(50, { message: 'El nombre no puede tener más de 50 caracteres' })
@@ -36,4 +39,7 @@ export class OnboardingDto {
     message: 'El motivo de registro no puede tener más de 50 caracteres',
   })
   reason_register: string;
+
+  @IsNotEmpty({ message: 'La especialidad es obligatoria' })
+  speciality?: number[];
 }

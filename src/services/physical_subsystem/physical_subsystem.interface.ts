@@ -1,4 +1,4 @@
 export interface physicalSubsystem {
-  id?: string;
+  id?: number;
   name: string;
 }

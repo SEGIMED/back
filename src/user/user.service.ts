@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 // import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { OnboardingDto } from './dto/onboarding-user.dto';
-import { tenant_type } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -11,12 +10,78 @@ export class UserService {
 
   async onboarding(onboardingDto: OnboardingDto): Promise<object> {
     try {
-      await this.prisma.organization.create({
-        data: { type: onboardingDto.type as tenant_type, ...onboardingDto },
+      const { speciality, user_id, ...rest } = onboardingDto;
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: user_id },
       });
-      return { message: 'Onboarding exitoso.' };
+
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
+      }
+
+      await this.prisma.$transaction(async (transaction) => {
+        const newTenant = await transaction.tenant.create({
+          data: {
+            type: onboardingDto.type,
+          },
+        });
+
+        const existingPhysician = await transaction.physician.findFirst({
+          where: { user_id },
+        });
+        if (existingPhysician) {
+          throw new BadRequestException('El usuario ya es un médico.');
+        }
+
+        const newPhysician = await transaction.physician.create({
+          data: {
+            user_id,
+            tenant_id: newTenant.id,
+          },
+        });
+        const newPhysicianSpeciality = speciality.map((speciality) => {
+          return {
+            physician_id: newPhysician.id,
+            speciality_id: speciality,
+          };
+        });
+
+        await transaction.physician_speciality.createMany({
+          data: newPhysicianSpeciality,
+          skipDuplicates: true,
+        });
+
+        await transaction.user.update({
+          where: { id: user_id },
+          data: {
+            tenant_id: newTenant.id,
+          },
+        });
+
+        const newOrganization = await transaction.organization.create({
+          data: {
+            tenant_id: newTenant.id,
+            ...rest,
+          },
+        });
+
+        await transaction.organization_physician.create({
+          data: {
+            physician_id: newPhysician.id,
+            organization_id: newOrganization.id,
+            tenant_id: newTenant.id,
+          },
+        });
+      });
+
+      return { message: 'El usuario se ha creado con éxito' };
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       console.log(error);
+      throw new BadRequestException('No se pudo guardar la información.');
     }
   }
 

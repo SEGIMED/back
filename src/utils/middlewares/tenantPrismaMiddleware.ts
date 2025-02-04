@@ -4,7 +4,6 @@ export function tenantPrismaMiddleware() {
   return async (params: Prisma.MiddlewareParams, next: Prisma.Middleware) => {
     const modelsRequiringTenancy = [
       'patient',
-      'physician',
       'appointment',
       'medical_event',
       'transaction',
@@ -22,7 +21,7 @@ export function tenantPrismaMiddleware() {
         'delete',
       ].includes(params.action)
     ) {
-      const tenantId = params.args?.tenantId;
+      const tenantId = params.args?.data?.tenant_id;
 
       if (!tenantId) {
         throw new Error(
@@ -31,6 +30,7 @@ export function tenantPrismaMiddleware() {
       }
 
       if (['findMany', 'findFirst', 'findUnique'].includes(params.action)) {
+        console.log(params.args);
         if (!params.args.where) {
           params.args.where = {};
         }

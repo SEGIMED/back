@@ -60,6 +60,7 @@ export class AppModule {
         { path: 'auth/reset-password', method: RequestMethod.POST },
         { path: 'auth/send-otp', method: RequestMethod.POST },
         { path: 'auth/verify-otp', method: RequestMethod.POST },
+        { path: 'user/onboarding', method: RequestMethod.POST },
       )
       .forRoutes('*');
   }

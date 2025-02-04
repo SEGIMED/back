@@ -24,7 +24,7 @@ export class PhysicalSubsystemService {
   async findOneById(id: string) {
     try {
       const phy_sub = await this.prisma.cat_physical_subsystem.findUnique({
-        where: { id: id },
+        where: { id: parseInt(id) },
       });
       if (phy_sub) {
         return phy_sub;
