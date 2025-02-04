@@ -2,49 +2,88 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 // import { Tenant } from 'src/tenant/entities/tenant.entity';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { AuthHelper } from 'src/utils/auth.helper';
-import { ConfigService } from '@nestjs/config';
-import { EmailService } from 'src/utils/email/email.service';
-import welcomeEmailHtml from 'src/utils/email/templates/welcomeEmailHtml';
+import { OnboardingDto } from './dto/onboarding-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
-    private readonly emailService: EmailService,
-  ) {}
-  async create(data: CreateUserDto): Promise<object> {
-    try {
-      const saltRounds = parseInt(
-        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
-      );
-      data.password = await AuthHelper.hashPassword(data.password, saltRounds);
+  constructor(private readonly prisma: PrismaService) {}
 
-      await this.prisma.user.create({
-        data: data,
+  async onboarding(onboardingDto: OnboardingDto): Promise<object> {
+    try {
+      const { speciality, user_id, ...rest } = onboardingDto;
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: user_id },
       });
 
-      const htmlContent = welcomeEmailHtml(data.name);
-      await this.emailService.sendMail(
-        data.email,
-        htmlContent,
-        'Bienvenido a Segimed',
-      );
-    } catch (error) {
-      if (error.code === 'P2002') {
-        throw new BadRequestException(
-          'El correo electrónico ya está registrado.',
-        );
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
       }
-      throw new BadRequestException('No se pudo crear el usuario.');
+
+      await this.prisma.$transaction(async (transaction) => {
+        const newTenant = await transaction.tenant.create({
+          data: {
+            type: onboardingDto.type,
+          },
+        });
+
+        const existingPhysician = await transaction.physician.findFirst({
+          where: { user_id },
+        });
+        if (existingPhysician) {
+          throw new BadRequestException('El usuario ya es un médico.');
+        }
+
+        const newPhysician = await transaction.physician.create({
+          data: {
+            user_id,
+            tenant_id: newTenant.id,
+          },
+        });
+        const newPhysicianSpeciality = speciality.map((speciality) => {
+          return {
+            physician_id: newPhysician.id,
+            speciality_id: speciality,
+          };
+        });
+
+        await transaction.physician_speciality.createMany({
+          data: newPhysicianSpeciality,
+          skipDuplicates: true,
+        });
+
+        await transaction.user.update({
+          where: { id: user_id },
+          data: {
+            tenant_id: newTenant.id,
+          },
+        });
+
+        const newOrganization = await transaction.organization.create({
+          data: {
+            tenant_id: newTenant.id,
+            ...rest,
+          },
+        });
+
+        await transaction.organization_physician.create({
+          data: {
+            physician_id: newPhysician.id,
+            organization_id: newOrganization.id,
+            tenant_id: newTenant.id,
+          },
+        });
+      });
+
+      return { message: 'El usuario se ha creado con éxito' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException('No se pudo guardar la información.');
     }
-
-    return { message: 'El usuario se ha creado con éxito' };
   }
-
-  /*   async onboarding(data: any) {} */
 
   async findAll(): Promise<any[]> {
     const users = await this.prisma.user.findMany();

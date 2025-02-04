@@ -2,12 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthHelper } from 'src/utils/auth.helper';
-import { GoogleUserDto } from 'src/user/dto/create-user.dto';
+import { CreateUserDto, GoogleUserDto } from 'src/user/dto/create-user.dto';
 import { RequestPasswordDto } from './dto/password-auth.dto';
-import { EmailService } from 'src/utils/email/email.service';
+import { EmailService } from 'src/services/email/email.service';
 import { Request } from 'express';
-import { recoverPasswordHtml } from 'src/utils/email/templates/recoverPasswordHtml';
+import { recoverPasswordHtml } from 'src/services/email/templates/recoverPasswordHtml';
 import { ConfigService } from '@nestjs/config';
+import welcomeEmailHtml from 'src/services/email/templates/welcomeEmailHtml';
+import { TwilioService } from 'src/services/twilio/twilio.service';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +17,37 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly otpService: TwilioService,
   ) {}
+  async create(data: CreateUserDto): Promise<object> {
+    try {
+      const saltRounds = parseInt(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
+      data.password = await AuthHelper.hashPassword(data.password, saltRounds);
+
+      await this.prisma.user.create({
+        data: data,
+      });
+
+      const htmlContent = welcomeEmailHtml(data.name);
+      await this.emailService.sendMail(
+        data.email,
+        htmlContent,
+        'Bienvenido a Segimed',
+      );
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado.',
+        );
+      }
+      console.log(error);
+      throw new BadRequestException('No se pudo crear el usuario.');
+    }
+
+    return { message: 'El usuario se ha creado con éxito' };
+  }
   async login(createAuthDto: CreateAuthDto): Promise<object> {
     try {
       const user = await this.prisma.user.findUnique({
@@ -39,7 +71,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         last_name: user.last_name,
-        tenant_id: user.tenant_id,
+        tenant_id: user.tenant_id || '',
         role: user.role,
         image: user.image,
       };
@@ -175,6 +207,99 @@ export class AuthService {
         throw error;
       }
       throw new BadRequestException('El token no es válido o ha expirado.');
+    }
+  }
+
+  async sendVerificationCodePhone(
+    user_id: string,
+    phone_prefix: string,
+    phone: string,
+  ): Promise<object> {
+    try {
+      const verification_code = this.otpService.generateOtp();
+      const phoneNumber = phone_prefix + phone;
+      const code_expires_at = new Date(Date.now() + 5 * 60 * 1000);
+
+      await this.prisma.$transaction(async (transaction) => {
+        await transaction.otp_code.upsert({
+          where: { id: user_id },
+          create: {
+            id: user_id,
+            code: verification_code,
+            code_expires_at: code_expires_at,
+          },
+          update: {
+            code: verification_code,
+            code_expires_at: code_expires_at,
+          },
+        });
+
+        await transaction.user.update({
+          where: { id: user_id },
+          data: {
+            phone_prefix,
+            phone,
+          },
+        });
+
+        await this.otpService.sendOtp(phoneNumber, verification_code);
+      });
+
+      return { message: 'Código de verificación enviado.' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException(
+        'Error al enviar el código de verificación.',
+      );
+    }
+  }
+
+  async verifyPhoneCode(user_id: string, code: string): Promise<object> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: user_id },
+      });
+      const otp_exists = await this.prisma.otp_code.findUnique({
+        where: {
+          id: user_id,
+        },
+      });
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
+      }
+      if (!otp_exists) {
+        throw new BadRequestException(
+          'El usuario no tiene un código de verificación',
+        );
+      }
+      if (otp_exists.code !== code) {
+        throw new BadRequestException(
+          'El código de verificación es incorrecto',
+        );
+      }
+      if (otp_exists.code_expires_at < new Date()) {
+        throw new BadRequestException('El código de verificación ha expirado');
+      }
+      await this.prisma.user.update({
+        where: { id: user_id },
+        data: {
+          is_phone_verified: true,
+        },
+      });
+      return {
+        message: 'Número de teléfono verificado.',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException(
+        'Error al verificar el código de verificación.',
+      );
     }
   }
 }

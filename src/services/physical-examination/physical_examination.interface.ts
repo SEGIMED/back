@@ -11,11 +11,8 @@ export class physicalExaminationDto {
   @IsOptional()
   id?: string;
 
-  @IsUUID(undefined, {
-    message: 'El ID del subsistema físico debe ser un UUID válido',
-  })
   @IsOptional()
-  physical_subsystem_id?: string;
+  physical_subsystem_id?: number;
 
   @IsUUID(undefined, { message: 'El ID del paciente debe ser un UUID válido' })
   @IsNotEmpty({ message: 'El ID del paciente no puede estar vacío' })
