@@ -75,7 +75,7 @@ export class UserService {
         });
       });
 
-      return { message: 'El usuario se ha creado con éxito' };
+      return { message: 'Onboarding completo.' };
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;

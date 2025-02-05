@@ -16,11 +16,11 @@ model tenant {
 
   users                  user[]
   organizations          organization[]
-  patients               patient[]
   physicians             physician[]
   appointments           appointment[]
   medical_events         medical_event[]
   organization_physician organization_physician[]
+  patient_tenant         patient_tenant[]
 }
 
 model user {
@@ -45,8 +45,7 @@ model user {
 
   tenant_id String?
   patient   patient?
-  tenant    tenant?  @relation(fields: [tenantId], references: [id])
-  tenantId  String?
+  tenant    tenant?  @relation(fields: [tenant_id], references: [id])
 
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")
@@ -89,11 +88,18 @@ model patient {
   user_id            String  @unique
   user               user    @relation(fields: [user_id], references: [id])
 
-  tenant_id String
-  tenant    tenant? @relation(fields: [tenantId], references: [id])
-  tenantId  String?
+  medical_event  medical_event[]
+  patient_tenant patient_tenant[]
+}
 
-  medical_event medical_event[]
+model patient_tenant {
+  id         String  @id @default(uuid())
+  patient_id String
+  patient    patient @relation(fields: [patient_id], references: [id])
+  tenant_id  String
+  tenant     tenant  @relation(fields: [tenant_id], references: [id])
+
+  @@unique([patient_id, tenant_id])
 }
 
 model physician {
@@ -227,4 +233,10 @@ enum status_type {
 enum tenant_type {
   individual
   organization
+}
+
+enum gender {
+  masculino
+  femenino
+  otro
 }
