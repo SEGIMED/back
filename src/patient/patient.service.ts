@@ -1,61 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-/* import { MedicalPatientDto } from './dto/medical-patient.dto'; */
-import { UserService } from 'src/user/user.service';
-
+/* import { MedicalPatientDto } from './dto/medical-patient.dto';
+ */
 @Injectable()
 export class PatientService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(/* medicalPatientDto: MedicalPatientDto */) {
-    /*     try {
-      const newUser = {
-        name: medicalPatientDto.name,
-        last_name: medicalPatientDto.last_name,
-        email: medicalPatientDto.email,
-        role: medicalPatientDto.role,
-        tenant_id: medicalPatientDto.tenant_id,
-        phone: medicalPatientDto.phone,
-        phone_prefix: medicalPatientDto.phone_prefix,
-        dni: medicalPatientDto.dni,
-        password: medicalPatientDto.dni,
-        nationality: medicalPatientDto.nationality,
-        gender: medicalPatientDto.gender,
-        birthdate: medicalPatientDto.birthdate,
-      };
-      const findedUser = await this.userService.findOneByEmail(newUser.email);
-      const user = findedUser['user']
-        ? findedUser
-        : await this.userService.create(newUser);
+  async create(medicalPatientDto: any): Promise<object> {
+    try {
+      console.log(medicalPatientDto);
+      const { patient, user } = medicalPatientDto;
+      console.log(user);
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: user.email },
+      });
 
-      if (user) {
-        const patient = await this.prisma.patient
-          .create({
-            data: {
-              direction: medicalPatientDto.direction,
-              country: medicalPatientDto.country,
-              city: medicalPatientDto.city,
-              province: medicalPatientDto.province,
-              postal_code: medicalPatientDto.postal_code,
-              direction_number: medicalPatientDto.direction_number,
-              appartment: medicalPatientDto.appartment,
-              userId: user['user'].id,
-            },
-          })
-          .catch((err) => {
-            throw new Error(err);
-          });
-        return { message: 'El paciente ha sido creado', paciente: patient };
+      if (existingUser) {
+        await this.prisma.patient_tenant.create({
+          data: {
+            patient_id: existingUser.id,
+            tenant_id: user.tenant_id,
+          },
+        });
+        return { message: 'Paciente asociado exitosamente' };
       } else {
-        return { message: 'No se ha podido crear el usuario' };
+        const newUser = await this.prisma.user.create({
+          data: {
+            ...user,
+            role: 'patient',
+          },
+        });
+        await this.prisma.patient_tenant.create({
+          data: {
+            patient_id: newUser.id,
+            tenant_id: user.tenant_id,
+          },
+        });
+        await this.prisma.patient.create({
+          data: {
+            ...patient,
+            user_id: newUser.id,
+            tenant_id: user.tenant_id,
+          },
+        });
+        return { message: 'Paciente creado exitosamente' };
       }
     } catch (error) {
-      return { message: 'Error al crear el usuario', Error: error };
-    } */
+      console.log(error);
+      throw new Error('Error al crear el paciente');
+    }
   }
 
   async findAll() {

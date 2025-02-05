@@ -9,21 +9,17 @@ import {
 } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-/* import { MedicalPatientDto } from './dto/medical-patient.dto'; */
-
+/* import { MedicalPatientDto } from './dto/medical-patient.dto';
+ */
 @Controller('patient')
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
-  create(/* @Body() createPatientDto: MedicalPatientDto */) {
-    return this.patientService.create(/* createPatientDto */);
+  create(@Body() medicalPatientDto: any): Promise<object> {
+    console.log(medicalPatientDto, 'aadsads');
+    return this.patientService.create(medicalPatientDto);
   }
-
-  // @Post('medical')
-  // createPatient(@Body() medicalPatientDto: MedicalPatientDto) {
-  //   return this.patientService.createMedical(medicalPatientDto);
-  // }
 
   @Get()
   findAll() {
