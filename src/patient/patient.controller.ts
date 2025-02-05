@@ -6,9 +6,11 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { UpdatePatientDto } from './dto/update-patient.dto';
+import { Request } from 'express';
 /* import { MedicalPatientDto } from './dto/medical-patient.dto';
  */
 @Controller('patient')
@@ -16,8 +18,8 @@ export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
-  create(@Body() medicalPatientDto: any): Promise<object> {
-    return this.patientService.create(medicalPatientDto);
+  create(@Body() medicalPatientDto: any, @Req() req: Request): Promise<object> {
+    return this.patientService.create(medicalPatientDto, req);
   }
 
   @Get()

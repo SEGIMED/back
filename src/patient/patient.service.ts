@@ -1,13 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthHelper } from 'src/utils/auth.helper';
+import { EmailService } from 'src/services/email/email.service';
+import { recoverPasswordHtml } from 'src/services/email/templates/recoverPasswordHtml';
+import { Request } from 'express';
 /* import { MedicalPatientDto } from './dto/medical-patient.dto';
  */
 @Injectable()
 export class PatientService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
-  async create(medicalPatientDto: any): Promise<object> {
+  async create(medicalPatientDto: any, req: Request): Promise<object> {
     try {
       const { patient, user } = medicalPatientDto;
       const validTenant = await this.prisma.tenant.findUnique({
@@ -15,7 +22,7 @@ export class PatientService {
       });
 
       if (!validTenant) {
-        throw new Error('El tenant no existe');
+        throw new BadRequestException('El tenant no existe');
       }
       const existingUser = await this.prisma.user.findUnique({
         where: { email: user.email },
@@ -26,7 +33,7 @@ export class PatientService {
           where: { user_id: existingUser.id },
         });
         if (!patient) {
-          throw new Error(
+          throw new BadRequestException(
             'El usuario ya existe pero no es un paciente. Contactar a soporte.',
           );
         }
@@ -38,7 +45,7 @@ export class PatientService {
         });
         return { message: 'Paciente asociado exitosamente' };
       } else {
-        await this.prisma.$transaction(async (transaction) => {
+        return await this.prisma.$transaction(async (transaction) => {
           const newUser = await transaction.user.create({
             data: {
               ...user,
@@ -57,12 +64,31 @@ export class PatientService {
               tenant_id: user.tenant_id,
             },
           });
+          const jwtPayload = {
+            email: user.email,
+          };
+          const passwordToken = AuthHelper.generateToken(jwtPayload, '1d');
+          await transaction.password_reset.create({
+            data: {
+              email: user.email,
+              token: passwordToken,
+            },
+          });
+          const origin =
+            req.headers.origin || req.protocol + '://' + req.headers.host;
+
+          const resetUrl = `${origin}/reset-password?token=${passwordToken}`;
+          this.emailService.sendMail(
+            user.email,
+            recoverPasswordHtml(resetUrl),
+            'Recuperar contraseña',
+          );
+          return { message: 'Paciente creado exitosamente' };
         });
-        return { message: 'Paciente creado exitosamente' };
       }
     } catch (error) {
       console.log(error);
-      throw new Error('Error al crear el paciente');
+      throw new BadRequestException('Error al crear el paciente');
     }
   }
 
