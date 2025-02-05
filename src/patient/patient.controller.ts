@@ -17,7 +17,6 @@ export class PatientController {
 
   @Post()
   create(@Body() medicalPatientDto: any): Promise<object> {
-    console.log(medicalPatientDto, 'aadsads');
     return this.patientService.create(medicalPatientDto);
   }
 

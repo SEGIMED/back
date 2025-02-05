@@ -2,49 +2,63 @@ import { Prisma } from '@prisma/client';
 
 export function tenantPrismaMiddleware() {
   return async (params: Prisma.MiddlewareParams, next: Prisma.Middleware) => {
-    const modelsRequiringTenancy = [
-      'patient',
-      'appointment',
-      'medical_event',
-      'transaction',
-      'organization',
-    ];
+    const tenantRules: Record<
+      string,
+      { actions: string[]; requireTenantId: boolean }
+    > = {
+      user: { actions: ['findMany'], requireTenantId: true },
+      patient: {
+        actions: ['findMany', 'update'],
+        requireTenantId: true,
+      },
+      appointment: {
+        actions: ['findMany', 'findFirst'],
+        requireTenantId: true,
+      },
+      medical_event: {
+        actions: ['findMany', 'create', 'update'],
+        requireTenantId: true,
+      },
+      transaction: { actions: ['findMany', 'create'], requireTenantId: true },
+      organization: { actions: ['create'], requireTenantId: true },
+      patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },
+    };
 
-    if (
-      modelsRequiringTenancy.includes(params.model) &&
-      [
-        'findMany',
-        'findFirst',
-        'findUnique',
-        'create',
-        'update',
-        'delete',
-      ].includes(params.action)
-    ) {
-      const tenantId = params.args?.data?.tenant_id;
+    const modelRules = tenantRules[params.model];
 
+    if (!modelRules || !modelRules.actions.includes(params.action)) {
+      return next(params, params.args);
+    }
+
+    if (modelRules.requireTenantId) {
+      const tenantId =
+        params.args?.data?.tenant_id ?? params.args?.where?.tenant_id;
       if (!tenantId) {
         throw new Error(
-          `Tenant verification failed: missing tenantId for ${params.model} in ${params.action} action.`,
+          `Tenant verification failed: missing tenant_id for ${params.model} in ${params.action} action.`,
         );
       }
+    }
 
-      if (['findMany', 'findFirst', 'findUnique'].includes(params.action)) {
-        console.log(params.args);
-        if (!params.args.where) {
-          params.args.where = {};
-        }
+    if (
+      ['findMany', 'findFirst', 'findUnique'].includes(params.action) &&
+      modelRules.requireTenantId
+    ) {
+      params.args.where = {
+        ...params.args.where,
+        tenant_id:
+          params.args?.where?.tenant_id ?? params.args?.data?.tenant_id,
+      };
+    }
 
-        params.args.where['tenant_id'] = tenantId;
-      }
-
-      if (['create', 'update'].includes(params.action)) {
-        if (!params.args.data) {
-          params.args.data = {};
-        }
-
-        params.args.data['tenant_id'] = tenantId;
-      }
+    if (
+      ['create', 'update'].includes(params.action) &&
+      modelRules.requireTenantId
+    ) {
+      params.args.data = {
+        ...params.args.data,
+        tenant_id: params.args.data?.tenant_id ?? params.args?.where?.tenant_id,
+      };
     }
 
     return next(params, params.args);

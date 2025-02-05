@@ -45,8 +45,7 @@ model user {
 
   tenant_id String?
   patient   patient?
-  tenant    tenant?  @relation(fields: [tenantId], references: [id])
-  tenantId  String?
+  tenant    tenant?  @relation(fields: [tenant_id], references: [id])
 
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")

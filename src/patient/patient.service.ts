@@ -9,40 +9,54 @@ export class PatientService {
 
   async create(medicalPatientDto: any): Promise<object> {
     try {
-      console.log(medicalPatientDto);
       const { patient, user } = medicalPatientDto;
-      console.log(user);
+      const validTenant = await this.prisma.tenant.findUnique({
+        where: { id: user.tenant_id },
+      });
+
+      if (!validTenant) {
+        throw new Error('El tenant no existe');
+      }
       const existingUser = await this.prisma.user.findUnique({
         where: { email: user.email },
       });
 
       if (existingUser) {
+        const patient = await this.prisma.patient.findFirst({
+          where: { user_id: existingUser.id },
+        });
+        if (!patient) {
+          throw new Error(
+            'El usuario ya existe pero no es un paciente. Contactar a soporte.',
+          );
+        }
         await this.prisma.patient_tenant.create({
           data: {
-            patient_id: existingUser.id,
+            patient_id: patient.id,
             tenant_id: user.tenant_id,
           },
         });
         return { message: 'Paciente asociado exitosamente' };
       } else {
-        const newUser = await this.prisma.user.create({
-          data: {
-            ...user,
-            role: 'patient',
-          },
-        });
-        await this.prisma.patient_tenant.create({
-          data: {
-            patient_id: newUser.id,
-            tenant_id: user.tenant_id,
-          },
-        });
-        await this.prisma.patient.create({
-          data: {
-            ...patient,
-            user_id: newUser.id,
-            tenant_id: user.tenant_id,
-          },
+        await this.prisma.$transaction(async (transaction) => {
+          const newUser = await transaction.user.create({
+            data: {
+              ...user,
+              role: 'patient',
+            },
+          });
+          const newPatient = await transaction.patient.create({
+            data: {
+              ...patient,
+              user_id: newUser.id,
+            },
+          });
+          await transaction.patient_tenant.create({
+            data: {
+              patient_id: newPatient.id,
+              tenant_id: user.tenant_id,
+            },
+          });
         });
         return { message: 'Paciente creado exitosamente' };
       }
