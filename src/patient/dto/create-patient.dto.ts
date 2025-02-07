@@ -36,7 +36,7 @@ export class CreatePatientDto {
   direction_number?: string;
 
   @IsString({ message: 'El apartamento debe ser un texto válido.' })
-  @Length(3, 50, {
+  @Length(1, 50, {
     message: 'El apartamento debe tener entre 3 y 50 caracteres.',
   })
   @IsOptional()

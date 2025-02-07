@@ -1,13 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EmailService } from 'src/services/email/email.service';
+import { MedicalPatientDto } from './dto/medical-patient.dto';
+import { sendCredentialsHtml } from 'src/services/email/templates/credentialsHtml';
+import { GetPatientDto, GetPatientsDto } from './dto/get-patient.dto';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
 /* import { MedicalPatientDto } from './dto/medical-patient.dto';
  */
 @Injectable()
 export class PatientService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
-  async create(medicalPatientDto: any): Promise<object> {
+  async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
     try {
       const { patient, user } = medicalPatientDto;
       const validTenant = await this.prisma.tenant.findUnique({
@@ -15,7 +26,7 @@ export class PatientService {
       });
 
       if (!validTenant) {
-        throw new Error('El tenant no existe');
+        throw new BadRequestException('El tenant no existe');
       }
       const existingUser = await this.prisma.user.findUnique({
         where: { email: user.email },
@@ -26,7 +37,7 @@ export class PatientService {
           where: { user_id: existingUser.id },
         });
         if (!patient) {
-          throw new Error(
+          throw new BadRequestException(
             'El usuario ya existe pero no es un paciente. Contactar a soporte.',
           );
         }
@@ -38,11 +49,13 @@ export class PatientService {
         });
         return { message: 'Paciente asociado exitosamente' };
       } else {
-        await this.prisma.$transaction(async (transaction) => {
+        const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
+        return await this.prisma.$transaction(async (transaction) => {
           const newUser = await transaction.user.create({
             data: {
               ...user,
               role: 'patient',
+              password: newPassword,
             },
           });
           const newPatient = await transaction.patient.create({
@@ -57,25 +70,68 @@ export class PatientService {
               tenant_id: user.tenant_id,
             },
           });
+
+          this.emailService.sendMail(
+            user.email,
+            sendCredentialsHtml(user.email, newPassword),
+            'Credenciales Segimed',
+          );
+          return { message: 'Paciente creado exitosamente' };
         });
-        return { message: 'Paciente creado exitosamente' };
       }
     } catch (error) {
       console.log(error);
-      throw new Error('Error al crear el paciente');
+      throw new BadRequestException('Error al crear el paciente');
     }
   }
 
-  async findAll() {
-    const users = await this.prisma.patient.findMany();
-    return users;
+  async findAll(
+    tenant_id: string,
+    pagination: PaginationParams,
+  ): Promise<GetPatientsDto[]> {
+    const { skip, take, orderBy, orderDirection } =
+      parsePaginationAndSorting(pagination);
+    const users = await this.prisma.user.findMany({
+      where: {
+        role: 'patient',
+        tenant_id,
+      },
+      skip,
+      take,
+      orderBy: { [orderBy]: orderDirection },
+    });
+    if (users.length === 0) {
+      throw new BadRequestException('No hay pacientes que mostrar.');
+    }
+    return users.map((user) => {
+      return {
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name,
+        image: user.image,
+        birth_date: user.birth_date,
+        gender: user.gender,
+        email: user.email,
+        phone: user.phone,
+        prefix: user.phone_prefix,
+      };
+    });
   }
 
-  async findOne(id: string) {
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: id },
+  async findOne(id: string, tenant_id: string): Promise<GetPatientDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id, tenant_id },
+      include: { patient: true },
     });
-    return patient;
+    return {
+      id: user.id,
+      name: user.name,
+      last_name: user.last_name,
+      image: user.image,
+      birth_date: user.birth_date,
+      email: user.email,
+      notes: user.patient.notes,
+    };
   }
 
   async update(id: string, updatePatientDto: UpdatePatientDto) {
