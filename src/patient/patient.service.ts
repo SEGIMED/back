@@ -1,10 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AuthHelper } from 'src/utils/auth.helper';
 import { EmailService } from 'src/services/email/email.service';
-import { recoverPasswordHtml } from 'src/services/email/templates/recoverPasswordHtml';
-import { Request } from 'express';
+import { MedicalPatientDto } from './dto/medical-patient.dto';
+import { sendCredentialsHtml } from 'src/services/email/templates/credentialsHtml';
+import { GetPatientDto, GetPatientsDto } from './dto/get-patient.dto';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
 /* import { MedicalPatientDto } from './dto/medical-patient.dto';
  */
 @Injectable()
@@ -14,7 +18,7 @@ export class PatientService {
     private readonly emailService: EmailService,
   ) {}
 
-  async create(medicalPatientDto: any, req: Request): Promise<object> {
+  async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
     try {
       const { patient, user } = medicalPatientDto;
       const validTenant = await this.prisma.tenant.findUnique({
@@ -45,11 +49,13 @@ export class PatientService {
         });
         return { message: 'Paciente asociado exitosamente' };
       } else {
+        const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
         return await this.prisma.$transaction(async (transaction) => {
           const newUser = await transaction.user.create({
             data: {
               ...user,
               role: 'patient',
+              password: newPassword,
             },
           });
           const newPatient = await transaction.patient.create({
@@ -64,24 +70,11 @@ export class PatientService {
               tenant_id: user.tenant_id,
             },
           });
-          const jwtPayload = {
-            email: user.email,
-          };
-          const passwordToken = AuthHelper.generateToken(jwtPayload, '1d');
-          await transaction.password_reset.create({
-            data: {
-              email: user.email,
-              token: passwordToken,
-            },
-          });
-          const origin =
-            req.headers.origin || req.protocol + '://' + req.headers.host;
 
-          const resetUrl = `${origin}/reset-password?token=${passwordToken}`;
           this.emailService.sendMail(
             user.email,
-            recoverPasswordHtml(resetUrl),
-            'Recuperar contraseña',
+            sendCredentialsHtml(user.email, newPassword),
+            'Credenciales Segimed',
           );
           return { message: 'Paciente creado exitosamente' };
         });
@@ -92,16 +85,53 @@ export class PatientService {
     }
   }
 
-  async findAll() {
-    const users = await this.prisma.patient.findMany();
-    return users;
+  async findAll(
+    tenant_id: string,
+    pagination: PaginationParams,
+  ): Promise<GetPatientsDto[]> {
+    const { skip, take, orderBy, orderDirection } =
+      parsePaginationAndSorting(pagination);
+    const users = await this.prisma.user.findMany({
+      where: {
+        role: 'patient',
+        tenant_id,
+      },
+      skip,
+      take,
+      orderBy: { [orderBy]: orderDirection },
+    });
+    if (users.length === 0) {
+      throw new BadRequestException('No hay pacientes que mostrar.');
+    }
+    return users.map((user) => {
+      return {
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name,
+        image: user.image,
+        birth_date: user.birth_date,
+        gender: user.gender,
+        email: user.email,
+        phone: user.phone,
+        prefix: user.phone_prefix,
+      };
+    });
   }
 
-  async findOne(id: string) {
-    const patient = await this.prisma.patient.findUnique({
-      where: { id: id },
+  async findOne(id: string, tenant_id: string): Promise<GetPatientDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id, tenant_id },
+      include: { patient: true },
     });
-    return patient;
+    return {
+      id: user.id,
+      name: user.name,
+      last_name: user.last_name,
+      image: user.image,
+      birth_date: user.birth_date,
+      email: user.email,
+      notes: user.patient.notes,
+    };
   }
 
   async update(id: string, updatePatientDto: UpdatePatientDto) {
