@@ -41,9 +41,9 @@ export class PatientService {
             'El usuario ya existe pero no es un paciente. Contactar a soporte.',
           );
         }
-        await this.prisma.patient_tenant.create({
+        await this.prisma.user_tenant.create({
           data: {
-            patient_id: patient.id,
+            user_id: patient.id,
             tenant_id: user.tenant_id,
           },
         });
@@ -64,9 +64,9 @@ export class PatientService {
               user_id: newUser.id,
             },
           });
-          await transaction.patient_tenant.create({
+          await transaction.user_tenant.create({
             data: {
-              patient_id: newPatient.id,
+              user_id: newPatient.id,
               tenant_id: user.tenant_id,
             },
           });
@@ -94,7 +94,13 @@ export class PatientService {
     const users = await this.prisma.user.findMany({
       where: {
         role: 'patient',
-        tenant_id,
+      },
+      include: {
+        user_tenant: {
+          where: {
+            tenant_id,
+          },
+        },
       },
       skip,
       take,
@@ -120,9 +126,19 @@ export class PatientService {
 
   async findOne(id: string, tenant_id: string): Promise<GetPatientDto> {
     const user = await this.prisma.user.findUnique({
-      where: { id, tenant_id },
-      include: { patient: true },
+      where: { id },
+      include: {
+        patient: true,
+        user_tenant: {
+          where: {
+            tenant_id,
+          },
+        },
+      },
     });
+    if (!user || user.user_tenant.length === 0) {
+      throw new BadRequestException('No tienes permiso para ver este paciente');
+    }
     return {
       id: user.id,
       name: user.name,

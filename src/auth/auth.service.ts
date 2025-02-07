@@ -52,6 +52,9 @@ export class AuthService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email: createAuthDto.email },
+        include: {
+          user_tenant: true,
+        },
       });
 
       if (!user) {
@@ -71,7 +74,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         last_name: user.last_name,
-        tenant_id: user.tenant_id || '',
+        tenant_id: user.user_tenant || [],
         role: user.role,
         image: user.image,
       };
@@ -90,18 +93,20 @@ export class AuthService {
     try {
       let user = await this.prisma.user.findUnique({
         where: { email: GoogleUserDto.email },
+        include: {
+          user_tenant: true,
+        },
       });
 
       if (!user) {
-        user = await this.prisma.user.create({
+        user = (await this.prisma.user.create({
           data: {
             email: GoogleUserDto.email,
             name: GoogleUserDto.name ?? '',
             image: GoogleUserDto.image ?? '',
-            tenant_id: '',
             password: '',
           },
-        });
+        })) as typeof user & { user_tenant?: any };
       }
 
       if (!user) {
@@ -113,7 +118,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         image: user.image,
-        tenant_id: user.tenant_id,
+        tenant_id: user.user_tenant,
         role: user.role,
       };
       const token = AuthHelper.generateToken(jwtPayload);

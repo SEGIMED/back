@@ -15,14 +15,13 @@ model tenant {
   updated_at DateTime    @updatedAt
   deleted    Boolean     @default(false)
 
-  users                  user[]
   organizations          organization[]
   physicians             physician[]
   appointments           appointment[]
   medical_events         medical_event[]
   organization_physician organization_physician[]
-  patient_tenant         patient_tenant[]
   transaction            transaction[]
+  user_tenant            user_tenant[]
 }
 
 model user {
@@ -47,13 +46,12 @@ model user {
   transactions          transaction[]
   physical_examinations physical_examination[]
 
-  tenant_id String?
-  patient   patient?
-  tenant    tenant?  @relation(fields: [tenant_id], references: [id])
+  patient patient?
 
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")
   physician            physician[]
+  user_tenant          user_tenant[]
 }
 
 model organization {
@@ -105,14 +103,13 @@ model patient {
   user_id            String    @unique
   user               user      @relation(fields: [user_id], references: [id])
 
-  medical_event  medical_event[]
-  patient_tenant patient_tenant[]
+  medical_event medical_event[]
 }
 
-model patient_tenant {
+model user_tenant {
   id         String    @id @default(uuid())
-  patient_id String
-  patient    patient   @relation(fields: [patient_id], references: [id])
+  user_id    String
+  user       user      @relation(fields: [user_id], references: [id])
   tenant_id  String
   tenant     tenant    @relation(fields: [tenant_id], references: [id])
   created_at DateTime  @default(now())
@@ -120,7 +117,7 @@ model patient_tenant {
   deleted    Boolean   @default(false)
   deleted_at DateTime?
 
-  @@unique([patient_id, tenant_id])
+  @@unique([user_id, tenant_id])
 }
 
 model physician {
@@ -247,24 +244,18 @@ model otp_code {
   code_expires_at DateTime?
 }
 
+//!Catalogs
+
 model cat_physical_subsystem {
   id                    Int                    @id @default(autoincrement())
   name                  String
   physical_examinations physical_examination[]
-  created_at            DateTime               @default(now())
-  updated_at            DateTime               @updatedAt
-  deleted               Boolean                @default(false)
-  deleted_at            DateTime?
 }
 
 model cat_speciality {
   id                   Int                    @id @default(autoincrement())
   name                 String
   physician_speciality physician_speciality[]
-  created_at           DateTime               @default(now())
-  updated_at           DateTime               @updatedAt
-  deleted              Boolean                @default(false)
-  deleted_at           DateTime?
 }
 
 //!Types

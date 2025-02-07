@@ -52,10 +52,10 @@ export class UserService {
           skipDuplicates: true,
         });
 
-        await transaction.user.update({
-          where: { id: user_id },
+        await transaction.user_tenant.create({
           data: {
             tenant_id: newTenant.id,
+            user_id: user_id,
           },
         });
 
