@@ -12,6 +12,7 @@ import { AppointmentsModule } from './medical-scheduling/appointments/appointmen
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
 import { PatientModule } from './patient/patient.module';
 import { PatientStudiesModule } from './patient-studies/patient-studies.module';
+import { FileUploadModule } from './file_upload/file_upload.module';
 config({ path: '.env' });
 
 @Module({
@@ -31,6 +32,7 @@ config({ path: '.env' });
     // }),
     PrismaModule,
     AuthModule,
+    FileUploadModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       global: true,

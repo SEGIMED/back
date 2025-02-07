@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { config } from 'dotenv';
+
 config({ path: '.env' });
 
 async function bootstrap() {
@@ -27,6 +28,7 @@ async function bootstrap() {
       },
     }),
   );
+
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('SEGIMED')

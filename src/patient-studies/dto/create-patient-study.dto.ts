@@ -1,30 +1,30 @@
 import { IsString, IsOptional, Length, IsBoolean } from 'class-validator';
 
 export class CreatePatientStudyDto {
-    @IsString()
-    @Length(3, 100)
+    @IsString({ message: 'El ID del paciente debe ser una cadena de texto' })
+    @Length(3, 100, { message: 'El ID del paciente debe tener entre 3 y 100 caracteres' })
     patient_id: string;
 
-    @IsString()
-    @Length(3, 100)
+    @IsString({ message: 'El ID del médico debe ser una cadena de texto' })
+    @Length(3, 100, { message: 'El ID del médico debe tener entre 3 y 100 caracteres' })
     physician_id: string;
 
-    @IsString()
     @IsOptional()
+    @IsString({ message: 'La URL debe ser una cadena de texto' })
     url?: string;
 
-    @IsString()
-    @Length(3, 100)
+    @IsString({ message: 'El título debe ser una cadena de texto' })
+    @Length(3, 100, { message: 'El título debe tener entre 3 y 100 caracteres' })
     title: string;
 
-    @IsString()
-    @Length(3, 500)
+    @IsString({ message: 'La descripción debe ser una cadena de texto' })
+    @Length(3, 500, { message: 'La descripción debe tener entre 3 y 500 caracteres' })
     description: string;
 
-    @IsString()
-    @Length(3, 100)
+    @IsString({ message: 'El ID del inquilino debe ser una cadena de texto' })
+    @Length(3, 100, { message: 'El ID del inquilino debe tener entre 3 y 100 caracteres' })
     tenant_id: string;
 
-    @IsBoolean()
+    @IsBoolean({ message: 'El campo is_deleted debe ser un valor booleano' })
     is_deleted: boolean = false;
 }
