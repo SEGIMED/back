@@ -4,6 +4,7 @@ import { AppointmentsService } from './appointments.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
+  imports: [],
   controllers: [AppointmentsController],
   providers: [AppointmentsService, PrismaService],
 })
