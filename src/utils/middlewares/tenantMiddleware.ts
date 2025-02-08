@@ -1,38 +1,45 @@
-import {
-  Injectable,
-  NestMiddleware,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { AuthHelper } from '../auth.helper';
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
   constructor(private readonly prisma: PrismaService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    const authorization = req.headers['authorization'];
-    if (!authorization) {
-      throw new UnauthorizedException('Authorization header missing');
-    }
-
-    const token = authorization.replace('Bearer ', '');
-    const payload: any = AuthHelper.verifyToken(token);
-
-    const tenant_id = payload?.tenant_id;
+    const tenant_id = req.headers['x-tenant-id'];
     if (!tenant_id) {
-      throw new UnauthorizedException('Tenant ID not found in token');
+      return res.status(401).json({ message: 'x-tenant-id header is missing' });
     }
 
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenant_id },
+    const tenant = await this.prisma.tenant.findFirst({
+      where: {
+        id: tenant_id as string,
+      },
     });
+
     if (!tenant) {
-      throw new UnauthorizedException('Invalid tenant');
+      return res.status(401).json({ message: 'Tenant not found' });
     }
 
-    req['tenant_id'] = tenant_id;
+    const user_id = req['user']?.id;
+    if (!user_id) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const userTenant = await this.prisma.user_tenant.findFirst({
+      where: {
+        tenant_id: tenant_id as string,
+        user_id,
+      },
+    });
+
+    if (!userTenant) {
+      return res
+        .status(401)
+        .json({ message: 'User is not authorized for this tenant' });
+    }
+    req['tenant_id'] = tenant.id;
     next();
   }
 }

@@ -21,13 +21,6 @@ export class PatientService {
   async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
     try {
       const { patient, user } = medicalPatientDto;
-      const validTenant = await this.prisma.tenant.findUnique({
-        where: { id: user.tenant_id },
-      });
-
-      if (!validTenant) {
-        throw new BadRequestException('El tenant no existe');
-      }
       const existingUser = await this.prisma.user.findUnique({
         where: { email: user.email },
       });
@@ -91,6 +84,7 @@ export class PatientService {
   ): Promise<GetPatientsDto[]> {
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(pagination);
+    console.log(tenant_id);
     const users = await this.prisma.user.findMany({
       where: {
         role: 'patient',

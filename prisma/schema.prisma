@@ -16,7 +16,6 @@ model tenant {
   deleted    Boolean     @default(false)
 
   organizations          organization[]
-  physicians             physician[]
   appointments           appointment[]
   medical_events         medical_event[]
   organization_physician organization_physician[]
@@ -124,8 +123,6 @@ model physician {
   id               String    @id @default(uuid())
   user_id          String
   user             user      @relation(fields: [user_id], references: [id])
-  tenant_id        String?
-  tenant           tenant?   @relation(fields: [tenant_id], references: [id])
   medical_registry String?
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt

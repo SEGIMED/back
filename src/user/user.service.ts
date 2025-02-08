@@ -37,7 +37,6 @@ export class UserService {
         const newPhysician = await transaction.physician.create({
           data: {
             user_id,
-            tenant_id: newTenant.id,
           },
         });
         const newPhysicianSpeciality = speciality.map((speciality) => {

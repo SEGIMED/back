@@ -6,7 +6,6 @@ export function tenantPrismaMiddleware() {
       string,
       { actions: string[]; requireTenantId: boolean }
     > = {
-      user: { actions: ['findMany'], requireTenantId: true },
       patient: {
         actions: ['findMany', 'update'],
         requireTenantId: true,
@@ -30,7 +29,7 @@ export function tenantPrismaMiddleware() {
     if (!modelRules || !modelRules.actions.includes(params.action)) {
       return next(params, params.args);
     }
-
+    console.log(params);
     if (modelRules.requireTenantId) {
       const tenantId =
         params.args?.data?.tenant_id ?? params.args?.where?.tenant_id;

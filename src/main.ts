@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { config } from 'dotenv';
+import { tokenMiddleware } from './utils/middlewares/tokenMiddleware.helper';
 
 config({ path: '.env' });
 
@@ -13,6 +14,8 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Métodos permitidos
     credentials: true, // Si estás usando cookies o autenticación basada en sesión
   });
+
+  app.use(tokenMiddleware);
 
   app.useGlobalPipes(
     new ValidationPipe({
