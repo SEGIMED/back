@@ -7,7 +7,7 @@ export function tenantPrismaMiddleware() {
       { actions: string[]; requireTenantId: boolean }
     > = {
       patient: {
-        actions: ['findMany', 'update'],
+        actions: ['findMany'],
         requireTenantId: true,
       },
       appointment: {

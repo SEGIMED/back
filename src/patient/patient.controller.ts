@@ -15,16 +15,17 @@ import { UpdatePatientDto } from './dto/update-patient.dto';
 import { MedicalPatientDto } from './dto/medical-patient.dto';
 import { Request } from 'express';
 import { PaginationParams } from 'src/utils/pagination.helper';
-/* import { MedicalPatientDto } from './dto/medical-patient.dto';
- */
 @Controller('patient')
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
-  create(@Body() medicalPatientDto: MedicalPatientDto): Promise<object> {
-    console.log(medicalPatientDto);
-    return this.patientService.create(medicalPatientDto);
+  create(
+    @Req() req: Request,
+    @Body() medicalPatientDto: MedicalPatientDto,
+  ): Promise<object> {
+    const tenant_id = req['tenant_id'];
+    return this.patientService.create(tenant_id, medicalPatientDto);
   }
 
   @Get()
@@ -47,5 +48,10 @@ export class PatientController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.patientService.remove(id);
+  }
+
+  @Patch('restore/:id')
+  restore(@Param('id') id: string) {
+    return this.patientService.restore(id);
   }
 }
