@@ -23,6 +23,7 @@ model tenant {
   organization_physician organization_physician[]
   patient_tenant         patient_tenant[]
   transaction            transaction[]
+  physical_exploration   physical_exploration[]
 }
 
 model user {
@@ -107,6 +108,7 @@ model patient {
 
   medical_event  medical_event[]
   patient_tenant patient_tenant[]
+  physical_exploration physical_exploration[]
 }
 
 model patient_tenant {
@@ -138,6 +140,7 @@ model physician {
   medical_event          medical_event[]
   physician_speciality   physician_speciality[]
   organization_physician organization_physician[]
+  physical_exploration  physical_exploration[]
 }
 
 model appointment {
@@ -181,6 +184,7 @@ model medical_event {
   patient              patient                @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician            physician              @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   physical_examination physical_examination[]
+  physical_exploration physical_exploration[]
 
   tenant_id String
   tenant    tenant? @relation(fields: [tenantId], references: [id])
@@ -227,6 +231,29 @@ model physical_examination {
   medical_event         medical_event           @relation(fields: [medical_event_id], references: [id])
   user                  user                    @relation(fields: [patient_id], references: [id])
   physical_subsystem    cat_physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
+}
+
+model physical_exploration {
+  id              String    @id @default(uuid())
+  patient_id      String
+  physician_id    String
+  medical_event_id String   @unique // Only one physical exploration per medical event
+  description     String
+  physical_exploration_area_id Int
+  tenant_id       String
+
+  patient patient @relation(fields: [patient_id], references: [id])
+  physician physician @relation(fields: [physician_id], references: [id])
+  medical_event medical_event @relation(fields: [medical_event_id], references: [id])
+  physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
+  tenant tenant @relation(fields: [tenant_id], references: [id])
+}
+
+model physical_exploration_area {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+
+  physical_exploration physical_exploration[]
 }
 
 model physician_speciality {
