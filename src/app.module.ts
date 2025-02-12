@@ -17,6 +17,7 @@ import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
 import { PhysicalExplorationModule } from './physical-exploration-data/physical-exploration/physical-exploration.module';
+import { PhysicalExplorationAreaModule } from './physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
 config({ path: '.env' });
 
 @Module({
@@ -41,6 +42,7 @@ config({ path: '.env' });
     EmailModule,
     TwilioModule,
     PhysicalExplorationModule,
+    PhysicalExplorationAreaModule,
   ],
   controllers: [AppController],
   providers: [
