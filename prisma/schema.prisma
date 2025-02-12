@@ -251,6 +251,7 @@ model physical_exploration {
 
 model physical_exploration_area {
   id          Int    @id @default(autoincrement())
+  name_on_library String @unique
   name        String @unique
 
   physical_exploration physical_exploration[]
