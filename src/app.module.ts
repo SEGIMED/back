@@ -16,7 +16,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
-import { PhysicalExplorationModule } from './physical-exploration/physical-exploration.module';
+import { PhysicalExplorationModule } from './physical-exploration-data/physical-exploration/physical-exploration.module';
 config({ path: '.env' });
 
 @Module({
