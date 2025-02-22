@@ -23,6 +23,7 @@ model tenant {
   organization_physician organization_physician[]
   patient_tenant         patient_tenant[]
   transaction            transaction[]
+  background             background[]
 }
 
 model user {
@@ -107,6 +108,7 @@ model patient {
 
   medical_event  medical_event[]
   patient_tenant patient_tenant[]
+  background     background[]
 }
 
 model patient_tenant {
@@ -265,6 +267,25 @@ model cat_speciality {
   updated_at           DateTime               @updatedAt
   deleted              Boolean                @default(false)
   deleted_at           DateTime?
+}
+
+model background {
+  id        String    @id @default(uuid())
+  patient_id String
+  vaccinations String
+  allergies   String
+  pathological_history String
+  family_medical_history String
+  non_pathological_history String
+  surgical_history String
+  childhood_medical_history String
+  current_medication String
+  tenant_id  String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  patient    patient   @relation(fields: [patient_id], references: [id])
+  tenant     tenant    @relation(fields: [tenant_id], references: [id])
 }
 
 //!Types
