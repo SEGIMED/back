@@ -21,6 +21,10 @@ export class CreatePatientStudyDto {
     @Length(3, 500, { message: 'La descripción debe tener entre 3 y 500 caracteres' })
     description: string;
 
+    @IsString({ message: 'El ID del paciente debe ser una cadena de texto' })
+    @Length(3, 100, { message: 'Hubo un error en el ID del catalogo' })
+    cat_study_type_id: string;
+
     @IsString({ message: 'El ID del inquilino debe ser una cadena de texto' })
     @Length(3, 100, { message: 'El ID del inquilino debe tener entre 3 y 100 caracteres' })
     tenant_id: string;

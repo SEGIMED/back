@@ -101,18 +101,26 @@ model transaction {
 }
 
 model patient_study {
-  id           String     @id @default(uuid())
-  patient_id   String
-  physician_id String
-  url          String?    @default("")
-  title        String
-  description  String
-  tenant_id    String
-  is_deleted   Boolean    @default(false)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id                String         @id @default(uuid())
+  patient_id        String
+  physician_id      String
+  url               String?        @default("")
+  title             String
+  description       String
+  tenant_id         String
+  cat_study_type_id String         
+  is_deleted        Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id])
+
 
   @@map("patient_studies")
+}
+model cat_study_type {
+  id     String @id @default(uuid())
+  name String
+  patient_studies patient_study[]
 }
 
 enum role_type {
@@ -131,3 +139,4 @@ enum tenant_type {
   INDIVIDUAL
   ORGANIZATION
 }
+

@@ -4,9 +4,10 @@ import { PatientStudiesService } from './patient-studies.service';
 import { PatientStudiesController } from './patient-studies.controller';
 import { FileUploadService } from '../file_upload/file_upload.service';
 import { FileUploadRepository } from 'src/file_upload/file_upload.repository';
+import { CatStudyTypeService } from './cat-study-type/cat-study-type.service';
 
 @Module({
   controllers: [PatientStudiesController],
-  providers: [PatientStudiesService, PrismaService, FileUploadService,FileUploadRepository],
+  providers: [PatientStudiesService,CatStudyTypeService, PrismaService, FileUploadService,FileUploadRepository],
 })
 export class PatientStudiesModule {}

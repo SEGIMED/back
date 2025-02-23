@@ -5,6 +5,7 @@ export interface PatientStudy {
     url?: string;
     title: string;
     description: string;
+    cat_study_type_id: string;
     tenant_id: string;
     is_deleted: boolean;
 }

@@ -13,6 +13,7 @@ import { MedicalEventsModule } from './medical-scheduling/medical-events/medical
 import { PatientModule } from './patient/patient.module';
 import { PatientStudiesModule } from './patient-studies/patient-studies.module';
 import { FileUploadModule } from './file_upload/file_upload.module';
+import { CatStudyTypeModule } from './patient-studies/cat-study-type/cat-study-type.module';
 config({ path: '.env' });
 
 @Module({
@@ -33,6 +34,7 @@ config({ path: '.env' });
     PrismaModule,
     AuthModule,
     FileUploadModule,
+    CatStudyTypeModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       global: true,
