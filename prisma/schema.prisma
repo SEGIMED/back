@@ -216,6 +216,21 @@ model cat_speciality {
   physician_speciality physician_speciality[]
 }
 
+model category_cie_diez {
+  id                   Int                    @id @default(autoincrement())
+  code                 String
+  description          String
+  subcategories_cie_diez subcategories_cie_diez[]
+}
+
+model subcategories_cie_diez {
+  id                   Int                    @id @default(autoincrement())
+  code                 String
+  description          String
+  categoryId           Int
+  category_cie_diez    category_cie_diez      @relation(fields: [categoryId], references: [id])
+}
+
 //!Types
 
 enum role_type {
