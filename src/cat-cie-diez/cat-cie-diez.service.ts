@@ -3,6 +3,7 @@ import { CreateCatCieDiezDto } from './dto/create-cat-cie-diez.dto';
 import { UpdateCatCieDiezDto } from './dto/update-cat-cie-diez.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CatCieDiez } from './entities/cat-cie-diez.entity';
+import { PaginationParams, parsePaginationAndSorting } from 'src/utils/pagination.helper';
 
 @Injectable()
 export class CatCieDiezService {
@@ -12,18 +13,24 @@ export class CatCieDiezService {
       const user = await this.prisma.category_cie_diez.create({
         data: {...createCatCieDiezDto}
       })
-      return user
+      return {message: 'Éxito'}
     } catch (error) {
-      return { message: 'La categoria no ha podido ser generada', Error: error };
+      return { message: 'Error' };
     }
   }
 
-  async findAll() {
+  async findAll(paginationParams: PaginationParams){
     try {
-      const categories = await this.prisma.category_cie_diez.findMany()
+      const { skip, take, orderBy, orderDirection } = parsePaginationAndSorting(paginationParams);
+
+      const categories = await this.prisma.category_cie_diez.findMany({
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      })
       return categories
     } catch (error) {
-      return { message: 'Error al consultar las categorias', Error: error };
+      return { message: 'Error' };
     }
   }
 
@@ -35,7 +42,8 @@ export class CatCieDiezService {
         }
       })
       if (!category) throw new NotFoundException('No existe la categoria')
-        return category
+      
+      return category
     } catch (error) {
       return { message: 'Error al consultar las categorias', Error: error };
     }
@@ -47,9 +55,9 @@ export class CatCieDiezService {
         where: {id: id},
         data: {...updateCatCieDiezDto}
       })
-      return {message: 'La categoria ha sido actualizada', category: category}
+      return {message: 'Éxito'}
     } catch (error) {
-      return { message: 'No se ha podido actualizar la categoria', Error: error };
+      return {message: 'Error' };
     }
   }
 
@@ -58,9 +66,9 @@ export class CatCieDiezService {
       const category = await this.prisma.category_cie_diez.delete({
         where: {id: id}
       })
-      return {message: 'La categoria ha sido eliminada'}
+      return {message: 'Éxito'}
     } catch (error) {
-      return { message: 'No se ha podido eliminar la categoria', Error: error };
+      return { message: 'error' };
     }
   }
 }

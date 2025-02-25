@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSubcatCieDiezDto } from './dto/create-subcat-cie-diez.dto';
 import { UpdateSubcatCieDiezDto } from './dto/update-subcat-cie-diez.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { PaginationParams, parsePaginationAndSorting } from 'src/utils/pagination.helper';
 
 @Injectable()
 export class SubcatCieDiezService {
@@ -21,18 +22,24 @@ export class SubcatCieDiezService {
 
       if(!subCat) throw new Error('No se ha podido generar la sub categoria')
 
-      return subCat
+      return {message: 'Éxito'}
     } catch (error) {
-      return {message: 'Error al generar la subcategoria', Error: error}
+      throw new Error(error)
     }
   }
 
-  async findAll() {
+  async findAll(paginationParams: PaginationParams) {
     try {
-      const subcategories = await this.prisma.subcategories_cie_diez.findMany()
+      const { skip, take, orderBy, orderDirection } = parsePaginationAndSorting(paginationParams);
+
+      const subcategories = await this.prisma.subcategories_cie_diez.findMany({
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      })
       return subcategories
     } catch (error) {
-      return {message: 'Error al consultar las subcategorias', Error: error}
+      throw new Error(error)
     }
   }
 
@@ -42,7 +49,7 @@ export class SubcatCieDiezService {
       if(!subcategory) throw new NotFoundException('No se encontró la sub categoria')
       return subcategory
     } catch (error) {
-      return {message: 'Error al consultar la subcategoria', Error: error}
+      throw new Error(error)
     }
   }
 
@@ -54,7 +61,7 @@ export class SubcatCieDiezService {
       })
       return 'La categoria ha sido correctamente actualizada'
     } catch (error) {
-      return {message: 'Error al actualizar la subcategoria', Error: error}
+      throw new Error(error)
     }
   }
 
@@ -62,21 +69,25 @@ export class SubcatCieDiezService {
     try {
       const subcategory = this.prisma.subcategories_cie_diez.delete({where: {id: id}})
       if(!subcategory) throw new NotFoundException('No se encontró la subcategoria')
-      return 'La categoria se ha eliminado correctamente'
+      return {message: 'Éxito'}
     } catch (error) {
-      return {message: 'Error al eliminar la subcategoria', Error: error}
+      throw new Error(error)
     }
   }
 
-  async findAllCategories(id: number){
+  async findAllCategories(id: number, paginationParams: PaginationParams){
     try {
+      const { skip, take, orderBy, orderDirection } = parsePaginationAndSorting(paginationParams);
+
       const subcategories = await this.prisma.subcategories_cie_diez.findMany({
-        where: {categoryId: +id}
+        where: {categoryId: +id},
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
       })
       return subcategories
     } catch (error) {
-      console.log(error);
-      return {message: 'Error al consultar las subcategorias', Error: error}
+      throw new Error(error)
     }
   }
 }

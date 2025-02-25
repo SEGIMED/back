@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CatCieDiezService } from './cat-cie-diez.service';
 import { CreateCatCieDiezDto } from './dto/create-cat-cie-diez.dto';
 import { UpdateCatCieDiezDto } from './dto/update-cat-cie-diez.dto';
+import { PaginationParams } from 'src/utils/pagination.helper';
 
 @Controller('cat-cie-diez')
 export class CatCieDiezController {
@@ -13,8 +14,8 @@ export class CatCieDiezController {
   }
 
   @Get()
-  findAll() {
-    return this.catCieDiezService.findAll();
+  findAll(@Query() paginationParams: PaginationParams) {
+    return this.catCieDiezService.findAll(paginationParams);
   }
 
   @Get(':id')
