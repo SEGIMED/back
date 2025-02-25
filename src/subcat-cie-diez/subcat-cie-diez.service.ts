@@ -22,9 +22,36 @@ export class SubcatCieDiezService {
 
       if(!subCat) throw new Error('No se ha podido generar la sub categoria')
 
-      return {message: 'Éxito'}
+      return {message: 'La sub categoría ha sido correctamente creada'}
     } catch (error) {
-      throw new Error(error)
+      return { message: `Error al crear la sub categoria ${error.message}`};
+    }
+  }
+
+  async search(searchWord: string){
+    try {
+      
+      const subcat = await this.prisma.subcategories_cie_diez.findMany({
+        where: {
+          OR: [
+            { code: {
+              contains: searchWord,
+              mode: 'insensitive'
+            }},
+            { description: {
+              contains: searchWord,
+              mode: 'insensitive'
+            }}
+          ]
+        }
+      })
+
+      if(!subcat) throw new NotFoundException({message: 'No existe la sub categoria'})
+
+      return subcat
+    } catch (error) {
+      console.log(error);
+      return { message: `Error al consultar las sub categorias ${error.message}`};
     }
   }
 
@@ -39,7 +66,7 @@ export class SubcatCieDiezService {
       })
       return subcategories
     } catch (error) {
-      throw new Error(error)
+      return { message: `Error al consultar las sub categorias ${error.message}`};
     }
   }
 
@@ -49,7 +76,7 @@ export class SubcatCieDiezService {
       if(!subcategory) throw new NotFoundException('No se encontró la sub categoria')
       return subcategory
     } catch (error) {
-      throw new Error(error)
+      return { message: `Error al consultar la sub categoria ${error.message}`};
     }
   }
 
@@ -59,9 +86,9 @@ export class SubcatCieDiezService {
         where: {id: id},
         data: {...updateSubcatCieDiezDto}
       })
-      return 'La categoria ha sido correctamente actualizada'
+      return {message: 'La categoria ha sido correctamente actualizada'}
     } catch (error) {
-      throw new Error(error)
+      return { message: `Error al actualizar la sub categoria ${error.message}`};
     }
   }
 
@@ -69,9 +96,9 @@ export class SubcatCieDiezService {
     try {
       const subcategory = this.prisma.subcategories_cie_diez.delete({where: {id: id}})
       if(!subcategory) throw new NotFoundException('No se encontró la subcategoria')
-      return {message: 'Éxito'}
+      return {message: 'La sub categoría ha sido eliminada'}
     } catch (error) {
-      throw new Error(error)
+      return { message: `Error al eliminar la sub categoria ${error.message}`};
     }
   }
 
@@ -87,7 +114,7 @@ export class SubcatCieDiezService {
       })
       return subcategories
     } catch (error) {
-      throw new Error(error)
+      return { message: `Error al consultar las categorias ${error.message}`};
     }
   }
 }

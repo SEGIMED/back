@@ -152,6 +152,7 @@ model medical_event {
   tenant_id String
   tenant    tenant? @relation(fields: [tenantId], references: [id])
   tenantId  String?
+  subcategory_medical_event subcategory_medical_event[]
 }
 
 model transaction {
@@ -229,6 +230,17 @@ model subcategories_cie_diez {
   description          String
   categoryId           Int
   category_cie_diez    category_cie_diez      @relation(fields: [categoryId], references: [id])
+  subcategory_medical_event subcategory_medical_event[]
+}
+
+model subcategory_medical_event {
+  id                        String  @id @default(uuid())
+  subCategoryId             Int
+  subcategories_cie_diez    subcategories_cie_diez  @relation(fields: [subCategoryId], references: [id])
+  medical_eventId           String
+  medical_event             medical_event           @relation(fields: [medical_eventId], references: [id])
+
+  @@unique([subCategoryId, medical_eventId])
 }
 
 //!Types

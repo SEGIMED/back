@@ -13,9 +13,9 @@ export class CatCieDiezService {
       const user = await this.prisma.category_cie_diez.create({
         data: {...createCatCieDiezDto}
       })
-      return {message: 'Éxito'}
+      return {message: 'La categoría ha sido correctamente creada'}
     } catch (error) {
-      return { message: 'Error' };
+      return { message: `Error al crear la categoria ${error.message}`};
     }
   }
 
@@ -30,7 +30,7 @@ export class CatCieDiezService {
       })
       return categories
     } catch (error) {
-      return { message: 'Error' };
+      return { message: `Error al consultar las categorias ${error.message}`};
     }
   }
 
@@ -45,7 +45,7 @@ export class CatCieDiezService {
       
       return category
     } catch (error) {
-      return { message: 'Error al consultar las categorias', Error: error };
+      return { message: `Error al consultar la categoria ${error.message}`};
     }
   }
 
@@ -55,9 +55,9 @@ export class CatCieDiezService {
         where: {id: id},
         data: {...updateCatCieDiezDto}
       })
-      return {message: 'Éxito'}
+      return {message: 'La categoría ha sido correctamente actualizada'}
     } catch (error) {
-      return {message: 'Error' };
+      return { message: `Error al actualizar la categoria ${error.message}`};
     }
   }
 
@@ -66,9 +66,9 @@ export class CatCieDiezService {
       const category = await this.prisma.category_cie_diez.delete({
         where: {id: id}
       })
-      return {message: 'Éxito'}
+      return {message: 'La categoría ha sido correctamente eliminada'}
     } catch (error) {
-      return { message: 'error' };
+      return { message: `Error al eliminar la categoria ${error.message}`};
     }
   }
 }

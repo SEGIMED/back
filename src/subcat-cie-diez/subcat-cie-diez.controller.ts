@@ -17,6 +17,11 @@ export class SubcatCieDiezController {
   findAll(@Query() paginationParams: PaginationParams) {
     return this.subcatCieDiezService.findAll(paginationParams);
   }
+  
+  @Get('search')
+  search(@Query('searchWord') searchWord: string){
+    return this.subcatCieDiezService.search(searchWord)
+  }
 
   @Get('category/:id')
   findAllCategories(@Param('id') id: number, @Query() paginationParams: PaginationParams) {
