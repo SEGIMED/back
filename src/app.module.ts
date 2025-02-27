@@ -16,6 +16,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
+import { MedicineModule } from './medicine/medicine.module';
 config({ path: '.env' });
 
 @Module({
@@ -39,6 +40,7 @@ config({ path: '.env' });
     PatientModule,
     EmailModule,
     TwilioModule,
+    MedicineModule,
   ],
   controllers: [AppController],
   providers: [
@@ -49,19 +51,19 @@ config({ path: '.env' });
   ],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .exclude(
-        { path: 'auth/register', method: RequestMethod.POST },
-        { path: 'auth/', method: RequestMethod.POST },
-        { path: 'auth/google', method: RequestMethod.POST },
-        { path: 'auth/request-password', method: RequestMethod.POST },
-        { path: 'auth/reset-password', method: RequestMethod.POST },
-        { path: 'auth/send-otp', method: RequestMethod.POST },
-        { path: 'auth/verify-otp', method: RequestMethod.POST },
-        { path: 'user/onboarding', method: RequestMethod.POST },
-      )
-      .forRoutes('*');
-  }
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer
+  //     .apply(TenantMiddleware)
+  //     .exclude(
+  //       { path: 'auth/register', method: RequestMethod.POST },
+  //       { path: 'auth/', method: RequestMethod.POST },
+  //       { path: 'auth/google', method: RequestMethod.POST },
+  //       { path: 'auth/request-password', method: RequestMethod.POST },
+  //       { path: 'auth/reset-password', method: RequestMethod.POST },
+  //       { path: 'auth/send-otp', method: RequestMethod.POST },
+  //       { path: 'auth/verify-otp', method: RequestMethod.POST },
+  //       { path: 'user/onboarding', method: RequestMethod.POST },
+  //     )
+  //     .forRoutes('*');
+  // }
 }
