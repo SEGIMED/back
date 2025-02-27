@@ -33,8 +33,8 @@ export class MedicineController {
   }
   @Post('searchMedicine')
   searchMedicine(
-    @Query('principioActivo') principioActivo: string, 
-    @Query('producto') producto: string){
-    return this.medicineService.searchMedicine(principioActivo, producto)
+    @Query('drug') principioActivo: string, 
+    @Query('product') product: string){
+    return this.medicineService.searchMedicine(principioActivo, product)
   }
 }
