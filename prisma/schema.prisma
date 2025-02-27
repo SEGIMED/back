@@ -55,6 +55,7 @@ model user {
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")
   physician            physician[]
+  background     background[]
 }
 
 model organization {
@@ -108,7 +109,6 @@ model patient {
 
   medical_event  medical_event[]
   patient_tenant patient_tenant[]
-  background     background[]
 }
 
 model patient_tenant {
@@ -284,7 +284,7 @@ model background {
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
 
-  patient    patient   @relation(fields: [patient_id], references: [id])
+  patient    user   @relation(fields: [patient_id], references: [id])
   tenant     tenant    @relation(fields: [tenant_id], references: [id])
 }
 

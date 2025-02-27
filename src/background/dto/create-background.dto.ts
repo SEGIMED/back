@@ -45,4 +45,9 @@ export class CreateBackgroundDto {
   @IsNotEmpty()
   @MaxLength(255)
   current_medication: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  tenant_id: string;
 }
