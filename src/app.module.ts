@@ -16,6 +16,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
+import { BackgroundModule } from './background/background.module';
 config({ path: '.env' });
 
 @Module({
@@ -39,6 +40,7 @@ config({ path: '.env' });
     PatientModule,
     EmailModule,
     TwilioModule,
+    BackgroundModule,
   ],
   controllers: [AppController],
   providers: [
