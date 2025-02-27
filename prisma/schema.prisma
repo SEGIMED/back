@@ -55,6 +55,8 @@ model user {
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")
   physician            physician[]
+  physical_exploration_patients physical_exploration[] @relation(name: "patients")
+  physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
 }
 
 model organization {
@@ -108,7 +110,6 @@ model patient {
 
   medical_event  medical_event[]
   patient_tenant patient_tenant[]
-  physical_exploration physical_exploration[]
 }
 
 model patient_tenant {
@@ -140,7 +141,6 @@ model physician {
   medical_event          medical_event[]
   physician_speciality   physician_speciality[]
   organization_physician organization_physician[]
-  physical_exploration  physical_exploration[]
 }
 
 model appointment {
@@ -242,8 +242,8 @@ model physical_exploration {
   physical_exploration_area_id Int
   tenant_id       String
 
-  patient patient @relation(fields: [patient_id], references: [id])
-  physician physician @relation(fields: [physician_id], references: [id])
+  patient user @relation(fields: [patient_id], references: [id], name: "patients")
+  physician user @relation(fields: [physician_id], references: [id], name: "physicians")
   medical_event medical_event @relation(fields: [medical_event_id], references: [id])
   physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
   tenant tenant @relation(fields: [tenant_id], references: [id])
