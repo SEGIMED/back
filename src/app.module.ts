@@ -18,6 +18,8 @@ import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
 import { PhysicalExplorationModule } from './physical-exploration-data/physical-exploration/physical-exploration.module';
 import { PhysicalExplorationAreaModule } from './physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
+import { CatCieDiezModule } from './cat-cie-diez/cat-cie-diez.module';
+import { SubcatCieDiezModule } from './subcat-cie-diez/subcat-cie-diez.module';
 config({ path: '.env' });
 
 @Module({
@@ -43,6 +45,8 @@ config({ path: '.env' });
     TwilioModule,
     PhysicalExplorationModule,
     PhysicalExplorationAreaModule,
+    CatCieDiezModule,
+    SubcatCieDiezModule,
   ],
   controllers: [AppController],
   providers: [
