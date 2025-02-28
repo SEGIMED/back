@@ -6,7 +6,9 @@ import { CreatePhysicalExplorationDto } from './dto/create-physical-exploration.
 export class PhysicalExplorationService {
   constructor(private prisma: PrismaService) {}
 
-  async createPhysicalExploration(data: CreatePhysicalExplorationDto) {
+  async createPhysicalExploration(
+    data: CreatePhysicalExplorationDto,
+  ): Promise<{ message: string }> {
     try {
       const existingExploration =
         await this.prisma.physical_exploration.findFirst({
@@ -22,7 +24,7 @@ export class PhysicalExplorationService {
         );
       }
 
-      return await this.prisma.physical_exploration.create({
+      await this.prisma.physical_exploration.create({
         data: {
           patient_id: data.patient_id,
           physician_id: data.physician_id,
@@ -32,6 +34,8 @@ export class PhysicalExplorationService {
           tenant_id: data.tenant_id,
         },
       });
+
+      return { message: 'Physical exploration created successfully' };
     } catch (error) {
       throw new HttpException(
         'Error creating physical exploration',

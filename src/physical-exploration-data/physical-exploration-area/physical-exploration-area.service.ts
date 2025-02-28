@@ -11,7 +11,9 @@ import { Prisma } from '@prisma/client';
 export class PhysicalExplorationAreaService {
   constructor(private prisma: PrismaService) {}
 
-  async createPhysicalExplorationArea(data: CreatePhysicalExplorationAreaDto) {
+  async createPhysicalExplorationArea(
+    data: CreatePhysicalExplorationAreaDto,
+  ): Promise<{ message: string }> {
     try {
       const existingCount = await this.prisma.physical_exploration_area.count({
         where: {
@@ -25,16 +27,18 @@ export class PhysicalExplorationAreaService {
         );
       }
 
-      return await this.prisma.physical_exploration_area.create({
+      await this.prisma.physical_exploration_area.create({
         data,
       });
+
+      return { message: 'Physical exploration area created successfully' };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new InternalServerErrorException(
           `Database error: ${error.message}`,
         );
       }
-      
+
       throw new InternalServerErrorException(
         error.message || 'Error creating physical exploration area',
       );
