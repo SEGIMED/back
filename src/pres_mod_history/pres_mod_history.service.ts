@@ -5,7 +5,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PresModHistoryService {
+
   constructor(private readonly prisma: PrismaService){}
+
   async create(createPresModHistoryDto: CreatePresModHistoryDto) {
     try {
       const history = await this.prisma.pres_mod_history.create({
@@ -13,23 +15,40 @@ export class PresModHistoryService {
       })
       return {message: 'La historia ha sido creada'}
     } catch (error) {
-      
+      throw new Error(`No se ha podido generar la historia ${error.message}`)
     }
   }
 
-  findAll() {
-    return `This action returns all presModHistory`;
+  async findByPrescription_id(id: string){
+    try {
+      const search = await this.prisma.pres_mod_history.findMany({
+        where: {prescription_id: id}
+      })
+      return search
+    } catch (error) {
+      throw new Error(`No se ha podido consultar por prescripción ${error.message}`)
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} presModHistory`;
+  async findByPhysician_id(id: string){
+    try {
+      const search = await this.prisma.pres_mod_history.findMany({
+        where: {physician_id: id}
+      })
+      return search
+    } catch (error) {
+      throw new Error(`No se ha podido consultar por médico ${error.message}`)
+    }
   }
 
-  update(id: number, updatePresModHistoryDto: UpdatePresModHistoryDto) {
-    return `This action updates a #${id} presModHistory`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} presModHistory`;
+  async findByMedical_event_id(id: string){
+    try {
+      const search = await this.prisma.pres_mod_history.findMany({
+        where: {medical_event_id: id}
+      })
+      return search
+    } catch (error) {
+      throw new Error(`No se ha podido consultar por evento médico ${error.message}`)
+    }
   }
 }

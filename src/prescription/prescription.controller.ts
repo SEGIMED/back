@@ -22,18 +22,12 @@ export class PrescriptionController {
     return this.prescriptionService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.prescriptionService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePrescriptionDto: UpdatePrescriptionDto) {
-    return this.prescriptionService.update(+id, updatePrescriptionDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.prescriptionService.remove(id);
   }
+
+  // @IsOptional()
+  // medical_order_id:string?
+
 }

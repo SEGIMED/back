@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
-import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -45,14 +44,6 @@ export class PrescriptionService {
     } catch (error) {
       throw new Error(`No se ha podido consultar las prescripciones ${error.message}`)
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} prescription`;
-  }
-
-  update(id: number, updatePrescriptionDto: UpdatePrescriptionDto) {
-    return `This action updates a #${id} prescription`;
   }
 
   async remove(id: string) {
