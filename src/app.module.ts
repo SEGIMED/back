@@ -17,6 +17,11 @@ import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
 import { BackgroundModule } from './background/background.module';
+import { PhysicalExplorationModule } from './physical-exploration-data/physical-exploration/physical-exploration.module';
+import { PhysicalExplorationAreaModule } from './physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
+import { CatCieDiezModule } from './cat-cie-diez/cat-cie-diez.module';
+import { SubcatCieDiezModule } from './subcat-cie-diez/subcat-cie-diez.module';
+
 config({ path: '.env' });
 
 @Module({
@@ -41,6 +46,10 @@ config({ path: '.env' });
     EmailModule,
     TwilioModule,
     BackgroundModule,
+    PhysicalExplorationModule,
+    PhysicalExplorationAreaModule,
+    CatCieDiezModule,
+    SubcatCieDiezModule,
   ],
   controllers: [AppController],
   providers: [
