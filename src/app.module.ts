@@ -17,6 +17,8 @@ import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
 import { MedicineModule } from './medicine/medicine.module';
+import { PrescriptionModule } from './prescription/prescription.module';
+import { PresModHistoryModule } from './pres_mod_history/pres_mod_history.module';
 config({ path: '.env' });
 
 @Module({
@@ -41,6 +43,8 @@ config({ path: '.env' });
     EmailModule,
     TwilioModule,
     MedicineModule,
+    PrescriptionModule,
+    PresModHistoryModule,
   ],
   controllers: [AppController],
   providers: [

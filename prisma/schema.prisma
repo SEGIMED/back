@@ -21,6 +21,7 @@ model tenant {
   medical_events         medical_event[]
   organization_physician organization_physician[]
   patient_tenant         patient_tenant[]
+  prescription           prescription[]
 }
 
 model user {
@@ -50,6 +51,7 @@ model user {
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")
   physician            physician[]
+  prescription         prescription[]
 }
 
 model organization {
@@ -88,8 +90,8 @@ model patient {
   user_id            String  @unique
   user               user    @relation(fields: [user_id], references: [id])
 
-  medical_event  medical_event[]
-  patient_tenant patient_tenant[]
+  medical_event   medical_event[]
+  patient_tenant  patient_tenant[]
 }
 
 model patient_tenant {
@@ -113,6 +115,7 @@ model physician {
   medical_event          medical_event[]
   physician_speciality   physician_speciality[]
   organization_physician organization_physician[]
+  pres_mod_history       pres_mod_history[]
 }
 
 model appointment {
@@ -152,6 +155,7 @@ model medical_event {
   tenant_id String
   tenant    tenant? @relation(fields: [tenantId], references: [id])
   tenantId  String?
+  pres_mod_history    pres_mod_history[]
 }
 
 model transaction {
@@ -214,6 +218,39 @@ model cat_speciality {
   id                   Int                    @id @default(autoincrement())
   name                 String
   physician_speciality physician_speciality[]
+}
+
+model prescription {
+  id                    String                @id @default(uuid())
+  start_timestamp       DateTime              @default(now())
+  end_timestamp         DateTime?
+  description           String?
+  active                Boolean               @default(true) 
+  patient_id            String?
+  user                  user?                  @relation(fields: [patient_id], references: [id])
+  monodrug              String
+  tenat_id              String?
+  tenant                tenant?               @relation(fields: [tenat_id], references: [id])
+  pres_mod_history      pres_mod_history[]
+}
+
+model pres_mod_history {
+  id                    String                @id @default(uuid())
+  prescription_id       String
+  prescription          prescription          @relation(fields: [prescription_id], references: [id])
+  physician_id          String
+  physician             physician             @relation(fields: [physician_id], references: [id])
+  mod_timestamp         DateTime              @default(now())
+  medical_event_id      String?
+  medical_event         medical_event?        @relation(fields: [medical_event_id], references: [id])
+  // medical_order_id      String?
+  // medical_order         medical_order         @relation(fields: [medical_order_id], references: [id])
+  observations          String?
+  dose                  String
+  dose_units            String
+  frecuency             String
+  duration              String
+  duration_units        String
 }
 
 //!Types
