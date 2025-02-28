@@ -23,6 +23,7 @@ model tenant {
   organization_physician organization_physician[]
   patient_tenant         patient_tenant[]
   transaction            transaction[]
+  background             background[]
   physical_exploration   physical_exploration[]
 }
 
@@ -55,8 +56,11 @@ model user {
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")
   physician            physician[]
+  background     background[]
+
   physical_exploration_patients physical_exploration[] @relation(name: "patients")
   physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
+
 }
 
 model organization {
@@ -296,6 +300,25 @@ model cat_speciality {
   deleted_at           DateTime?
 }
 
+
+model background {
+  id        String    @id @default(uuid())
+  patient_id String
+  vaccinations String
+  allergies   String
+  pathological_history String
+  family_medical_history String
+  non_pathological_history String
+  surgical_history String
+  childhood_medical_history String
+  current_medication String
+  tenant_id  String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  patient    user   @relation(fields: [patient_id], references: [id])
+  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+}
 model category_cie_diez {
   id                   Int                    @id @default(autoincrement())
   code                 String
