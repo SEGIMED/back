@@ -2,7 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthHelper } from 'src/utils/auth.helper';
-import { CreateUserDto, GoogleUserDto } from 'src/user/dto/create-user.dto';
+import {
+  CreateUserDto,
+  GoogleUserDto,
+} from 'src/management/user/dto/create-user.dto';
 import { RequestPasswordDto } from './dto/password-auth.dto';
 import { EmailService } from 'src/services/email/email.service';
 import { Request } from 'express';

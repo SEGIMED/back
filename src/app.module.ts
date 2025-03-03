@@ -1,8 +1,8 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
+import { UserModule } from './management/user/user.module';
+import { AuthModule } from './management/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { config } from 'dotenv';
 import { PrismaModule } from './prisma/prisma.module';
@@ -11,19 +11,19 @@ import { AppointmentsModule } from './medical-scheduling/appointments/appointmen
 import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
 import { PhysicalExaminationService } from './services/physical-examination/physical-examination.service';
 import { PhysicalSubsystemService } from './services/physical_subsystem/physical_subsystem.service';
-import { PatientModule } from './patient/patient.module';
-import { PatientStudiesModule } from './patient-studies/patient-studies.module';
-import { FileUploadModule } from './file_upload/file_upload.module';
-import { CatStudyTypeModule } from './patient-studies/cat-study-type/cat-study-type.module';
+import { PatientModule } from './management/patient/patient.module';
+import { PatientStudiesModule } from './medical-scheduling/modules/patient-studies/patient-studies.module';
+import { FileUploadModule } from './utils/file_upload/file_upload.module';
+import { CatStudyTypeModule } from './catalogs/cat-study-type/cat-study-type.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
-import { BackgroundModule } from './background/background.module';
-import { PhysicalExplorationModule } from './physical-exploration-data/physical-exploration/physical-exploration.module';
-import { PhysicalExplorationAreaModule } from './physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
-import { CatCieDiezModule } from './cat-cie-diez/cat-cie-diez.module';
-import { SubcatCieDiezModule } from './subcat-cie-diez/subcat-cie-diez.module';
+import { BackgroundModule } from './medical-scheduling/background/background.module';
+import { PhysicalExplorationModule } from './medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.module';
+import { PhysicalExplorationAreaModule } from './medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
+import { CatCieDiezModule } from './catalogs/cat-cie-diez/cat-cie-diez.module';
+import { SubcatCieDiezModule } from './catalogs/subcat-cie-diez/subcat-cie-diez.module';
 
 config({ path: '.env' });
 

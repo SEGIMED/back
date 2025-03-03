@@ -17,9 +17,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PatientStudiesService } from './patient-studies.service';
 import { CreatePatientStudyDto } from './dto/create-patient-study.dto';
 import { UpdatePatientStudyDto } from './dto/update-patient-study.dto';
-import { FileUploadService } from '../file_upload/file_upload.service';
+import { FileUploadService } from '../../../utils/file_upload/file_upload.service';
 import { Multer } from 'multer';
-import { CatStudyTypeService } from './cat-study-type/cat-study-type.service';
+import { CatStudyTypeService } from '../../../catalogs/cat-study-type/cat-study-type.service';
 
 @Controller('patient-studies')
 export class PatientStudiesController {

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { CreatePatientStudyDto } from './dto/create-patient-study.dto';
 import { UpdatePatientStudyDto } from './dto/update-patient-study.dto';
 import { PatientStudy } from './entities/patient-study.interface';
