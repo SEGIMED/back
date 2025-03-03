@@ -19,6 +19,12 @@ import { TwilioModule } from './services/twilio/twilio.module';
 import { MedicineModule } from './medicine/medicine.module';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { PresModHistoryModule } from './pres_mod_history/pres_mod_history.module';
+import { BackgroundModule } from './background/background.module';
+import { PhysicalExplorationModule } from './physical-exploration-data/physical-exploration/physical-exploration.module';
+import { PhysicalExplorationAreaModule } from './physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
+import { CatCieDiezModule } from './cat-cie-diez/cat-cie-diez.module';
+import { SubcatCieDiezModule } from './subcat-cie-diez/subcat-cie-diez.module';
+
 config({ path: '.env' });
 
 @Module({
@@ -45,6 +51,11 @@ config({ path: '.env' });
     MedicineModule,
     PrescriptionModule,
     PresModHistoryModule,
+    BackgroundModule,
+    PhysicalExplorationModule,
+    PhysicalExplorationAreaModule,
+    CatCieDiezModule,
+    SubcatCieDiezModule,
   ],
   controllers: [AppController],
   providers: [

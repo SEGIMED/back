@@ -13,6 +13,7 @@ model tenant {
   db_name    String?
   created_at DateTime    @default(now())
   updated_at DateTime    @updatedAt
+  deleted    Boolean     @default(false)
 
   users                  user[]
   organizations          organization[]
@@ -22,6 +23,9 @@ model tenant {
   organization_physician organization_physician[]
   patient_tenant         patient_tenant[]
   prescription           prescription[]
+  transaction            transaction[]
+  background             background[]
+  physical_exploration   physical_exploration[]
 }
 
 model user {
@@ -41,6 +45,8 @@ model user {
   image                 String                 @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
   created_at            DateTime               @default(now())
   updated_at            DateTime               @updatedAt
+  deleted               Boolean                @default(false)
+  deleted_at            DateTime?
   transactions          transaction[]
   physical_examinations physical_examination[]
 
@@ -53,6 +59,11 @@ model user {
   physician            physician[]
   prescription         prescription[]
   pres_mod_history      pres_mod_history[]
+  background     background[]
+
+  physical_exploration_patients physical_exploration[] @relation(name: "patients")
+  physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
+
 }
 
 model organization {
@@ -62,6 +73,10 @@ model organization {
   number_of_employees Int?
   number_of_patients  Int?
   reason_register     String
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+  deleted             Boolean     @default(false)
+  deleted_at          DateTime?
 
   tenant_id              String?
   tenant                 tenant?                  @relation(fields: [tenant_id], references: [id])
@@ -72,6 +87,10 @@ model organization_physician {
   id              String       @id @default(uuid())
   organization_id String
   physician_id    String
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  deleted         Boolean      @default(false)
+  deleted_at      DateTime?
   organization    organization @relation(fields: [organization_id], references: [id])
   physician       physician    @relation(fields: [physician_id], references: [id])
   tenant_id       String
@@ -79,7 +98,7 @@ model organization_physician {
 }
 
 model patient {
-  id                 String  @id @default(uuid())
+  id                 String    @id @default(uuid())
   direction          String?
   country            String?
   province           String?
@@ -88,30 +107,43 @@ model patient {
   direction_number   String?
   apartment          String?
   health_care_number String?
-  user_id            String  @unique
-  user               user    @relation(fields: [user_id], references: [id])
+  notes              String?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  deleted            Boolean   @default(false)
+  deleted_at         DateTime?
+  user_id            String    @unique
+  user               user      @relation(fields: [user_id], references: [id])
 
   medical_event   medical_event[]
   patient_tenant  patient_tenant[]
 }
 
 model patient_tenant {
-  id         String  @id @default(uuid())
+  id         String    @id @default(uuid())
   patient_id String
-  patient    patient @relation(fields: [patient_id], references: [id])
+  patient    patient   @relation(fields: [patient_id], references: [id])
   tenant_id  String
-  tenant     tenant  @relation(fields: [tenant_id], references: [id])
+  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted    Boolean   @default(false)
+  deleted_at DateTime?
 
   @@unique([patient_id, tenant_id])
 }
 
 model physician {
-  id               String  @id @default(uuid())
+  id               String    @id @default(uuid())
   user_id          String
-  user             user    @relation(fields: [user_id], references: [id])
+  user             user      @relation(fields: [user_id], references: [id])
   tenant_id        String?
-  tenant           tenant? @relation(fields: [tenant_id], references: [id])
+  tenant           tenant?   @relation(fields: [tenant_id], references: [id])
   medical_registry String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted          Boolean   @default(false)
+  deleted_at       DateTime?
 
   medical_event          medical_event[]
   physician_speciality   physician_speciality[]
@@ -128,6 +160,10 @@ model appointment {
   status              status_type     @default(pendiente)
   cancelation_reason  String?
   comments            String?
+  created_at          DateTime        @default(now())
+  updated_at          DateTime        @updatedAt
+  deleted             Boolean         @default(false)
+  deleted_at          DateTime?
   patient             user            @relation(name: "patient", fields: [patient_id], references: [id], onDelete: Cascade)
   physician           user            @relation(name: "physician", fields: [physician_id], references: [id], onDelete: Cascade)
   medical_events      medical_event[]
@@ -147,35 +183,49 @@ model medical_event {
   evolution            String?
   procedure            String?
   treatment            String?
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
+  deleted              Boolean                @default(false)
+  deleted_at           DateTime?
   appointment          appointment            @relation(fields: [appointment_id], references: [id])
   patient              patient                @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician            physician              @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   physical_examination physical_examination[]
+  physical_exploration physical_exploration[]
 
   tenant_id String
   tenant    tenant? @relation(fields: [tenantId], references: [id])
   tenantId  String?
   pres_mod_history    pres_mod_history[]
+  subcategory_medical_event subcategory_medical_event[]
+
 }
 
 model transaction {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   orderId    String
   status     String
   amount     Float
   currency   String
   userId     String
-  created_at DateTime @default(now())
-  user       user     @relation(fields: [userId], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted    Boolean   @default(false)
+  deleted_at DateTime?
+  user       user      @relation(fields: [userId], references: [id])
 
   tenant_id String
+  tenant    tenant? @relation(fields: [tenant_id], references: [id])
 }
 
 model password_reset {
-  id         String   @id @default(uuid())
-  token      String   @unique
+  id         String    @id @default(uuid())
+  token      String    @unique
   email      String
-  created_at DateTime @default(now())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted    Boolean   @default(false)
+  deleted_at DateTime?
 }
 
 model physical_examination {
@@ -184,12 +234,49 @@ model physical_examination {
   patient_id            String
   description           String
   medical_event_id      String
-  tenant_id             String
+  created_at            DateTime                @default(now())
+  updated_at            DateTime                @updatedAt
+  deleted               Boolean                 @default(false)
+  deleted_at            DateTime?
   medical_event         medical_event           @relation(fields: [medical_event_id], references: [id])
   user                  user                    @relation(fields: [patient_id], references: [id])
   physical_subsystem    cat_physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
-  createdAt             DateTime                @default(now())
-  updated_at            DateTime                @updatedAt
+}
+
+model physical_exploration {
+  id              String    @id @default(uuid())
+  patient_id      String
+  physician_id    String
+  medical_event_id String   @unique // Only one physical exploration per medical event
+  description     String
+  physical_exploration_area_id Int
+  tenant_id       String
+
+  patient user @relation(fields: [patient_id], references: [id], name: "patients")
+  physician user @relation(fields: [physician_id], references: [id], name: "physicians")
+  medical_event medical_event @relation(fields: [medical_event_id], references: [id])
+  physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
+  tenant tenant @relation(fields: [tenant_id], references: [id])
+}
+
+model physical_exploration_area {
+  id          Int    @id @default(autoincrement())
+  name_on_library String @unique
+  name        String @unique
+
+  physical_exploration physical_exploration[]
+}
+
+model physician_speciality {
+  id            String         @id @default(uuid())
+  physician_id  String
+  speciality_id Int
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  deleted       Boolean        @default(false)
+  deleted_at    DateTime?
+  physician     physician      @relation(fields: [physician_id], references: [id])
+  speciality    cat_speciality @relation(fields: [speciality_id], references: [id])
 }
 
 model otp_code {
@@ -198,26 +285,69 @@ model otp_code {
   code_expires_at DateTime?
 }
 
-model physician_speciality {
-  id            String         @id @default(uuid())
-  physician_id  String
-  speciality_id Int
-  physician     physician      @relation(fields: [physician_id], references: [id])
-  speciality    cat_speciality @relation(fields: [speciality_id], references: [id])
-}
-
-//!Catalogs
-
 model cat_physical_subsystem {
   id                    Int                    @id @default(autoincrement())
   name                  String
   physical_examinations physical_examination[]
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+  deleted               Boolean                @default(false)
+  deleted_at            DateTime?
 }
 
 model cat_speciality {
   id                   Int                    @id @default(autoincrement())
   name                 String
   physician_speciality physician_speciality[]
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
+  deleted              Boolean                @default(false)
+  deleted_at           DateTime?
+}
+
+
+model background {
+  id        String    @id @default(uuid())
+  patient_id String
+  vaccinations String
+  allergies   String
+  pathological_history String
+  family_medical_history String
+  non_pathological_history String
+  surgical_history String
+  childhood_medical_history String
+  current_medication String
+  tenant_id  String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  patient    user   @relation(fields: [patient_id], references: [id])
+  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+}
+model category_cie_diez {
+  id                   Int                    @id @default(autoincrement())
+  code                 String
+  description          String
+  subcategories_cie_diez subcategories_cie_diez[]
+}
+
+model subcategories_cie_diez {
+  id                   Int                    @id @default(autoincrement())
+  code                 String
+  description          String
+  categoryId           Int
+  category_cie_diez    category_cie_diez      @relation(fields: [categoryId], references: [id])
+  subcategory_medical_event subcategory_medical_event[]
+}
+
+model subcategory_medical_event {
+  id                        String  @id @default(uuid())
+  subCategoryId             Int
+  subcategories_cie_diez    subcategories_cie_diez  @relation(fields: [subCategoryId], references: [id])
+  medical_eventId           String
+  medical_event             medical_event           @relation(fields: [medical_eventId], references: [id])
+
+  @@unique([subCategoryId, medical_eventId])
 }
 
 model prescription {

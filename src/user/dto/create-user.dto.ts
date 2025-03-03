@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 import { role_type } from '@prisma/client';
 
-export class CreateUserDto {
+export class BaseUserDto {
   @IsString({ message: 'El nombre debe ser un texto válido.' })
   @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres.' })
   @IsNotEmpty({ message: 'El nombre es obligatorio.' })
@@ -24,7 +24,7 @@ export class CreateUserDto {
   email: string;
 
   @IsString({ message: 'El DNI debe ser un texto válido.' })
-  @Length(7, 9, { message: 'El DNI debe tener entre 10 y 15 caracteres.' })
+  @Length(7, 9, { message: 'El DNI debe tener entre 7 y 9 caracteres.' })
   @IsOptional()
   dni?: string;
 
@@ -55,6 +55,19 @@ export class CreateUserDto {
   })
   phone: string;
 
+  @IsUrl({}, { message: 'La URL de la imagen no tiene un formato válido.' })
+  @IsOptional()
+  image: string;
+
+  @IsString({ message: 'El rol debe ser un texto válido.' })
+  @IsOptional()
+  role: role_type;
+
+  @IsOptional()
+  tenant_id: string;
+}
+
+export class CreateUserDto extends BaseUserDto {
   @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
   @IsStrongPassword(
     {
@@ -70,17 +83,6 @@ export class CreateUserDto {
     },
   )
   password?: string;
-
-  @IsUrl({}, { message: 'La URL de la imagen no tiene un formato válido.' })
-  @IsOptional()
-  image: string;
-
-  @IsString({ message: 'El rol debe ser un texto válido.' })
-  @IsOptional()
-  role: role_type;
-
-  @IsOptional()
-  tenant_id: string;
 }
 
 export class GoogleUserDto {
