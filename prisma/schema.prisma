@@ -56,11 +56,10 @@ model user {
   physicianAppointment appointment[] @relation(name: "physician")
   patientAppointments  appointment[] @relation(name: "patient")
   physician            physician[]
-  background     background[]
+  background           background[]
 
-  physical_exploration_patients physical_exploration[] @relation(name: "patients")
+  physical_exploration_patients   physical_exploration[] @relation(name: "patients")
   physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
-
 }
 
 model organization {
@@ -190,9 +189,9 @@ model medical_event {
   physical_examination physical_examination[]
   physical_exploration physical_exploration[]
 
-  tenant_id String
-  tenant    tenant? @relation(fields: [tenantId], references: [id])
-  tenantId  String?
+  tenant_id                 String
+  tenant                    tenant?                     @relation(fields: [tenantId], references: [id])
+  tenantId                  String?
   subcategory_medical_event subcategory_medical_event[]
 }
 
@@ -239,25 +238,25 @@ model physical_examination {
 }
 
 model physical_exploration {
-  id              String    @id @default(uuid())
-  patient_id      String
-  physician_id    String
-  medical_event_id String   @unique // Only one physical exploration per medical event
-  description     String
+  id                           String @id @default(uuid())
+  patient_id                   String
+  physician_id                 String
+  medical_event_id             String @unique // Only one physical exploration per medical event
+  description                  String
   physical_exploration_area_id Int
-  tenant_id       String
+  tenant_id                    String
 
-  patient user @relation(fields: [patient_id], references: [id], name: "patients")
-  physician user @relation(fields: [physician_id], references: [id], name: "physicians")
-  medical_event medical_event @relation(fields: [medical_event_id], references: [id])
+  patient                   user                      @relation(fields: [patient_id], references: [id], name: "patients")
+  physician                 user                      @relation(fields: [physician_id], references: [id], name: "physicians")
+  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id])
   physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
-  tenant tenant @relation(fields: [tenant_id], references: [id])
+  tenant                    tenant                    @relation(fields: [tenant_id], references: [id])
 }
 
 model physical_exploration_area {
-  id          Int    @id @default(autoincrement())
+  id              Int    @id @default(autoincrement())
   name_on_library String @unique
-  name        String @unique
+  name            String @unique
 
   physical_exploration physical_exploration[]
 }
@@ -300,47 +299,47 @@ model cat_speciality {
   deleted_at           DateTime?
 }
 
-
 model background {
-  id        String    @id @default(uuid())
-  patient_id String
-  vaccinations String
-  allergies   String
-  pathological_history String
-  family_medical_history String
-  non_pathological_history String
-  surgical_history String
+  id                        String   @id @default(uuid())
+  patient_id                String
+  vaccinations              String
+  allergies                 String
+  pathological_history      String
+  family_medical_history    String
+  non_pathological_history  String
+  surgical_history          String
   childhood_medical_history String
-  current_medication String
-  tenant_id  String
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  current_medication        String
+  tenant_id                 String
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
 
-  patient    user   @relation(fields: [patient_id], references: [id])
-  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+  patient user   @relation(fields: [patient_id], references: [id])
+  tenant  tenant @relation(fields: [tenant_id], references: [id])
 }
+
 model category_cie_diez {
-  id                   Int                    @id @default(autoincrement())
-  code                 String
-  description          String
+  id                     Int                      @id @default(autoincrement())
+  code                   String
+  description            String
   subcategories_cie_diez subcategories_cie_diez[]
 }
 
 model subcategories_cie_diez {
-  id                   Int                    @id @default(autoincrement())
-  code                 String
-  description          String
-  categoryId           Int
-  category_cie_diez    category_cie_diez      @relation(fields: [categoryId], references: [id])
+  id                        Int                         @id @default(autoincrement())
+  code                      String
+  description               String
+  categoryId                Int
+  category_cie_diez         category_cie_diez           @relation(fields: [categoryId], references: [id])
   subcategory_medical_event subcategory_medical_event[]
 }
 
 model subcategory_medical_event {
-  id                        String  @id @default(uuid())
-  subCategoryId             Int
-  subcategories_cie_diez    subcategories_cie_diez  @relation(fields: [subCategoryId], references: [id])
-  medical_eventId           String
-  medical_event             medical_event           @relation(fields: [medical_eventId], references: [id])
+  id                     String                 @id @default(uuid())
+  subCategoryId          Int
+  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id])
+  medical_eventId        String
+  medical_event          medical_event          @relation(fields: [medical_eventId], references: [id])
 
   @@unique([subCategoryId, medical_eventId])
 }
@@ -368,4 +367,31 @@ enum gender {
   masculino
   femenino
   otro
+}
+
+model Event {
+  id                 Int                @id @default(autoincrement())
+  patient            Int
+  alarm_description  String
+  created_at         DateTime           @default(now())
+  solved             Boolean            @default(false)
+  solved_date        DateTime?
+  physician          Int?
+  ia_evaluation      String
+  chat_history       Json
+  physician_priority PhysicianPriority?
+  ia_priority        IAPriority
+  tennant_id         Int
+}
+
+enum PhysicianPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum IAPriority {
+  LOW
+  MEDIUM
+  HIGH
 }
