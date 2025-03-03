@@ -8,7 +8,9 @@ import { PatientStudy } from './entities/patient-study.interface';
 export class PatientStudiesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPatientStudyDto: CreatePatientStudyDto): Promise<PatientStudy> {
+  async create(
+    createPatientStudyDto: CreatePatientStudyDto,
+  ): Promise<PatientStudy> {
     return await this.prisma.patient_study.create({
       data: {
         ...createPatientStudyDto,
@@ -29,7 +31,10 @@ export class PatientStudiesService {
     });
   }
 
-  async update(id: string, updatePatientStudyDto: UpdatePatientStudyDto): Promise<PatientStudy> {
+  async update(
+    id: string,
+    updatePatientStudyDto: UpdatePatientStudyDto,
+  ): Promise<PatientStudy> {
     return this.prisma.patient_study.update({
       where: { id },
       data: updatePatientStudyDto,

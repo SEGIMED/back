@@ -1,76 +1,51 @@
-import { PickType } from "@nestjs/swagger";
-import { IsOptional, IsString, Length } from "class-validator";
-import { CreateUserDto } from "src/user/dto/create-user.dto";
+import { IsOptional, IsString, Length } from 'class-validator';
 
-export class CreatePatientDto extends PickType(CreateUserDto, ["email"]) {
+export class CreatePatientDto {
+  @IsString({ message: 'La dirección debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'La dirección debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  direction?: string;
 
+  @IsString({ message: 'El país debe ser un texto válido.' })
+  @Length(3, 50, { message: 'El país debe tener entre 3 y 50 caracteres.' })
+  country: string;
 
-    /**
-     * User's direction
-     * @example Arequipa y Moncayo
-     */
-    @IsString()
-    @Length(3, 50)
-    @IsOptional()
-    direction?:string;
+  @IsString({ message: 'La provincia debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'La provincia debe tener entre 3 y 50 caracteres.',
+  })
+  province: string;
 
-    /**
-     * User's city
-     * @example México
-     */
-    @IsString()
-    @Length(3, 50)
-    country?:String;
+  @IsString({ message: 'La ciudad debe ser un texto válido.' })
+  @Length(3, 50, { message: 'La ciudad debe tener entre 3 y 50 caracteres.' })
+  city: string;
 
-    /**
-     * User's province
-     * @example Molida
-     */
-    @IsString()
-    @Length(3, 50)
-    province?:String;
+  @IsString({ message: 'El código postal debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'El código postal debe tener entre 3 y 50 caracteres.',
+  })
+  postal_code: string;
 
-    /**
-     * User's city
-     * @example "Andalucia"
-     */
-    @IsString()
-    @Length(3, 50)
-    city?:String;
+  @IsString({ message: 'El número de dirección debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'El número de dirección debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  direction_number?: string;
 
-    /**
-     * User's postal code
-     * @example "s170205"
-     */
-    @IsString()
-    @Length(3, 50)
-    postal_code?:String;
+  @IsString({ message: 'El apartamento debe ser un texto válido.' })
+  @Length(1, 50, {
+    message: 'El apartamento debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  apartment?: string;
 
-    /**
-     * User's direction
-     * @example "Av. Sexta y calle 5748"
-     */
-    @IsString()
-    @Length(3, 50)
-    direction_number?:String;
-
-    /**
-     * User's apparment
-     * @example "Ste. 4875"
-     */
-    @IsString()
-    @Length(3, 50)
-    apparment?:String;
-
-    /**
-     * User's health care nuber unique number
-     * @example 56r78dse
-     */
-    @IsString()
-    @Length(3, 50)
-    health_care_number?:String;
-    
-    userId:String;
-    appointments?:any[];
-    medical_events?:any[];
+  @IsString({ message: 'El número de seguro médico debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'El número de seguro médico debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  health_care_number?: string;
 }

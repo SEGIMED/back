@@ -1,4 +1,12 @@
-import { Controller, Post, UploadedFile, UseInterceptors, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileUploadService } from './file_upload.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -17,20 +25,22 @@ export class FileUploadController {
         validators: [
           new MaxFileSizeValidator({
             maxSize: 10 * 1024 * 1024, // 10MB para PDF, 5MB para imágenes
-            message: 'File exceeds the maximum size of 10MB for PDFs or 5MB for images',
+            message:
+              'File exceeds the maximum size of 10MB for PDFs or 5MB for images',
           }),
           new FileTypeValidator({
-            fileType: /^(image\/(jpg|jpeg|png|webp|svg)|application\/pdf)$/i
+            fileType: /^(image\/(jpg|jpeg|png|webp|svg)|application\/pdf)$/i,
           }),
         ],
-      })
-    ) file: Multer.File
+      }),
+    )
+    file: Multer.File,
   ) {
     try {
       const result = await this.fileUploadService.uploadFile(file);
-      return result;  // Retorna la URL y el tipo
+      return result; // Retorna la URL y el tipo
     } catch (error) {
-      throw new Error('File upload failed: ' + error.message);  // Maneja errores aquí
+      throw new Error('File upload failed: ' + error.message); // Maneja errores aquí
     }
   }
 }

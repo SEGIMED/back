@@ -4,7 +4,7 @@ import { role_type } from '@prisma/client';
 export interface User {
   id?: string;
   name?: string;
-  last_name?:string;
+  last_name?: string;
   email?: string;
   dni?: string;
   dniType?: string;

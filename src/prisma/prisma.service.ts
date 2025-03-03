@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { tenantPrismaMiddleware } from 'src/utils/middlewares/tenantPrismaMiddleware';
 
 @Injectable()
 export class PrismaService
@@ -8,6 +9,8 @@ export class PrismaService
 {
   async onModuleInit() {
     await this.$connect();
+
+    this.$use(tenantPrismaMiddleware());
   }
 
   async onModuleDestroy() {

@@ -1,28 +1,88 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 // import { Tenant } from 'src/tenant/entities/tenant.entity';
-import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.interface';
+import { OnboardingDto } from './dto/onboarding-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly prisma: PrismaService,
-    // @InjectRepository(User) private readonly userRepository: Repository<User>,
-    // @InjectRepository(Tenant) private readonly tenantRepository: Repository<Tenant>
-  ) {}
-  async create(data: Prisma.userCreateInput): Promise<Object> {
-    const salt = await bcrypt.genSalt(10);
-    data.password = await bcrypt.hash(data.password, salt);
-    
-    const user = await this.prisma.user.create({
-      data: data
-    }).catch( (err) => {
-      throw new Error(err)
-    })
-    return {message: 'El usuario se ha creado con éxito', user: user};
+  constructor(private readonly prisma: PrismaService) {}
+
+  async onboarding(onboardingDto: OnboardingDto): Promise<object> {
+    try {
+      const { speciality, user_id, ...rest } = onboardingDto;
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
+      }
+
+      await this.prisma.$transaction(async (transaction) => {
+        const newTenant = await transaction.tenant.create({
+          data: {
+            type: onboardingDto.type,
+          },
+        });
+
+        const existingPhysician = await transaction.physician.findFirst({
+          where: { user_id },
+        });
+        if (existingPhysician) {
+          throw new BadRequestException('El usuario ya es un médico.');
+        }
+
+        const newPhysician = await transaction.physician.create({
+          data: {
+            user_id,
+            tenant_id: newTenant.id,
+          },
+        });
+        const newPhysicianSpeciality = speciality.map((speciality) => {
+          return {
+            physician_id: newPhysician.id,
+            speciality_id: speciality,
+          };
+        });
+
+        await transaction.physician_speciality.createMany({
+          data: newPhysicianSpeciality,
+          skipDuplicates: true,
+        });
+
+        await transaction.user.update({
+          where: { id: user_id },
+          data: {
+            tenant_id: newTenant.id,
+          },
+        });
+
+        const newOrganization = await transaction.organization.create({
+          data: {
+            tenant_id: newTenant.id,
+            ...rest,
+          },
+        });
+
+        await transaction.organization_physician.create({
+          data: {
+            physician_id: newPhysician.id,
+            organization_id: newOrganization.id,
+            tenant_id: newTenant.id,
+          },
+        });
+      });
+
+      return { message: 'Onboarding completo.' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException('No se pudo guardar la información.');
+    }
   }
 
   async findAll(): Promise<any[]> {
@@ -33,31 +93,31 @@ export class UserService {
   async findOneById(id: string) {
     try {
       const user = await this.prisma.user.findUnique({
-        where: {id: id},
-      })
-      if(user){
-        return {message: 'Success', user: user}
-      }else{
-        return {message: 'El usuario no existe'}
+        where: { id: id },
+      });
+      if (user) {
+        return { message: 'Success', user: user };
+      } else {
+        return { message: 'El usuario no existe' };
       }
     } catch (error) {
-      return {message: 'Error en la consulta', Error: error}
+      return { message: 'Error en la consulta', Error: error };
     }
   }
 
   async findOneByEmail(email: string) {
     try {
-      console.log(email)
+      console.log(email);
       const user = await this.prisma.user.findUnique({
-        where: {email: email}
-      })
-      if(user){
-        return {message: 'Success', user: user}
-      }else{
-        return {message: 'El usuario no existe'}
+        where: { email: email },
+      });
+      if (user) {
+        return { message: 'Success', user: user };
+      } else {
+        return { message: 'El usuario no existe' };
       }
     } catch (error) {
-      return {message: 'Error en la consulta', Error: error}
+      return { message: 'Error en la consulta', Error: error };
     }
   }
 

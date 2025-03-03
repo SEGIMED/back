@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { CatStudyTypeService } from './cat-study-type.service';
 import { CatStudyType } from './cat-study-type.interface';
 
@@ -22,7 +30,10 @@ export class CatStudyTypeController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: CatStudyType): Promise<CatStudyType> {
+  async update(
+    @Param('id') id: string,
+    @Body() data: CatStudyType,
+  ): Promise<CatStudyType> {
     return this.catStudyTypeService.update(id, data);
   }
 

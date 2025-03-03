@@ -1,89 +1,17 @@
-import { PickType } from "@nestjs/swagger";
-import { IsOptional, IsString, Length } from "class-validator";
-import { CreateUserDto } from "src/user/dto/create-user.dto";
+import { Type } from 'class-transformer';
+import { IsNotEmpty, ValidateNested } from 'class-validator';
 
-export class MedicalPatientDto extends PickType(CreateUserDto, [
-    "name",
-    "last_name",
-    "birthdate",
-    "gender",
-    "email",
-    "phone",
-    "phone_prefix",
-    "dni",
-    "role",
-    "tenant_id",
-    "dniType",
-    "nationality"
-    ]) {
+import { CreatePatientDto } from './create-patient.dto';
+import { BaseUserDto } from 'src/user/dto/create-user.dto';
 
+export class MedicalPatientDto {
+  @ValidateNested()
+  @Type(() => BaseUserDto)
+  @IsNotEmpty({ message: 'El objeto user no puede estar vacío' })
+  user: Omit<BaseUserDto, 'role' | 'password'>;
 
-    /**
-     * User's direction
-     * @example Arequipa y Moncayo
-     */
-    @IsString()
-    @Length(3, 50)
-    @IsOptional()
-    direction:string;
-
-    /**
-     * User's city
-     * @example México
-     */
-    @IsString()
-    @Length(3, 50)
-    country:string;
-
-    /**
-     * User's province
-     * @example Molida
-     */
-    @IsString()
-    @Length(3, 50)
-    province:string;
-
-    /**
-     * User's city
-     * @example "Andalucia"
-     */
-    @IsString()
-    @Length(3, 50)
-    city:string;
-
-    /**
-     * User's postal code
-     * @example "s170205"
-     */
-    @IsString()
-    @Length(3, 50)
-    postal_code:string;
-
-    /**
-     * User's direction
-     * @example "Av. Sexta y calle 5748"
-     */
-    @IsString()
-    @Length(3, 50)
-    direction_number?:string;
-
-    /**
-     * User's apparment
-     * @example "Ste. 4875"
-     */
-    @IsString()
-    @Length(3, 50)
-    apparment?:string;
-
-    /**
-     * User's health care nuber unique number
-     * @example 56r78dse
-     */
-    @IsString()
-    @Length(3, 50)
-    health_care_number?:string;
-    
-    userId?:string;
-    appointments?:any[];
-    medical_events?:any[];
+  @ValidateNested()
+  @Type(() => CreatePatientDto)
+  @IsNotEmpty({ message: 'El objeto patient no puede estar vacío' })
+  patient: CreatePatientDto;
 }

@@ -17,10 +17,19 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      transform: true,
       exceptionFactory: (errors) => {
         const cleanErrors = errors.map((err) => {
-          return { property: err.property, constraints: err.constraints };
+          return {
+            property: err.property,
+            constraints: err.constraints,
+            children: err.children?.map((child) => ({
+              property: child.property,
+              constraints: child.constraints,
+            })),
+          };
         });
+        console.log('Errores de validación detallados:', cleanErrors); // 👈 Depuración
         return new BadRequestException({
           alert: 'Se han detectado los siguientes errores en la petición: ',
           errors: cleanErrors,
@@ -28,7 +37,6 @@ async function bootstrap() {
       },
     }),
   );
-
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('SEGIMED')

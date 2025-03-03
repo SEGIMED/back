@@ -1,31 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  Query,
+} from '@nestjs/common';
 import { PatientService } from './patient.service';
-import { CreatePatientDto } from './dto/create-patient.dto';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-import { MedicalPatientDto } from './dto/medical-patient.dto';
 
+import { MedicalPatientDto } from './dto/medical-patient.dto';
+import { Request } from 'express';
+import { PaginationParams } from 'src/utils/pagination.helper';
+/* import { MedicalPatientDto } from './dto/medical-patient.dto';
+ */
 @Controller('patient')
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
-  create(@Body() createPatientDto: MedicalPatientDto) {
-    return this.patientService.create(createPatientDto);
+  create(@Body() medicalPatientDto: MedicalPatientDto): Promise<object> {
+    console.log(medicalPatientDto);
+    return this.patientService.create(medicalPatientDto);
   }
 
-  // @Post('medical')
-  // createPatient(@Body() medicalPatientDto: MedicalPatientDto) {
-  //   return this.patientService.createMedical(medicalPatientDto);
-  // }
-
   @Get()
-  findAll() {
-    return this.patientService.findAll();
+  findAll(@Req() req: Request, @Query() pagination: PaginationParams) {
+    const tenant_id = req['tenant_id'];
+    return this.patientService.findAll(tenant_id, pagination);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.patientService.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: Request) {
+    const tenant_id = req['tenant_id'];
+    return this.patientService.findOne(id, tenant_id);
   }
 
   @Patch(':id')

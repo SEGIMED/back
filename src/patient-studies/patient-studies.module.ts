@@ -8,6 +8,12 @@ import { CatStudyTypeService } from './cat-study-type/cat-study-type.service';
 
 @Module({
   controllers: [PatientStudiesController],
-  providers: [PatientStudiesService,CatStudyTypeService, PrismaService, FileUploadService,FileUploadRepository],
+  providers: [
+    PatientStudiesService,
+    CatStudyTypeService,
+    PrismaService,
+    FileUploadService,
+    FileUploadRepository,
+  ],
 })
 export class PatientStudiesModule {}
