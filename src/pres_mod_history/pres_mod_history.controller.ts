@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { PresModHistoryService } from './pres_mod_history.service';
-import { CreatePresModHistoryDto } from './dto/create-pres_mod_history.dto';
 import { CreatePresHistoryDto } from './dto/create-pres-history.dto';
 
 @Controller('pres-mod-history')

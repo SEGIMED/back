@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePresModHistoryDto } from './dto/create-pres_mod_history.dto';
-import { UpdatePresModHistoryDto } from './dto/update-pres_mod_history.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreatePrescriptionDto } from 'src/prescription/dto/create-prescription.dto';
 import { CreatePresHistoryDto } from './dto/create-pres-history.dto';
 
 @Injectable()
