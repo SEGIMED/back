@@ -2,16 +2,46 @@ import { Injectable } from '@nestjs/common';
 import { CreatePresModHistoryDto } from './dto/create-pres_mod_history.dto';
 import { UpdatePresModHistoryDto } from './dto/update-pres_mod_history.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreatePrescriptionDto } from 'src/prescription/dto/create-prescription.dto';
+import { CreatePresHistoryDto } from './dto/create-pres-history.dto';
 
 @Injectable()
 export class PresModHistoryService {
 
   constructor(private readonly prisma: PrismaService){}
 
-  async create(createPresModHistoryDto: CreatePresModHistoryDto) {
+  // Implementar transactions 
+  async create(createPresHistoryDto: CreatePresHistoryDto) {
     try {
-      const history = await this.prisma.pres_mod_history.create({
-        data: {...createPresModHistoryDto}
+      await this.prisma.$transaction( async (op) => {
+        let prescription = await op.prescription.findFirst({
+          where: {
+            AND: [
+              { monodrug: createPresHistoryDto.monodrug },
+              { active: true}
+            ]
+            
+          }
+        })
+        if(!prescription) {
+          prescription = await op.prescription.create({
+            data: {monodrug: createPresHistoryDto.monodrug}
+          })
+        }
+
+        delete  createPresHistoryDto.start_timestamp
+        delete  createPresHistoryDto.end_timestamp
+        delete  createPresHistoryDto.description
+        delete  createPresHistoryDto.active
+        delete  createPresHistoryDto.patient_id
+        delete  createPresHistoryDto.monodrug
+        delete  createPresHistoryDto.tenat_id
+        
+        createPresHistoryDto.prescription_id = prescription.id
+        
+        const history = await op.pres_mod_history.create({
+          data: {...createPresHistoryDto}
+        })
       })
       return {message: 'La historia ha sido creada'}
     } catch (error) {

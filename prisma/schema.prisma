@@ -52,6 +52,7 @@ model user {
   patientAppointments  appointment[] @relation(name: "patient")
   physician            physician[]
   prescription         prescription[]
+  pres_mod_history      pres_mod_history[]
 }
 
 model organization {
@@ -115,7 +116,6 @@ model physician {
   medical_event          medical_event[]
   physician_speciality   physician_speciality[]
   organization_physician organization_physician[]
-  pres_mod_history       pres_mod_history[]
 }
 
 model appointment {
@@ -237,9 +237,9 @@ model prescription {
 model pres_mod_history {
   id                    String                @id @default(uuid())
   prescription_id       String
-  prescription          prescription          @relation(fields: [prescription_id], references: [id])
-  physician_id          String
-  physician             physician             @relation(fields: [physician_id], references: [id])
+  prescription          prescription?          @relation(fields: [prescription_id], references: [id])
+  physician_id          String?
+  physician             user?                  @relation(fields: [physician_id], references: [id])
   mod_timestamp         DateTime              @default(now())
   medical_event_id      String?
   medical_event         medical_event?        @relation(fields: [medical_event_id], references: [id])

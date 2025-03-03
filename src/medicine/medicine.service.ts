@@ -19,12 +19,15 @@ export class MedicineService {
       query = `${this.apiUrl}?$where=${pr}`
     }else if(prActivo){
       query = `${this.apiUrl}?$where=${prActivo}`
+    }else{
+      query = this.apiUrl
     }
       
     try {
       const medicines = await firstValueFrom(this.httpService.get(query))
       return medicines.data
     } catch (error) {
+      console.log(error);
       throw new HttpException('La medicina no ha podido ser consultada', 500)
     }
   }

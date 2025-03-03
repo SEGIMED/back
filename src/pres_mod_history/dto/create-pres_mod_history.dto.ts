@@ -1,37 +1,18 @@
-import { IsDate, IsOptional, IsString } from "class-validator"
+import { PickType } from "@nestjs/mapped-types"
+import { IsBoolean, IsDate, IsOptional, IsString } from "class-validator"
+import { CreatePresHistoryDto } from "./create-pres-history.dto"
 
-export class CreatePresModHistoryDto {
+export class CreatePresModHistoryDto extends PickType(CreatePresHistoryDto, [
+    'prescription_id',
+    'physician_id',
+    'mod_timestamp',
+    'medical_event_id',
+    'observations',
+    'dose',
+    'dose_units',
+    'frecuency',
+    'duration',
+    'duration_units',
+]) {
 
-    @IsString()
-    prescription_id: string
-
-    @IsString()
-    physician_id:string
-
-    @IsDate()
-    mod_timestamp:Date
-
-    @IsOptional()
-    medical_event_id?:string
-
-    // @IsOptional()
-    // medical_order_id:string?
-
-    @IsOptional()
-    observations?:string
-
-    @IsString()
-    dose:string
-
-    @IsString()
-    dose_units:string
-
-    @IsString()
-    frecuency:string
-
-    @IsString()
-    duration:string
-
-    @IsString()
-    duration_units:string
 }

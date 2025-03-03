@@ -55,19 +55,19 @@ config({ path: '.env' });
   ],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TenantMiddleware)
-      .exclude(
-        { path: 'auth/register', method: RequestMethod.POST },
-        { path: 'auth/', method: RequestMethod.POST },
-        { path: 'auth/google', method: RequestMethod.POST },
-        { path: 'auth/request-password', method: RequestMethod.POST },
-        { path: 'auth/reset-password', method: RequestMethod.POST },
-        { path: 'auth/send-otp', method: RequestMethod.POST },
-        { path: 'auth/verify-otp', method: RequestMethod.POST },
-        { path: 'user/onboarding', method: RequestMethod.POST },
-      )
-      .forRoutes('*');
-  }
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer
+  //     .apply(TenantMiddleware)
+  //     .exclude(
+  //       { path: 'auth/register', method: RequestMethod.POST },
+  //       { path: 'auth/', method: RequestMethod.POST },
+  //       { path: 'auth/google', method: RequestMethod.POST },
+  //       { path: 'auth/request-password', method: RequestMethod.POST },
+  //       { path: 'auth/reset-password', method: RequestMethod.POST },
+  //       { path: 'auth/send-otp', method: RequestMethod.POST },
+  //       { path: 'auth/verify-otp', method: RequestMethod.POST },
+  //       { path: 'user/onboarding', method: RequestMethod.POST },
+  //     )
+  //     .forRoutes('*');
+  // }
 }

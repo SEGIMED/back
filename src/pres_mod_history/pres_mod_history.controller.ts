@@ -1,14 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { PresModHistoryService } from './pres_mod_history.service';
 import { CreatePresModHistoryDto } from './dto/create-pres_mod_history.dto';
+import { CreatePresHistoryDto } from './dto/create-pres-history.dto';
 
 @Controller('pres-mod-history')
 export class PresModHistoryController {
   constructor(private readonly presModHistoryService: PresModHistoryService) {}
 
   @Post()
-  create(@Body() createPresModHistoryDto: CreatePresModHistoryDto) {
-    return this.presModHistoryService.create(createPresModHistoryDto);
+  create(@Body() createPresHistoryDto: CreatePresHistoryDto) {
+    return this.presModHistoryService.create(createPresHistoryDto);
   }
 
   @Get('prescription/:id')
