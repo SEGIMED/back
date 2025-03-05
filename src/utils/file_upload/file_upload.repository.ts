@@ -17,28 +17,21 @@ export class FileUploadRepository {
     try {
       // Convertir el buffer a base64
       const base64String = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      console.log(base64String);
+      console.log(file);
 
       // Determinar el tipo de recurso
       let resourceType = 'auto';
       if (file.mimetype.startsWith('image/')) {
         resourceType = 'image';
       } else if (file.mimetype === 'application/pdf') {
-        resourceType = 'raw';
+        resourceType = 'auto';
       }
 
-      // Subir a Cloudinary con configuración específica para PDFs
+      // Subir a Cloudinary
       const uploadResult = await cloudinary.uploader.upload(base64String, {
         resource_type: resourceType as 'auto' | 'image' | 'raw',
         folder: resourceType === 'image' ? 'images' : 'documents',
-        // Para PDFs, configuramos para permitir vista previa
-        ...(resourceType === 'raw' && {
-          format: 'pdf',
-          transformation: [
-            { page: 1 }, // Primera página para vista previa
-            { width: 800, height: 1000, crop: 'fill' }, // Tamaño de vista previa
-            { quality: 'auto' },
-          ],
-        }),
       });
 
       return uploadResult;
