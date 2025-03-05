@@ -1,4 +1,4 @@
 export interface CatStudyType {
-  id?: string;
+  id?: number;
   name: string;
 }

@@ -66,7 +66,7 @@ config({ path: '.env' });
   ],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
+  /*   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
       .exclude(
@@ -80,5 +80,5 @@ export class AppModule {
         { path: 'user/onboarding', method: RequestMethod.POST },
       )
       .forRoutes('*');
-  }
+  } */
 }

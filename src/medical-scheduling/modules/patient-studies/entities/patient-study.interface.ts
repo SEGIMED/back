@@ -5,7 +5,13 @@ export interface PatientStudy {
   url?: string;
   title: string;
   description: string;
-  cat_study_type_id: string;
+  cat_study_type_id: number;
+  cat_study_type?: {
+    id: number;
+    name: string;
+  };
   tenant_id: string;
   is_deleted: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

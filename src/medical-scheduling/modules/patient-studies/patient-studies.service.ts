@@ -11,6 +11,9 @@ export class PatientStudiesService {
   async create(
     createPatientStudyDto: CreatePatientStudyDto,
   ): Promise<PatientStudy> {
+    createPatientStudyDto.cat_study_type_id = Number(
+      createPatientStudyDto.cat_study_type_id,
+    );
     return await this.prisma.patient_study.create({
       data: {
         ...createPatientStudyDto,

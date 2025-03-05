@@ -25,20 +25,20 @@ export class CatStudyTypeController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<CatStudyType> {
+  async findOne(@Param('id') id: number): Promise<CatStudyType> {
     return this.catStudyTypeService.findOne(id);
   }
 
   @Put(':id')
   async update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() data: CatStudyType,
   ): Promise<CatStudyType> {
     return this.catStudyTypeService.update(id, data);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<CatStudyType> {
+  async remove(@Param('id') id: number): Promise<CatStudyType> {
     return this.catStudyTypeService.remove(id);
   }
 }

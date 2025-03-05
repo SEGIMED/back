@@ -82,6 +82,7 @@ export class AuthService {
 
       return { message: 'Login exitoso', jwt: jwt, user: jwtPayload };
     } catch (error) {
+      console.log(error);
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -101,7 +102,7 @@ export class AuthService {
             email: GoogleUserDto.email,
             name: GoogleUserDto.name ?? '',
             image: GoogleUserDto.image ?? '',
-            tenant_id: '',
+            tenant_id: null,
             password: '',
           },
         });
@@ -127,6 +128,7 @@ export class AuthService {
         user: jwtPayload,
       };
     } catch (error) {
+      console.log(error);
       if (error instanceof BadRequestException) {
         throw error;
       }

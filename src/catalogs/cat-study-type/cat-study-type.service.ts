@@ -16,20 +16,20 @@ export class CatStudyTypeService {
     return this.prisma.cat_study_type.findMany();
   }
 
-  async findOne(id: string): Promise<CatStudyType> {
+  async findOne(id: number): Promise<CatStudyType> {
     return this.prisma.cat_study_type.findUnique({
-      where: { id },
+      where: { id: Number(id) },
     });
   }
 
-  async update(id: string, data: CatStudyType): Promise<CatStudyType> {
+  async update(id: number, data: CatStudyType): Promise<CatStudyType> {
     return this.prisma.cat_study_type.update({
       where: { id },
       data,
     });
   }
 
-  async remove(id: string): Promise<CatStudyType> {
+  async remove(id: number): Promise<CatStudyType> {
     return this.prisma.cat_study_type.delete({
       where: { id },
     });

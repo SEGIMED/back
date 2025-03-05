@@ -220,7 +220,7 @@ model patient_study {
   title             String
   description       String
   tenant_id         String
-  cat_study_type_id String
+  cat_study_type_id Int
   is_deleted        Boolean        @default(false)
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
@@ -230,7 +230,7 @@ model patient_study {
 }
 
 model cat_study_type {
-  id              String          @id @default(uuid())
+  id              Int             @id @default(autoincrement())
   name            String
   patient_studies patient_study[]
 }

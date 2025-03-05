@@ -1,20 +1,21 @@
-import { IsString, IsOptional, Length, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  Length,
+  IsBoolean,
+  IsUUID,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class CreatePatientStudyDto {
-  @IsString({ message: 'El ID del paciente debe ser una cadena de texto' })
-  @Length(3, 100, {
-    message: 'El ID del paciente debe tener entre 3 y 100 caracteres',
-  })
+  @IsUUID('4', { message: 'El ID del paciente debe ser un UUID válido' })
   patient_id: string;
 
-  @IsString({ message: 'El ID del médico debe ser una cadena de texto' })
-  @Length(3, 100, {
-    message: 'El ID del médico debe tener entre 3 y 100 caracteres',
-  })
+  @IsUUID('4', { message: 'El ID del médico debe ser un UUID válido' })
   physician_id: string;
 
   @IsOptional()
-  @IsString({ message: 'La URL debe ser una cadena de texto' })
+  @IsString({ message: 'La URL debe ser una cadena de texto válida' })
   url?: string;
 
   @IsString({ message: 'El título debe ser una cadena de texto' })
@@ -26,15 +27,12 @@ export class CreatePatientStudyDto {
     message: 'La descripción debe tener entre 3 y 500 caracteres',
   })
   description: string;
+  /* 
+  @IsInt({ message: 'El ID del tipo de estudio debe ser un número entero' }) */
+  @IsNotEmpty()
+  cat_study_type_id: number;
 
-  @IsString({ message: 'El ID del paciente debe ser una cadena de texto' })
-  @Length(3, 100, { message: 'Hubo un error en el ID del catalogo' })
-  cat_study_type_id: string;
-
-  @IsString({ message: 'El ID del inquilino debe ser una cadena de texto' })
-  @Length(3, 100, {
-    message: 'El ID del inquilino debe tener entre 3 y 100 caracteres',
-  })
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
   tenant_id: string;
 
   @IsBoolean({ message: 'El campo is_deleted debe ser un valor booleano' })
