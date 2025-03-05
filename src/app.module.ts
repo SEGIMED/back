@@ -17,13 +17,16 @@ import { FileUploadModule } from './utils/file_upload/file_upload.module';
 import { CatStudyTypeModule } from './catalogs/cat-study-type/cat-study-type.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
-import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
 import { BackgroundModule } from './medical-scheduling/modules/background/background.module';
 import { PhysicalExplorationModule } from './medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.module';
 import { PhysicalExplorationAreaModule } from './medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
 import { CatCieDiezModule } from './catalogs/cat-cie-diez/cat-cie-diez.module';
 import { SubcatCieDiezModule } from './catalogs/subcat-cie-diez/subcat-cie-diez.module';
+import { MedicineModule } from './medical-scheduling/modules/medicine/medicine.module';
+import { PrescriptionModule } from './medical-scheduling/modules/prescription/prescription.module';
+import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_history/pres_mod_history.module';
+import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 
 config({ path: '.env' });
 
@@ -51,6 +54,9 @@ config({ path: '.env' });
     PatientModule,
     EmailModule,
     TwilioModule,
+    MedicineModule,
+    PrescriptionModule,
+    PresModHistoryModule,
     BackgroundModule,
     PhysicalExplorationModule,
     PhysicalExplorationAreaModule,
