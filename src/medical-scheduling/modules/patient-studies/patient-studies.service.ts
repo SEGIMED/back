@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { CreatePatientStudyDto } from './dto/create-patient-study.dto';
 import { UpdatePatientStudyDto } from './dto/update-patient-study.dto';
@@ -32,6 +32,16 @@ export class PatientStudiesService {
     return this.prisma.patient_study.findFirst({
       where: { id, is_deleted: false },
     });
+  }
+
+  async findByPatientId(patientId: string): Promise<PatientStudy[]> {
+    try {
+      return this.prisma.patient_study.findMany({
+        where: { patient_id: patientId, is_deleted: false },
+      });
+    } catch (error) {
+      throw new BadRequestException('Ocurrio un error: ' + error.message);
+    }
   }
 
   async update(
