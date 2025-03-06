@@ -26,6 +26,7 @@ export class CreatePhysicalExplorationDto {
   description: string;
 
   @IsInt()
+  @IsNotEmpty()
   @Min(1)
   physical_exploration_area_id: number;
 
