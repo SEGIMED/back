@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { CatCieDiezService } from './cat-cie-diez.service';
 import { CreateCatCieDiezDto } from './dto/create-cat-cie-diez.dto';
 import { UpdateCatCieDiezDto } from './dto/update-cat-cie-diez.dto';
@@ -24,7 +33,10 @@ export class CatCieDiezController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCatCieDiezDto: UpdateCatCieDiezDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateCatCieDiezDto: UpdateCatCieDiezDto,
+  ) {
     return this.catCieDiezService.update(+id, updateCatCieDiezDto);
   }
 

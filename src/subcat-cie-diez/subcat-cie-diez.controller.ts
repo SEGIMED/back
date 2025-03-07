@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 import { SubcatCieDiezService } from './subcat-cie-diez.service';
 import { CreateSubcatCieDiezDto } from './dto/create-subcat-cie-diez.dto';
 import { UpdateSubcatCieDiezDto } from './dto/update-subcat-cie-diez.dto';
@@ -17,14 +26,17 @@ export class SubcatCieDiezController {
   findAll(@Query() paginationParams: PaginationParams) {
     return this.subcatCieDiezService.findAll(paginationParams);
   }
-  
+
   @Get('search')
-  search(@Query('searchWord') searchWord: string){
-    return this.subcatCieDiezService.search(searchWord)
+  search(@Query('searchWord') searchWord: string) {
+    return this.subcatCieDiezService.search(searchWord);
   }
 
   @Get('category/:id')
-  findAllCategories(@Param('id') id: number, @Query() paginationParams: PaginationParams) {
+  findAllCategories(
+    @Param('id') id: number,
+    @Query() paginationParams: PaginationParams,
+  ) {
     return this.subcatCieDiezService.findAllCategories(id, paginationParams);
   }
 
@@ -34,7 +46,10 @@ export class SubcatCieDiezController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubcatCieDiezDto: UpdateSubcatCieDiezDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateSubcatCieDiezDto: UpdateSubcatCieDiezDto,
+  ) {
     return this.subcatCieDiezService.update(+id, updateSubcatCieDiezDto);
   }
 

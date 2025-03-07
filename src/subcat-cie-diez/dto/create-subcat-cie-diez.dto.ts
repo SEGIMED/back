@@ -1,13 +1,13 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateSubcatCieDiezDto {
-    @IsString()
-    code: string;
+  @IsString()
+  code: string;
 
-    @IsString()
-    description: string;
+  @IsString()
+  description: string;
 
-    @IsNumber()
-    @IsNotEmpty()
-    categoryId: number;
+  @IsNumber()
+  @IsNotEmpty()
+  categoryId: number;
 }
