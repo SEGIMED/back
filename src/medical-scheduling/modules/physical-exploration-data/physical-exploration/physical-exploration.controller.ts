@@ -1,6 +1,7 @@
 import { Body, Controller, HttpException, Post } from '@nestjs/common';
 import { PhysicalExplorationService } from './physical-exploration.service';
 import { CreatePhysicalExplorationDto } from './dto/create-physical-exploration.dto';
+import { UpdatePhysicalExplorationDto } from './dto/update-physical-exploration.dto';
 
 @Controller('physical-explorations')
 export class PhysicalExplorationController {
@@ -9,7 +10,9 @@ export class PhysicalExplorationController {
   ) {}
 
   @Post()
-  async createPhysicalExploration(@Body() data: CreatePhysicalExplorationDto) {
+  async createPhysicalExploration(
+    @Body() data: CreatePhysicalExplorationDto | UpdatePhysicalExplorationDto,
+  ) {
     try {
       return this.physicalExplorationService.createPhysicalExploration(data);
     } catch (error) {
