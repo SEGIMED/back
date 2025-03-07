@@ -16,6 +16,9 @@ import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TwilioModule } from './services/twilio/twilio.module';
+import { MedicineModule } from './medicine/medicine.module';
+import { PrescriptionModule } from './prescription/prescription.module';
+import { PresModHistoryModule } from './pres_mod_history/pres_mod_history.module';
 import { BackgroundModule } from './background/background.module';
 import { PhysicalExplorationModule } from './physical-exploration-data/physical-exploration/physical-exploration.module';
 import { PhysicalExplorationAreaModule } from './physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
@@ -45,6 +48,9 @@ config({ path: '.env' });
     PatientModule,
     EmailModule,
     TwilioModule,
+    MedicineModule,
+    PrescriptionModule,
+    PresModHistoryModule,
     BackgroundModule,
     PhysicalExplorationModule,
     PhysicalExplorationAreaModule,
