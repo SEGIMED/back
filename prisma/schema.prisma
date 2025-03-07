@@ -117,6 +117,7 @@ model patient {
 
   medical_event   medical_event[]
   patient_tenant  patient_tenant[]
+  medical_order   medical_order[]
 }
 
 model patient_tenant {
@@ -329,6 +330,7 @@ model category_cie_diez {
   code                 String
   description          String
   subcategories_cie_diez subcategories_cie_diez[]
+  medical_order        medical_order[]
 }
 
 model subcategories_cie_diez {
@@ -381,6 +383,22 @@ model pres_mod_history {
   frecuency             String
   duration              String
   duration_units        String
+}
+
+model medical_order_type {
+  id                    String                   @id @default(uuid())
+  description           String
+  medical_order         medical_order[]
+}
+
+model medical_order {
+  id                    String                @id @default(uuid())
+  medical_order_type_id String
+  medical_order_type    medical_order_type    @relation(fields: [medical_order_type_id], references: [id])
+  patient_id            String
+  patient               patient               @relation(fields: [patient_id], references: [id])
+  category_cie_diez_id  Int
+  category_cie_diez     category_cie_diez     @relation(fields: [category_cie_diez_id], references: [id])
 }
 
 //!Types
