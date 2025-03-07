@@ -375,8 +375,8 @@ model pres_mod_history {
   mod_timestamp         DateTime              @default(now())
   medical_event_id      String?
   medical_event         medical_event?        @relation(fields: [medical_event_id], references: [id])
-  // medical_order_id      String?
-  // medical_order         medical_order         @relation(fields: [medical_order_id], references: [id])
+  medical_order_id      String?
+  medical_order         medical_order?         @relation(fields: [medical_order_id], references: [id])
   observations          String?
   dose                  String
   dose_units            String
@@ -397,8 +397,12 @@ model medical_order {
   medical_order_type    medical_order_type    @relation(fields: [medical_order_type_id], references: [id])
   patient_id            String
   patient               patient               @relation(fields: [patient_id], references: [id])
-  category_cie_diez_id  Int
-  category_cie_diez     category_cie_diez     @relation(fields: [category_cie_diez_id], references: [id])
+  category_cie_diez_id  Int?
+  category_cie_diez     category_cie_diez?     @relation(fields: [category_cie_diez_id], references: [id])
+  pres_mod_history      pres_mod_history[]
+  additional_text       String?
+  application_date      DateTime?
+  description_type      String?
 }
 
 //!Types

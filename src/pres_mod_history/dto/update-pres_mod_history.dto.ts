@@ -1,4 +1,4 @@
 import { PartialType } from '@nestjs/swagger';
-import { CreatePresModHistoryDto } from './create-pres_mod_history.dto';
+import { CreatePresHistoryDto } from './create-pres-history.dto';
 
-export class UpdatePresModHistoryDto extends PartialType(CreatePresModHistoryDto) {}
+export class UpdatePresModHistoryDto extends PartialType(CreatePresHistoryDto) {}

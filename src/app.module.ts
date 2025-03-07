@@ -24,6 +24,7 @@ import { PhysicalExplorationModule } from './physical-exploration-data/physical-
 import { PhysicalExplorationAreaModule } from './physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
 import { CatCieDiezModule } from './cat-cie-diez/cat-cie-diez.module';
 import { SubcatCieDiezModule } from './subcat-cie-diez/subcat-cie-diez.module';
+import { MedicalOrderModule } from './medical_order/medical_order.module';
 
 config({ path: '.env' });
 
@@ -56,6 +57,7 @@ config({ path: '.env' });
     PhysicalExplorationAreaModule,
     CatCieDiezModule,
     SubcatCieDiezModule,
+    MedicalOrderModule,
   ],
   controllers: [AppController],
   providers: [
