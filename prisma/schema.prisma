@@ -168,8 +168,7 @@ model appointment {
   medical_events      medical_event[]
 
   tenant_id String
-  tenant    tenant? @relation(fields: [tenantId], references: [id])
-  tenantId  String?
+  tenant    tenant? @relation(fields: [tenant_id], references: [id])
 }
 
 model medical_event {
@@ -193,8 +192,7 @@ model medical_event {
   physical_exploration physical_exploration[]
 
   tenant_id                 String
-  tenant                    tenant?                     @relation(fields: [tenantId], references: [id])
-  tenantId                  String?
+  tenant                    tenant?                     @relation(fields: [tenant_id], references: [id])
   pres_mod_history          pres_mod_history[]
   subcategory_medical_event subcategory_medical_event[]
 }
@@ -380,8 +378,8 @@ model prescription {
   patient_id       String?
   user             user?              @relation(fields: [patient_id], references: [id])
   monodrug         String
-  tenat_id         String?
-  tenant           tenant?            @relation(fields: [tenat_id], references: [id])
+  tenant_id        String?
+  tenant           tenant?            @relation(fields: [tenant_id], references: [id])
   pres_mod_history pres_mod_history[]
 }
 

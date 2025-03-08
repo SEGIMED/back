@@ -48,7 +48,7 @@ config({ path: '.env' });
       secret: process.env.JWT_SECRET,
       global: true,
       signOptions: {
-        expiresIn: '1h',
+        expiresIn: '7h',
       },
     }),
     PatientModule,
@@ -72,7 +72,7 @@ config({ path: '.env' });
   ],
 })
 export class AppModule {
-  /*   configure(consumer: MiddlewareConsumer) {
+  configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
       .exclude(
@@ -86,5 +86,5 @@ export class AppModule {
         { path: 'user/onboarding', method: RequestMethod.POST },
       )
       .forRoutes('*');
-  } */
+  }
 }
