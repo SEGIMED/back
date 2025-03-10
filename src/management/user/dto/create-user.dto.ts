@@ -47,13 +47,15 @@ export class BaseUserDto {
   @Length(1, 4, {
     message: 'El prefijo del teléfono debe tener entre 1 y 4 caracteres.',
   })
-  phone_prefix: string;
+  @IsOptional()
+  phone_prefix?: string;
 
   @IsString({ message: 'El número de teléfono debe ser un texto válido.' })
   @Length(4, 20, {
     message: 'El número de teléfono debe tener entre 4 y 20 caracteres.',
   })
-  phone: string;
+  @IsOptional()
+  phone?: string;
 
   @IsUrl({}, { message: 'La URL de la imagen no tiene un formato válido.' })
   @IsOptional()

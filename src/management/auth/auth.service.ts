@@ -29,7 +29,7 @@ export class AuthService {
       );
       data.password = await AuthHelper.hashPassword(data.password, saltRounds);
 
-      await this.prisma.user.create({
+      const user = await this.prisma.user.create({
         data: data,
       });
 
@@ -39,6 +39,11 @@ export class AuthService {
         htmlContent,
         'Bienvenido a Segimed',
       );
+      return {
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name,
+      };
     } catch (error) {
       if (error.code === 'P2002') {
         throw new BadRequestException(
@@ -48,8 +53,6 @@ export class AuthService {
       console.log(error);
       throw new BadRequestException('No se pudo crear el usuario.');
     }
-
-    return { message: 'El usuario se ha creado con éxito' };
   }
   async login(createAuthDto: CreateAuthDto): Promise<object> {
     try {

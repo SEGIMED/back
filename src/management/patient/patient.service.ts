@@ -35,7 +35,6 @@ export class PatientService {
           },
         },
       });
-      console.log(existingUserWithSameTenant);
       if (
         existingUserWithSameTenant.patient.patient_tenant.includes(
           global.tenant_id,
@@ -78,7 +77,6 @@ export class PatientService {
         return { message: 'Paciente creado exitosamente' };
       });
     } catch (error) {
-      console.log(error);
       throw new BadRequestException(
         'Error al crear el paciente: ' + error.message,
       );

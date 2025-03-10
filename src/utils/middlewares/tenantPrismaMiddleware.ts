@@ -2,16 +2,11 @@ import { Prisma } from '@prisma/client';
 
 export function tenantPrismaMiddleware() {
   return async (params: Prisma.MiddlewareParams, next: Prisma.Middleware) => {
-    console.log('Executing tenant middleware for:', {
-      model: params.model,
-      action: params.action,
-    });
-
     const tenantRules: Record<
       string,
       { actions: string[]; requireTenantId: boolean }
     > = {
-      user: { actions: ['findMany', 'create'], requireTenantId: true },
+      user: { actions: ['findMany'], requireTenantId: true },
       patient: {
         actions: ['findMany', 'update', 'create'],
         requireTenantId: true,
@@ -26,7 +21,7 @@ export function tenantPrismaMiddleware() {
       },
       tenant: { actions: ['findUnique'], requireTenantId: false },
       transaction: { actions: ['findMany', 'create'], requireTenantId: true },
-      organization: { actions: ['create'], requireTenantId: true },
+      organization: { actions: ['update'], requireTenantId: true },
       patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },
     };
 
