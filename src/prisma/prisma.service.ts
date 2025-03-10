@@ -11,6 +11,8 @@ export class PrismaService
     await this.$connect();
 
     this.$use(tenantPrismaMiddleware());
+
+    console.log('Prisma middleware registered');
   }
 
   async onModuleDestroy() {

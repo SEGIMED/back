@@ -54,16 +54,15 @@ model user {
   patient   patient?
   tenant    tenant?  @relation(fields: [tenant_id], references: [id])
 
-  physicianAppointment appointment[] @relation(name: "physician")
-  patientAppointments  appointment[] @relation(name: "patient")
+  physicianAppointment appointment[]      @relation(name: "physician")
+  patientAppointments  appointment[]      @relation(name: "patient")
   physician            physician[]
   prescription         prescription[]
-  pres_mod_history      pres_mod_history[]
-  background     background[]
+  pres_mod_history     pres_mod_history[]
+  background           background[]
 
-  physical_exploration_patients physical_exploration[] @relation(name: "patients")
+  physical_exploration_patients   physical_exploration[] @relation(name: "patients")
   physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
-
 }
 
 model organization {
@@ -115,8 +114,8 @@ model patient {
   user_id            String    @unique
   user               user      @relation(fields: [user_id], references: [id])
 
-  medical_event   medical_event[]
-  patient_tenant  patient_tenant[]
+  medical_event  medical_event[]
+  patient_tenant patient_tenant[]
 }
 
 model patient_tenant {
@@ -169,8 +168,7 @@ model appointment {
   medical_events      medical_event[]
 
   tenant_id String
-  tenant    tenant? @relation(fields: [tenantId], references: [id])
-  tenantId  String?
+  tenant    tenant? @relation(fields: [tenant_id], references: [id])
 }
 
 model medical_event {
@@ -193,12 +191,10 @@ model medical_event {
   physical_examination physical_examination[]
   physical_exploration physical_exploration[]
 
-  tenant_id String
-  tenant    tenant? @relation(fields: [tenantId], references: [id])
-  tenantId  String?
-  pres_mod_history    pres_mod_history[]
+  tenant_id                 String
+  tenant                    tenant?                     @relation(fields: [tenant_id], references: [id])
+  pres_mod_history          pres_mod_history[]
   subcategory_medical_event subcategory_medical_event[]
-
 }
 
 model transaction {
@@ -216,6 +212,29 @@ model transaction {
 
   tenant_id String
   tenant    tenant? @relation(fields: [tenant_id], references: [id])
+}
+
+model patient_study {
+  id                String         @id @default(uuid())
+  patient_id        String
+  physician_id      String
+  url               String?        @default("")
+  title             String
+  description       String
+  tenant_id         String
+  cat_study_type_id Int
+  is_deleted        Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id])
+
+  @@map("patient_studies")
+}
+
+model cat_study_type {
+  id              Int             @id @default(autoincrement())
+  name            String
+  patient_studies patient_study[]
 }
 
 model password_reset {
@@ -244,25 +263,25 @@ model physical_examination {
 }
 
 model physical_exploration {
-  id              String    @id @default(uuid())
-  patient_id      String
-  physician_id    String
-  medical_event_id String   @unique // Only one physical exploration per medical event
-  description     String
+  id                           String @id @default(uuid())
+  patient_id                   String
+  physician_id                 String
+  medical_event_id             String @unique // Only one physical exploration per medical event
+  description                  String
   physical_exploration_area_id Int
-  tenant_id       String
+  tenant_id                    String
 
-  patient user @relation(fields: [patient_id], references: [id], name: "patients")
-  physician user @relation(fields: [physician_id], references: [id], name: "physicians")
-  medical_event medical_event @relation(fields: [medical_event_id], references: [id])
+  patient                   user                      @relation(fields: [patient_id], references: [id], name: "patients")
+  physician                 user                      @relation(fields: [physician_id], references: [id], name: "physicians")
+  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id])
   physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
-  tenant tenant @relation(fields: [tenant_id], references: [id])
+  tenant                    tenant                    @relation(fields: [tenant_id], references: [id])
 }
 
 model physical_exploration_area {
-  id          Int    @id @default(autoincrement())
+  id              Int    @id @default(autoincrement())
   name_on_library String @unique
-  name        String @unique
+  name            String @unique
 
   physical_exploration physical_exploration[]
 }
@@ -305,82 +324,82 @@ model cat_speciality {
   deleted_at           DateTime?
 }
 
-
 model background {
-  id        String    @id @default(uuid())
-  patient_id String
-  vaccinations String
-  allergies   String
-  pathological_history String
-  family_medical_history String
-  non_pathological_history String
-  surgical_history String
+  id                        String   @id @default(uuid())
+  patient_id                String
+  vaccinations              String
+  allergies                 String
+  pathological_history      String
+  family_medical_history    String
+  non_pathological_history  String
+  surgical_history          String
   childhood_medical_history String
-  current_medication String
-  tenant_id  String
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  current_medication        String
+  tenant_id                 String
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
 
-  patient    user   @relation(fields: [patient_id], references: [id])
-  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+  patient user   @relation(fields: [patient_id], references: [id])
+  tenant  tenant @relation(fields: [tenant_id], references: [id])
 }
+
 model category_cie_diez {
-  id                   Int                    @id @default(autoincrement())
-  code                 String
-  description          String
+  id                     Int                      @id @default(autoincrement())
+  code                   String
+  description            String
   subcategories_cie_diez subcategories_cie_diez[]
 }
 
 model subcategories_cie_diez {
-  id                   Int                    @id @default(autoincrement())
-  code                 String
-  description          String
-  categoryId           Int
-  category_cie_diez    category_cie_diez      @relation(fields: [categoryId], references: [id])
+  id                        Int                         @id @default(autoincrement())
+  code                      String
+  description               String
+  categoryId                Int
+  category_cie_diez         category_cie_diez           @relation(fields: [categoryId], references: [id])
   subcategory_medical_event subcategory_medical_event[]
 }
 
 model subcategory_medical_event {
-  id                        String  @id @default(uuid())
-  subCategoryId             Int
-  subcategories_cie_diez    subcategories_cie_diez  @relation(fields: [subCategoryId], references: [id])
-  medical_eventId           String
-  medical_event             medical_event           @relation(fields: [medical_eventId], references: [id])
+  id                     String                 @id @default(uuid())
+  subCategoryId          Int
+  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id])
+  medical_eventId        String
+  medical_event          medical_event          @relation(fields: [medical_eventId], references: [id])
 
   @@unique([subCategoryId, medical_eventId])
 }
 
 model prescription {
-  id                    String                @id @default(uuid())
-  start_timestamp       DateTime              @default(now())
-  end_timestamp         DateTime?
-  description           String?
-  active                Boolean               @default(true) 
-  patient_id            String?
-  user                  user?                  @relation(fields: [patient_id], references: [id])
-  monodrug              String
-  tenat_id              String?
-  tenant                tenant?               @relation(fields: [tenat_id], references: [id])
-  pres_mod_history      pres_mod_history[]
+  id               String             @id @default(uuid())
+  start_timestamp  DateTime           @default(now())
+  end_timestamp    DateTime?
+  description      String?
+  active           Boolean            @default(true)
+  patient_id       String?
+  user             user?              @relation(fields: [patient_id], references: [id])
+  monodrug         String
+  tenant_id        String?
+  tenant           tenant?            @relation(fields: [tenant_id], references: [id])
+  pres_mod_history pres_mod_history[]
 }
 
 model pres_mod_history {
-  id                    String                @id @default(uuid())
-  prescription_id       String
-  prescription          prescription?          @relation(fields: [prescription_id], references: [id])
-  physician_id          String?
-  physician             user?                  @relation(fields: [physician_id], references: [id])
-  mod_timestamp         DateTime              @default(now())
-  medical_event_id      String?
-  medical_event         medical_event?        @relation(fields: [medical_event_id], references: [id])
+  id               String         @id @default(uuid())
+  prescription_id  String
+  prescription     prescription?  @relation(fields: [prescription_id], references: [id])
+  physician_id     String?
+  physician        user?          @relation(fields: [physician_id], references: [id])
+  mod_timestamp    DateTime       @default(now())
+  medical_event_id String?
+  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id])
   // medical_order_id      String?
   // medical_order         medical_order         @relation(fields: [medical_order_id], references: [id])
-  observations          String?
-  dose                  String
-  dose_units            String
-  frecuency             String
-  duration              String
-  duration_units        String
+  observations     String?
+  dose             String
+  dose_units       String
+  frecuency        String
+  duration         String
+  duration_units   String
 }
 
 //!Types

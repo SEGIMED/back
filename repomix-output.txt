@@ -1,0 +1,6172 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+================================================================
+File Summary
+================================================================
+
+Purpose:
+--------
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+
+File Format:
+------------
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Multiple file entries, each consisting of:
+  a. A separator line (================)
+  b. The file path (File: path/to/file)
+  c. Another separator line
+  d. The full contents of the file
+  e. A blank line
+
+Usage Guidelines:
+-----------------
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+
+Notes:
+------
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+
+Additional Info:
+----------------
+
+================================================================
+Directory Structure
+================================================================
+.dockerignore
+.eslintrc.js
+.gitignore
+.prettierrc
+DockerFile
+nest-cli.json
+package.json
+prisma/schema.prisma
+src/app.controller.spec.ts
+src/app.controller.ts
+src/app.module.ts
+src/app.service.ts
+src/catalogs/cat-cie-diez/cat-cie-diez.controller.spec.ts
+src/catalogs/cat-cie-diez/cat-cie-diez.controller.ts
+src/catalogs/cat-cie-diez/cat-cie-diez.module.ts
+src/catalogs/cat-cie-diez/cat-cie-diez.service.spec.ts
+src/catalogs/cat-cie-diez/cat-cie-diez.service.ts
+src/catalogs/cat-cie-diez/dto/create-cat-cie-diez.dto.ts
+src/catalogs/cat-cie-diez/dto/update-cat-cie-diez.dto.ts
+src/catalogs/cat-cie-diez/entities/cat-cie-diez.entity.ts
+src/catalogs/cat-study-type/cat-study-type.controller.ts
+src/catalogs/cat-study-type/cat-study-type.interface.ts
+src/catalogs/cat-study-type/cat-study-type.module.ts
+src/catalogs/cat-study-type/cat-study-type.service.ts
+src/catalogs/subcat-cie-diez/dto/create-subcat-cie-diez.dto.ts
+src/catalogs/subcat-cie-diez/dto/update-subcat-cie-diez.dto.ts
+src/catalogs/subcat-cie-diez/entities/subcat-cie-diez.entity.ts
+src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.spec.ts
+src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.ts
+src/catalogs/subcat-cie-diez/subcat-cie-diez.module.ts
+src/catalogs/subcat-cie-diez/subcat-cie-diez.service.spec.ts
+src/catalogs/subcat-cie-diez/subcat-cie-diez.service.ts
+src/main.ts
+src/management/auth/auth.controller.spec.ts
+src/management/auth/auth.controller.ts
+src/management/auth/auth.module.ts
+src/management/auth/auth.service.spec.ts
+src/management/auth/auth.service.ts
+src/management/auth/dto/create-auth.dto.ts
+src/management/auth/dto/password-auth.dto.ts
+src/management/auth/dto/update-auth.dto.ts
+src/management/auth/entities/auth.entity.ts
+src/management/patient/dto/create-patient.dto.ts
+src/management/patient/dto/get-patient.dto.ts
+src/management/patient/dto/medical-patient.dto.ts
+src/management/patient/dto/update-patient.dto.ts
+src/management/patient/entities/patient.interface.ts
+src/management/patient/patient.controller.spec.ts
+src/management/patient/patient.controller.ts
+src/management/patient/patient.module.ts
+src/management/patient/patient.service.spec.ts
+src/management/patient/patient.service.ts
+src/management/suscription/paypal/paypal.controller.ts
+src/management/suscription/paypal/paypal.module.ts
+src/management/suscription/paypal/services/paypal.service.ts
+src/management/suscription/paypal/services/transaction.service.ts
+src/management/user/dto/create-user.dto.ts
+src/management/user/dto/onboarding-user.dto.ts
+src/management/user/dto/update-user.dto.ts
+src/management/user/entities/user.interface.ts
+src/management/user/roles.enum.ts
+src/management/user/user.controller.spec.ts
+src/management/user/user.controller.ts
+src/management/user/user.module.ts
+src/management/user/user.service.spec.ts
+src/management/user/user.service.ts
+src/medical-scheduling/appointments/appointments.controller.ts
+src/medical-scheduling/appointments/appointments.module.ts
+src/medical-scheduling/appointments/appointments.service.ts
+src/medical-scheduling/appointments/dto/create-appointment.dto.ts
+src/medical-scheduling/medical-events/dto/create-medical-event.dto.ts
+src/medical-scheduling/medical-events/medical-events.controller.ts
+src/medical-scheduling/medical-events/medical-events.module.ts
+src/medical-scheduling/medical-events/medical-events.service.ts
+src/medical-scheduling/modules/background/background.controller.ts
+src/medical-scheduling/modules/background/background.module.ts
+src/medical-scheduling/modules/background/background.service.ts
+src/medical-scheduling/modules/background/dto/create-background.dto.ts
+src/medical-scheduling/modules/medicine/medicine.controller.ts
+src/medical-scheduling/modules/medicine/medicine.module.ts
+src/medical-scheduling/modules/medicine/medicine.service.ts
+src/medical-scheduling/modules/patient-studies/dto/create-patient-study.dto.ts
+src/medical-scheduling/modules/patient-studies/dto/update-patient-study.dto.ts
+src/medical-scheduling/modules/patient-studies/entities/patient-study.interface.ts
+src/medical-scheduling/modules/patient-studies/patient-studies.controller.ts
+src/medical-scheduling/modules/patient-studies/patient-studies.module.ts
+src/medical-scheduling/modules/patient-studies/patient-studies.service.ts
+src/medical-scheduling/modules/physical-examination-data/physical_subsystem/physical_subsystem.interface.ts
+src/medical-scheduling/modules/physical-examination-data/physical_subsystem/physical_subsystem.service.ts
+src/medical-scheduling/modules/physical-examination-data/physical-examination/physical_examination.interface.ts
+src/medical-scheduling/modules/physical-examination-data/physical-examination/physical-examination.service.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/dto/create-physical-exploration-area.dto.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.controller.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.module.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.service.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration/dto/create-physical-exploration.dto.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.controller.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.module.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.service.ts
+src/medical-scheduling/modules/pres_mod_history/dto/create-pres-history.dto.ts
+src/medical-scheduling/modules/pres_mod_history/dto/update-pres_mod_history.dto.ts
+src/medical-scheduling/modules/pres_mod_history/entities/pres_mod_history.entity.ts
+src/medical-scheduling/modules/pres_mod_history/pres_mod_history.controller.ts
+src/medical-scheduling/modules/pres_mod_history/pres_mod_history.module.ts
+src/medical-scheduling/modules/pres_mod_history/pres_mod_history.service.ts
+src/medical-scheduling/modules/prescription/dto/create-prescription.dto.ts
+src/medical-scheduling/modules/prescription/dto/update-prescription.dto.ts
+src/medical-scheduling/modules/prescription/entities/prescription.entity.ts
+src/medical-scheduling/modules/prescription/prescription.controller.ts
+src/medical-scheduling/modules/prescription/prescription.module.ts
+src/medical-scheduling/modules/prescription/prescription.service.ts
+src/prisma/prisma.module.ts
+src/prisma/prisma.service.ts
+src/services/email/email.module.ts
+src/services/email/email.service.ts
+src/services/email/templates/credentialsHtml.ts
+src/services/email/templates/recoverPasswordHtml.ts
+src/services/email/templates/welcomeEmailHtml.ts
+src/services/twilio/twilio.module.ts
+src/services/twilio/twilio.service.ts
+src/utils/auth.helper.ts
+src/utils/cloudinary.ts
+src/utils/file_upload/file_upload.controller.ts
+src/utils/file_upload/file_upload.module.ts
+src/utils/file_upload/file_upload.repository.ts
+src/utils/file_upload/file_upload.service.ts
+src/utils/middlewares/tenantMiddleware.ts
+src/utils/middlewares/tenantPrismaMiddleware.ts
+src/utils/pagination.helper.ts
+test/app.e2e-spec.ts
+test/jest-e2e.json
+tsconfig.build.json
+tsconfig.json
+
+================================================================
+Files
+================================================================
+
+================
+File: .dockerignore
+================
+node_modules
+dist
+.env
+logs
+
+================
+File: .eslintrc.js
+================
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: 'tsconfig.json',
+    tsconfigRootDir: __dirname,
+    sourceType: 'module',
+  },
+  plugins: ['@typescript-eslint/eslint-plugin'],
+  extends: [
+    'plugin:@typescript-eslint/recommended',
+    'plugin:prettier/recommended',
+  ],
+  root: true,
+  env: {
+    node: true,
+    jest: true,
+  },
+  ignorePatterns: ['.eslintrc.js'],
+  rules: {
+    '@typescript-eslint/interface-name-prefix': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+  },
+};
+
+================
+File: .gitignore
+================
+# compiled output
+/dist
+/node_modules
+/build
+
+prisma/migrations/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+/coverage
+/.nyc_output
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# temp directory
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+================
+File: .prettierrc
+================
+{
+  "singleQuote": true,
+  "trailingComma": "all"
+}
+
+================
+File: DockerFile
+================
+# Stage 1: Base Development Image
+FROM node:18-alpine AS development
+WORKDIR /app
+ENV HOST=0.0.0.0
+ENV PORT=5000
+ENV NODE_ENV=development
+EXPOSE 5000
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+CMD ["npm", "run", "start:dev"]
+
+# Stage 2: Install Dependencies
+FROM node:18-alpine AS dependencies
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install --production
+
+# Stage 3: Build Application
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# Stage 4: Production Image
+FROM node:18-alpine AS production
+WORKDIR /app
+ENV HOST=0.0.0.0
+ENV PORT=5000
+ENV NODE_ENV=production
+COPY --from=builder /app/package.json /app/package-lock.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+USER node
+EXPOSE 5000
+CMD ["node", "dist/main"]
+
+================
+File: nest-cli.json
+================
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "plugins": [
+    {
+      "name": "@nestjs/swagger",
+      "options": {
+        "classValidatorShim": true,
+        "introspectComments": true
+      }
+    }
+  ]
+  }
+}
+
+================
+File: package.json
+================
+{
+  "name": "segimed-backend",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prisma": "prisma generate && prisma db push"
+  },
+  "dependencies": {
+    "@nestjs/axios": "^4.0.0",
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.3.0",
+    "@nestjs/core": "^10.4.15",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/swagger": "^8.1.0",
+    "@nestjs/typeorm": "^10.0.2",
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "@prisma/client": "^6.4.1",
+    "@types/jsonwebtoken": "^9.0.7",
+    "axios": "^1.8.1",
+    "bcrypt": "^5.1.1",
+    "buffer-to-stream": "^1.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "cloudinary": "^2.5.1",
+    "dotenv": "^16.4.7",
+    "express-openid-connect": "^2.17.1",
+    "multer": "^1.4.5-lts.1",
+    "googleapis": "^144.0.0",
+    "pg": "^8.13.1",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.1",
+    "twilio": "^5.4.3",
+    "typeorm": "^0.3.20",
+    "uuid": "^11.0.3",
+    "whatsapp-web.js": "^1.26.0"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.0.0",
+    "@nestjs/schematics": "^10.0.0",
+    "@nestjs/testing": "^10.0.0",
+    "@types/buffer-to-stream": "^1.0.3",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.2",
+    "@types/node": "^20.3.1",
+    "@types/supertest": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "jest": "^29.5.0",
+    "prettier": "^3.0.0",
+    "prisma": "^6.4.1",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.1.0",
+    "ts-loader": "^9.4.3",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.1.3"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}
+
+================
+File: prisma/schema.prisma
+================
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model tenant {
+  id         String      @id @default(uuid())
+  type       tenant_type
+  db_name    String?
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+  deleted    Boolean     @default(false)
+
+  users                  user[]
+  organizations          organization[]
+  physicians             physician[]
+  appointments           appointment[]
+  medical_events         medical_event[]
+  organization_physician organization_physician[]
+  patient_tenant         patient_tenant[]
+  prescription           prescription[]
+  transaction            transaction[]
+  background             background[]
+  physical_exploration   physical_exploration[]
+}
+
+model user {
+  id                    String                 @id @default(uuid())
+  name                  String
+  last_name             String?
+  email                 String                 @unique
+  password              String?
+  role                  role_type              @default(physician)
+  nationality           String?
+  gender                String?
+  dni                   String?                @unique
+  birth_date            DateTime?
+  phone_prefix          String?
+  phone                 String?
+  is_phone_verified     Boolean                @default(false)
+  image                 String                 @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+  deleted               Boolean                @default(false)
+  deleted_at            DateTime?
+  transactions          transaction[]
+  physical_examinations physical_examination[]
+
+  tenant_id String?
+  patient   patient?
+  tenant    tenant?  @relation(fields: [tenant_id], references: [id])
+
+  physicianAppointment appointment[]      @relation(name: "physician")
+  patientAppointments  appointment[]      @relation(name: "patient")
+  physician            physician[]
+  prescription         prescription[]
+  pres_mod_history     pres_mod_history[]
+  background           background[]
+
+  physical_exploration_patients   physical_exploration[] @relation(name: "patients")
+  physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
+}
+
+model organization {
+  id                  String      @id @default(uuid())
+  name                String
+  type                tenant_type
+  number_of_employees Int?
+  number_of_patients  Int?
+  reason_register     String
+  created_at          DateTime    @default(now())
+  updated_at          DateTime    @updatedAt
+  deleted             Boolean     @default(false)
+  deleted_at          DateTime?
+
+  tenant_id              String?
+  tenant                 tenant?                  @relation(fields: [tenant_id], references: [id])
+  organization_physician organization_physician[]
+}
+
+model organization_physician {
+  id              String       @id @default(uuid())
+  organization_id String
+  physician_id    String
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  deleted         Boolean      @default(false)
+  deleted_at      DateTime?
+  organization    organization @relation(fields: [organization_id], references: [id])
+  physician       physician    @relation(fields: [physician_id], references: [id])
+  tenant_id       String
+  tenant          tenant?      @relation(fields: [tenant_id], references: [id])
+}
+
+model patient {
+  id                 String    @id @default(uuid())
+  direction          String?
+  country            String?
+  province           String?
+  city               String?
+  postal_code        String?
+  direction_number   String?
+  apartment          String?
+  health_care_number String?
+  notes              String?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  deleted            Boolean   @default(false)
+  deleted_at         DateTime?
+  user_id            String    @unique
+  user               user      @relation(fields: [user_id], references: [id])
+
+  medical_event  medical_event[]
+  patient_tenant patient_tenant[]
+}
+
+model patient_tenant {
+  id         String    @id @default(uuid())
+  patient_id String
+  patient    patient   @relation(fields: [patient_id], references: [id])
+  tenant_id  String
+  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted    Boolean   @default(false)
+  deleted_at DateTime?
+
+  @@unique([patient_id, tenant_id])
+}
+
+model physician {
+  id               String    @id @default(uuid())
+  user_id          String
+  user             user      @relation(fields: [user_id], references: [id])
+  tenant_id        String?
+  tenant           tenant?   @relation(fields: [tenant_id], references: [id])
+  medical_registry String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted          Boolean   @default(false)
+  deleted_at       DateTime?
+
+  medical_event          medical_event[]
+  physician_speciality   physician_speciality[]
+  organization_physician organization_physician[]
+}
+
+model appointment {
+  id                  String          @id @default(uuid())
+  consultation_reason String
+  start               DateTime
+  end                 DateTime
+  patient_id          String
+  physician_id        String
+  status              status_type     @default(pendiente)
+  cancelation_reason  String?
+  comments            String?
+  created_at          DateTime        @default(now())
+  updated_at          DateTime        @updatedAt
+  deleted             Boolean         @default(false)
+  deleted_at          DateTime?
+  patient             user            @relation(name: "patient", fields: [patient_id], references: [id], onDelete: Cascade)
+  physician           user            @relation(name: "physician", fields: [physician_id], references: [id], onDelete: Cascade)
+  medical_events      medical_event[]
+
+  tenant_id String
+  tenant    tenant? @relation(fields: [tenantId], references: [id])
+  tenantId  String?
+}
+
+model medical_event {
+  id                   String                 @id @default(uuid())
+  appointment_id       String
+  patient_id           String
+  physician_id         String
+  physician_comments   String?
+  main_diagnostic_cie  String?
+  evolution            String?
+  procedure            String?
+  treatment            String?
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
+  deleted              Boolean                @default(false)
+  deleted_at           DateTime?
+  appointment          appointment            @relation(fields: [appointment_id], references: [id])
+  patient              patient                @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  physician            physician              @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  physical_examination physical_examination[]
+  physical_exploration physical_exploration[]
+
+  tenant_id                 String
+  tenant                    tenant?                     @relation(fields: [tenantId], references: [id])
+  tenantId                  String?
+  pres_mod_history          pres_mod_history[]
+  subcategory_medical_event subcategory_medical_event[]
+}
+
+model transaction {
+  id         String    @id @default(uuid())
+  orderId    String
+  status     String
+  amount     Float
+  currency   String
+  userId     String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted    Boolean   @default(false)
+  deleted_at DateTime?
+  user       user      @relation(fields: [userId], references: [id])
+
+  tenant_id String
+  tenant    tenant? @relation(fields: [tenant_id], references: [id])
+}
+
+model patient_study {
+  id                String         @id @default(uuid())
+  patient_id        String
+  physician_id      String
+  url               String?        @default("")
+  title             String
+  description       String
+  tenant_id         String
+  cat_study_type_id Int
+  is_deleted        Boolean        @default(false)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id])
+
+  @@map("patient_studies")
+}
+
+model cat_study_type {
+  id              Int             @id @default(autoincrement())
+  name            String
+  patient_studies patient_study[]
+}
+
+model password_reset {
+  id         String    @id @default(uuid())
+  token      String    @unique
+  email      String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted    Boolean   @default(false)
+  deleted_at DateTime?
+}
+
+model physical_examination {
+  id                    String                  @id @default(uuid())
+  physical_subsystem_id Int?
+  patient_id            String
+  description           String
+  medical_event_id      String
+  created_at            DateTime                @default(now())
+  updated_at            DateTime                @updatedAt
+  deleted               Boolean                 @default(false)
+  deleted_at            DateTime?
+  medical_event         medical_event           @relation(fields: [medical_event_id], references: [id])
+  user                  user                    @relation(fields: [patient_id], references: [id])
+  physical_subsystem    cat_physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
+}
+
+model physical_exploration {
+  id                           String @id @default(uuid())
+  patient_id                   String
+  physician_id                 String
+  medical_event_id             String @unique // Only one physical exploration per medical event
+  description                  String
+  physical_exploration_area_id Int
+  tenant_id                    String
+
+  patient                   user                      @relation(fields: [patient_id], references: [id], name: "patients")
+  physician                 user                      @relation(fields: [physician_id], references: [id], name: "physicians")
+  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id])
+  physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
+  tenant                    tenant                    @relation(fields: [tenant_id], references: [id])
+}
+
+model physical_exploration_area {
+  id              Int    @id @default(autoincrement())
+  name_on_library String @unique
+  name            String @unique
+
+  physical_exploration physical_exploration[]
+}
+
+model physician_speciality {
+  id            String         @id @default(uuid())
+  physician_id  String
+  speciality_id Int
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  deleted       Boolean        @default(false)
+  deleted_at    DateTime?
+  physician     physician      @relation(fields: [physician_id], references: [id])
+  speciality    cat_speciality @relation(fields: [speciality_id], references: [id])
+}
+
+model otp_code {
+  id              String    @id
+  code            String
+  code_expires_at DateTime?
+}
+
+model cat_physical_subsystem {
+  id                    Int                    @id @default(autoincrement())
+  name                  String
+  physical_examinations physical_examination[]
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+  deleted               Boolean                @default(false)
+  deleted_at            DateTime?
+}
+
+model cat_speciality {
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  physician_speciality physician_speciality[]
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
+  deleted              Boolean                @default(false)
+  deleted_at           DateTime?
+}
+
+model background {
+  id                        String   @id @default(uuid())
+  patient_id                String
+  vaccinations              String
+  allergies                 String
+  pathological_history      String
+  family_medical_history    String
+  non_pathological_history  String
+  surgical_history          String
+  childhood_medical_history String
+  current_medication        String
+  tenant_id                 String
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+
+  patient user   @relation(fields: [patient_id], references: [id])
+  tenant  tenant @relation(fields: [tenant_id], references: [id])
+}
+
+model category_cie_diez {
+  id                     Int                      @id @default(autoincrement())
+  code                   String
+  description            String
+  subcategories_cie_diez subcategories_cie_diez[]
+}
+
+model subcategories_cie_diez {
+  id                        Int                         @id @default(autoincrement())
+  code                      String
+  description               String
+  categoryId                Int
+  category_cie_diez         category_cie_diez           @relation(fields: [categoryId], references: [id])
+  subcategory_medical_event subcategory_medical_event[]
+}
+
+model subcategory_medical_event {
+  id                     String                 @id @default(uuid())
+  subCategoryId          Int
+  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id])
+  medical_eventId        String
+  medical_event          medical_event          @relation(fields: [medical_eventId], references: [id])
+
+  @@unique([subCategoryId, medical_eventId])
+}
+
+model prescription {
+  id               String             @id @default(uuid())
+  start_timestamp  DateTime           @default(now())
+  end_timestamp    DateTime?
+  description      String?
+  active           Boolean            @default(true)
+  patient_id       String?
+  user             user?              @relation(fields: [patient_id], references: [id])
+  monodrug         String
+  tenat_id         String?
+  tenant           tenant?            @relation(fields: [tenat_id], references: [id])
+  pres_mod_history pres_mod_history[]
+}
+
+model pres_mod_history {
+  id               String         @id @default(uuid())
+  prescription_id  String
+  prescription     prescription?  @relation(fields: [prescription_id], references: [id])
+  physician_id     String?
+  physician        user?          @relation(fields: [physician_id], references: [id])
+  mod_timestamp    DateTime       @default(now())
+  medical_event_id String?
+  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id])
+  // medical_order_id      String?
+  // medical_order         medical_order         @relation(fields: [medical_order_id], references: [id])
+  observations     String?
+  dose             String
+  dose_units       String
+  frecuency        String
+  duration         String
+  duration_units   String
+}
+
+//!Types
+
+enum role_type {
+  patient
+  physician
+  organization_owner
+}
+
+enum status_type {
+  atendida
+  cancelada
+  pendiente
+}
+
+enum tenant_type {
+  individual
+  organization
+}
+
+enum gender {
+  masculino
+  femenino
+  otro
+}
+
+================
+File: src/app.controller.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+describe('AppController', () => {
+  let appController: AppController;
+
+  beforeEach(async () => {
+    const app: TestingModule = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [AppService],
+    }).compile();
+
+    appController = app.get<AppController>(AppController);
+  });
+
+  describe('root', () => {
+    it('should return "Hello World!"', () => {
+      expect(appController.getHello()).toBe('Hello World!');
+    });
+  });
+});
+
+================
+File: src/app.controller.ts
+================
+import { Controller } from '@nestjs/common';
+import { AppService } from './app.service';
+
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+}
+
+================
+File: src/app.module.ts
+================
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UserModule } from './management/user/user.module';
+import { AuthModule } from './management/auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
+import { config } from 'dotenv';
+import { PrismaModule } from './prisma/prisma.module';
+import { PrismaService } from './prisma/prisma.service';
+import { AppointmentsModule } from './medical-scheduling/appointments/appointments.module';
+import { MedicalEventsModule } from './medical-scheduling/medical-events/medical-events.module';
+import { PhysicalExaminationService } from './medical-scheduling/modules/physical-examination-data/physical-examination/physical-examination.service';
+import { PhysicalSubsystemService } from './medical-scheduling/modules/physical-examination-data/physical_subsystem/physical_subsystem.service';
+import { PatientModule } from './management/patient/patient.module';
+import { PatientStudiesModule } from './medical-scheduling/modules/patient-studies/patient-studies.module';
+import { FileUploadModule } from './utils/file_upload/file_upload.module';
+import { CatStudyTypeModule } from './catalogs/cat-study-type/cat-study-type.module';
+import { ConfigModule } from '@nestjs/config';
+import { EmailModule } from './services/email/email.module';
+import { TwilioModule } from './services/twilio/twilio.module';
+import { BackgroundModule } from './medical-scheduling/modules/background/background.module';
+import { PhysicalExplorationModule } from './medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.module';
+import { PhysicalExplorationAreaModule } from './medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.module';
+import { CatCieDiezModule } from './catalogs/cat-cie-diez/cat-cie-diez.module';
+import { SubcatCieDiezModule } from './catalogs/subcat-cie-diez/subcat-cie-diez.module';
+import { MedicineModule } from './medical-scheduling/modules/medicine/medicine.module';
+import { PrescriptionModule } from './medical-scheduling/modules/prescription/prescription.module';
+import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_history/pres_mod_history.module';
+import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
+
+config({ path: '.env' });
+
+@Module({
+  imports: [
+    AppointmentsModule,
+    MedicalEventsModule,
+    UserModule,
+    PatientStudiesModule,
+    ConfigModule.forRoot({
+      isGlobal: true, // Esto hace que las configuraciones sean accesibles globalmente
+      envFilePath: '.env', // El archivo de configuración (debería estar en la raíz)
+    }),
+    PrismaModule,
+    AuthModule,
+    FileUploadModule,
+    CatStudyTypeModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      global: true,
+      signOptions: {
+        expiresIn: '1h',
+      },
+    }),
+    PatientModule,
+    EmailModule,
+    TwilioModule,
+    MedicineModule,
+    PrescriptionModule,
+    PresModHistoryModule,
+    BackgroundModule,
+    PhysicalExplorationModule,
+    PhysicalExplorationAreaModule,
+    CatCieDiezModule,
+    SubcatCieDiezModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    PrismaService,
+    PhysicalExaminationService,
+    PhysicalSubsystemService,
+  ],
+})
+export class AppModule {
+  /*   configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantMiddleware)
+      .exclude(
+        { path: 'auth/register', method: RequestMethod.POST },
+        { path: 'auth/', method: RequestMethod.POST },
+        { path: 'auth/google', method: RequestMethod.POST },
+        { path: 'auth/request-password', method: RequestMethod.POST },
+        { path: 'auth/reset-password', method: RequestMethod.POST },
+        { path: 'auth/send-otp', method: RequestMethod.POST },
+        { path: 'auth/verify-otp', method: RequestMethod.POST },
+        { path: 'user/onboarding', method: RequestMethod.POST },
+      )
+      .forRoutes('*');
+  } */
+}
+
+================
+File: src/app.service.ts
+================
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+  getHello(): string {
+    return 'Hello World!';
+  }
+}
+
+================
+File: src/catalogs/cat-cie-diez/cat-cie-diez.controller.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { CatCieDiezController } from './cat-cie-diez.controller';
+import { CatCieDiezService } from './cat-cie-diez.service';
+
+describe('CatCieDiezController', () => {
+  let controller: CatCieDiezController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [CatCieDiezController],
+      providers: [CatCieDiezService],
+    }).compile();
+
+    controller = module.get<CatCieDiezController>(CatCieDiezController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
+
+================
+File: src/catalogs/cat-cie-diez/cat-cie-diez.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
+import { CatCieDiezService } from './cat-cie-diez.service';
+import { CreateCatCieDiezDto } from './dto/create-cat-cie-diez.dto';
+import { UpdateCatCieDiezDto } from './dto/update-cat-cie-diez.dto';
+import { PaginationParams } from 'src/utils/pagination.helper';
+
+@Controller('cat-cie-diez')
+export class CatCieDiezController {
+  constructor(private readonly catCieDiezService: CatCieDiezService) {}
+
+  @Post()
+  create(@Body() createCatCieDiezDto: CreateCatCieDiezDto) {
+    return this.catCieDiezService.create(createCatCieDiezDto);
+  }
+
+  @Get()
+  findAll(@Query() paginationParams: PaginationParams) {
+    return this.catCieDiezService.findAll(paginationParams);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.catCieDiezService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateCatCieDiezDto: UpdateCatCieDiezDto,
+  ) {
+    return this.catCieDiezService.update(+id, updateCatCieDiezDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.catCieDiezService.remove(+id);
+  }
+}
+
+================
+File: src/catalogs/cat-cie-diez/cat-cie-diez.module.ts
+================
+import { Module } from '@nestjs/common';
+import { CatCieDiezService } from './cat-cie-diez.service';
+import { CatCieDiezController } from './cat-cie-diez.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [CatCieDiezController],
+  providers: [CatCieDiezService, PrismaService],
+})
+export class CatCieDiezModule {}
+
+================
+File: src/catalogs/cat-cie-diez/cat-cie-diez.service.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { CatCieDiezService } from './cat-cie-diez.service';
+
+describe('CatCieDiezService', () => {
+  let service: CatCieDiezService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [CatCieDiezService],
+    }).compile();
+
+    service = module.get<CatCieDiezService>(CatCieDiezService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+================
+File: src/catalogs/cat-cie-diez/cat-cie-diez.service.ts
+================
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateCatCieDiezDto } from './dto/create-cat-cie-diez.dto';
+import { UpdateCatCieDiezDto } from './dto/update-cat-cie-diez.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CatCieDiez } from './entities/cat-cie-diez.entity';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
+
+@Injectable()
+export class CatCieDiezService {
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createCatCieDiezDto: CreateCatCieDiezDto): Promise<object> {
+    try {
+      const user = await this.prisma.category_cie_diez.create({
+        data: { ...createCatCieDiezDto },
+      });
+      return { message: 'La categoría ha sido correctamente creada' };
+    } catch (error) {
+      return { message: `Error al crear la categoria ${error.message}` };
+    }
+  }
+
+  async findAll(paginationParams: PaginationParams) {
+    try {
+      const { skip, take, orderBy, orderDirection } =
+        parsePaginationAndSorting(paginationParams);
+
+      const categories = await this.prisma.category_cie_diez.findMany({
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      });
+      return categories;
+    } catch (error) {
+      return { message: `Error al consultar las categorias ${error.message}` };
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const category = await this.prisma.category_cie_diez.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      if (!category) throw new NotFoundException('No existe la categoria');
+
+      return category;
+    } catch (error) {
+      return { message: `Error al consultar la categoria ${error.message}` };
+    }
+  }
+
+  async update(id: number, updateCatCieDiezDto: UpdateCatCieDiezDto) {
+    try {
+      const category = await this.prisma.category_cie_diez.update({
+        where: { id: id },
+        data: { ...updateCatCieDiezDto },
+      });
+      return { message: 'La categoría ha sido correctamente actualizada' };
+    } catch (error) {
+      return { message: `Error al actualizar la categoria ${error.message}` };
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      const category = await this.prisma.category_cie_diez.delete({
+        where: { id: id },
+      });
+      return { message: 'La categoría ha sido correctamente eliminada' };
+    } catch (error) {
+      return { message: `Error al eliminar la categoria ${error.message}` };
+    }
+  }
+}
+
+================
+File: src/catalogs/cat-cie-diez/dto/create-cat-cie-diez.dto.ts
+================
+import { IsString } from 'class-validator';
+
+export class CreateCatCieDiezDto {
+  /**
+   * Category code
+   * @example "A001"
+   */
+  @IsString()
+  code: string;
+
+  /**
+   * Category description
+   * @example "Fiebres tifoidea y paratifoidea"
+   */
+  @IsString()
+  description: string;
+}
+
+================
+File: src/catalogs/cat-cie-diez/dto/update-cat-cie-diez.dto.ts
+================
+import { PartialType } from '@nestjs/swagger';
+import { CreateCatCieDiezDto } from './create-cat-cie-diez.dto';
+
+export class UpdateCatCieDiezDto extends PartialType(CreateCatCieDiezDto) {}
+
+================
+File: src/catalogs/cat-cie-diez/entities/cat-cie-diez.entity.ts
+================
+export class CatCieDiez {
+  id: number;
+  code: string;
+  description: string;
+}
+
+================
+File: src/catalogs/cat-study-type/cat-study-type.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+} from '@nestjs/common';
+import { CatStudyTypeService } from './cat-study-type.service';
+import { CatStudyType } from './cat-study-type.interface';
+
+@Controller('cat-study-type')
+export class CatStudyTypeController {
+  constructor(private readonly catStudyTypeService: CatStudyTypeService) {}
+
+  @Post()
+  async create(@Body() data: CatStudyType): Promise<CatStudyType> {
+    return this.catStudyTypeService.create(data);
+  }
+
+  @Get()
+  async findAll(): Promise<CatStudyType[]> {
+    return this.catStudyTypeService.findAll();
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: number): Promise<CatStudyType> {
+    return this.catStudyTypeService.findOne(id);
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() data: CatStudyType,
+  ): Promise<CatStudyType> {
+    return this.catStudyTypeService.update(id, data);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: number): Promise<CatStudyType> {
+    return this.catStudyTypeService.remove(id);
+  }
+}
+
+================
+File: src/catalogs/cat-study-type/cat-study-type.interface.ts
+================
+export interface CatStudyType {
+  id?: number;
+  name: string;
+}
+
+================
+File: src/catalogs/cat-study-type/cat-study-type.module.ts
+================
+import { Module } from '@nestjs/common';
+import { CatStudyTypeService } from './cat-study-type.service';
+import { CatStudyTypeController } from './cat-study-type.controller';
+import { PrismaService } from '../../prisma/prisma.service'; // Adjust the path as necessary
+
+@Module({
+  imports: [],
+  controllers: [CatStudyTypeController],
+  providers: [CatStudyTypeService, PrismaService],
+})
+export class CatStudyTypeModule {}
+
+================
+File: src/catalogs/cat-study-type/cat-study-type.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CatStudyType } from './cat-study-type.interface';
+
+@Injectable()
+export class CatStudyTypeService {
+  constructor(private prisma: PrismaService) {}
+
+  async create(data: CatStudyType): Promise<CatStudyType> {
+    return this.prisma.cat_study_type.create({
+      data,
+    });
+  }
+
+  async findAll(): Promise<CatStudyType[]> {
+    return this.prisma.cat_study_type.findMany();
+  }
+
+  async findOne(id: number): Promise<CatStudyType> {
+    return this.prisma.cat_study_type.findUnique({
+      where: { id: Number(id) },
+    });
+  }
+
+  async update(id: number, data: CatStudyType): Promise<CatStudyType> {
+    return this.prisma.cat_study_type.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async remove(id: number): Promise<CatStudyType> {
+    return this.prisma.cat_study_type.delete({
+      where: { id },
+    });
+  }
+}
+
+================
+File: src/catalogs/subcat-cie-diez/dto/create-subcat-cie-diez.dto.ts
+================
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+
+export class CreateSubcatCieDiezDto {
+  @IsString()
+  code: string;
+
+  @IsString()
+  description: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  categoryId: number;
+}
+
+================
+File: src/catalogs/subcat-cie-diez/dto/update-subcat-cie-diez.dto.ts
+================
+import { PartialType } from '@nestjs/swagger';
+import { CreateSubcatCieDiezDto } from './create-subcat-cie-diez.dto';
+
+export class UpdateSubcatCieDiezDto extends PartialType(
+  CreateSubcatCieDiezDto,
+) {}
+
+================
+File: src/catalogs/subcat-cie-diez/entities/subcat-cie-diez.entity.ts
+================
+export class SubcatCieDiez {}
+
+================
+File: src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { SubcatCieDiezController } from './subcat-cie-diez.controller';
+import { SubcatCieDiezService } from './subcat-cie-diez.service';
+
+describe('SubcatCieDiezController', () => {
+  let controller: SubcatCieDiezController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [SubcatCieDiezController],
+      providers: [SubcatCieDiezService],
+    }).compile();
+
+    controller = module.get<SubcatCieDiezController>(SubcatCieDiezController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
+
+================
+File: src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
+import { SubcatCieDiezService } from './subcat-cie-diez.service';
+import { CreateSubcatCieDiezDto } from './dto/create-subcat-cie-diez.dto';
+import { UpdateSubcatCieDiezDto } from './dto/update-subcat-cie-diez.dto';
+import { PaginationParams } from 'src/utils/pagination.helper';
+
+@Controller('subcat-cie-diez')
+export class SubcatCieDiezController {
+  constructor(private readonly subcatCieDiezService: SubcatCieDiezService) {}
+
+  @Post()
+  create(@Body() createSubcatCieDiezDto: CreateSubcatCieDiezDto) {
+    return this.subcatCieDiezService.create(createSubcatCieDiezDto);
+  }
+
+  @Get()
+  findAll(@Query() paginationParams: PaginationParams) {
+    return this.subcatCieDiezService.findAll(paginationParams);
+  }
+
+  @Get('search')
+  search(@Query('searchWord') searchWord: string) {
+    return this.subcatCieDiezService.search(searchWord);
+  }
+
+  @Get('category/:id')
+  findAllCategories(
+    @Param('id') id: number,
+    @Query() paginationParams: PaginationParams,
+  ) {
+    return this.subcatCieDiezService.findAllCategories(id, paginationParams);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.subcatCieDiezService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateSubcatCieDiezDto: UpdateSubcatCieDiezDto,
+  ) {
+    return this.subcatCieDiezService.update(+id, updateSubcatCieDiezDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.subcatCieDiezService.remove(+id);
+  }
+}
+
+================
+File: src/catalogs/subcat-cie-diez/subcat-cie-diez.module.ts
+================
+import { Module } from '@nestjs/common';
+import { SubcatCieDiezService } from './subcat-cie-diez.service';
+import { SubcatCieDiezController } from './subcat-cie-diez.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [SubcatCieDiezController],
+  providers: [SubcatCieDiezService, PrismaService],
+})
+export class SubcatCieDiezModule {}
+
+================
+File: src/catalogs/subcat-cie-diez/subcat-cie-diez.service.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { SubcatCieDiezService } from './subcat-cie-diez.service';
+
+describe('SubcatCieDiezService', () => {
+  let service: SubcatCieDiezService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [SubcatCieDiezService],
+    }).compile();
+
+    service = module.get<SubcatCieDiezService>(SubcatCieDiezService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+================
+File: src/catalogs/subcat-cie-diez/subcat-cie-diez.service.ts
+================
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateSubcatCieDiezDto } from './dto/create-subcat-cie-diez.dto';
+import { UpdateSubcatCieDiezDto } from './dto/update-subcat-cie-diez.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
+
+@Injectable()
+export class SubcatCieDiezService {
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createSubcatCieDiezDto: CreateSubcatCieDiezDto) {
+    try {
+      const category = await this.prisma.category_cie_diez.findUnique({
+        where: { id: createSubcatCieDiezDto.categoryId },
+      });
+
+      if (!category)
+        throw new NotFoundException('No se encuentra la categoria');
+
+      const subCat = await this.prisma.subcategories_cie_diez.create({
+        data: {
+          ...createSubcatCieDiezDto,
+        },
+      });
+
+      if (!subCat) throw new Error('No se ha podido generar la sub categoria');
+
+      return { message: 'La sub categoría ha sido correctamente creada' };
+    } catch (error) {
+      return { message: `Error al crear la sub categoria ${error.message}` };
+    }
+  }
+
+  async search(searchWord: string) {
+    try {
+      const subcat = await this.prisma.subcategories_cie_diez.findMany({
+        where: {
+          OR: [
+            {
+              code: {
+                contains: searchWord,
+                mode: 'insensitive',
+              },
+            },
+            {
+              description: {
+                contains: searchWord,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+      });
+
+      if (!subcat)
+        throw new NotFoundException({ message: 'No existe la sub categoria' });
+
+      return subcat;
+    } catch (error) {
+      console.log(error);
+      return {
+        message: `Error al consultar las sub categorias ${error.message}`,
+      };
+    }
+  }
+
+  async findAll(paginationParams: PaginationParams) {
+    try {
+      const { skip, take, orderBy, orderDirection } =
+        parsePaginationAndSorting(paginationParams);
+
+      const subcategories = await this.prisma.subcategories_cie_diez.findMany({
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      });
+      return subcategories;
+    } catch (error) {
+      return {
+        message: `Error al consultar las sub categorias ${error.message}`,
+      };
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const subcategory = await this.prisma.subcategories_cie_diez.findUnique({
+        where: { id: id },
+      });
+      if (!subcategory)
+        throw new NotFoundException('No se encontró la sub categoria');
+      return subcategory;
+    } catch (error) {
+      return {
+        message: `Error al consultar la sub categoria ${error.message}`,
+      };
+    }
+  }
+
+  async update(id: number, updateSubcatCieDiezDto: UpdateSubcatCieDiezDto) {
+    try {
+      const subcategory = await this.prisma.subcategories_cie_diez.update({
+        where: { id: id },
+        data: { ...updateSubcatCieDiezDto },
+      });
+      return { message: 'La categoria ha sido correctamente actualizada' };
+    } catch (error) {
+      return {
+        message: `Error al actualizar la sub categoria ${error.message}`,
+      };
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      const subcategory = this.prisma.subcategories_cie_diez.delete({
+        where: { id: id },
+      });
+      if (!subcategory)
+        throw new NotFoundException('No se encontró la subcategoria');
+      return { message: 'La sub categoría ha sido eliminada' };
+    } catch (error) {
+      return { message: `Error al eliminar la sub categoria ${error.message}` };
+    }
+  }
+
+  async findAllCategories(id: number, paginationParams: PaginationParams) {
+    try {
+      const { skip, take, orderBy, orderDirection } =
+        parsePaginationAndSorting(paginationParams);
+
+      const subcategories = await this.prisma.subcategories_cie_diez.findMany({
+        where: { categoryId: +id },
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      });
+      return subcategories;
+    } catch (error) {
+      return { message: `Error al consultar las categorias ${error.message}` };
+    }
+  }
+}
+
+================
+File: src/main.ts
+================
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { config } from 'dotenv';
+
+config({ path: '.env' });
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: '*', // URL del frontend
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Métodos permitidos
+    credentials: true, // Si estás usando cookies o autenticación basada en sesión
+  });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      exceptionFactory: (errors) => {
+        const cleanErrors = errors.map((err) => {
+          return {
+            property: err.property,
+            constraints: err.constraints,
+            children: err.children?.map((child) => ({
+              property: child.property,
+              constraints: child.constraints,
+            })),
+          };
+        });
+        console.log('Errores de validación detallados:', cleanErrors); // 👈 Depuración
+        return new BadRequestException({
+          alert: 'Se han detectado los siguientes errores en la petición: ',
+          errors: cleanErrors,
+        });
+      },
+    }),
+  );
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('SEGIMED')
+    .setDescription(
+      'Manage your organization with SEGIMED, your medical partner.',
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+  SwaggerModule.setup('api', app, document);
+
+  await app.listen(process.env.PORT ?? 3000);
+}
+
+bootstrap();
+
+================
+File: src/management/auth/auth.controller.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+
+describe('AuthController', () => {
+  let controller: AuthController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AuthController],
+      providers: [AuthService],
+    }).compile();
+
+    controller = module.get<AuthController>(AuthController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
+
+================
+File: src/management/auth/auth.controller.ts
+================
+import { Controller, Post, Body, Req } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  CreateUserDto,
+  GoogleUserDto,
+} from 'src/management/user/dto/create-user.dto';
+import { RequestPasswordDto, ResetPasswordDto } from './dto/password-auth.dto';
+import { Request } from 'express';
+
+@ApiTags('Auth')
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.create(createUserDto);
+  }
+  @Post()
+  login(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.login(createAuthDto);
+  }
+
+  @Post('google')
+  googleLogin(@Body() GoogleUserDto: GoogleUserDto) {
+    return this.authService.googleLogin(GoogleUserDto);
+  }
+
+  @Post('request-password')
+  requestPasswordReset(
+    @Body() RequestPasswordDto: RequestPasswordDto,
+    @Req() req: Request,
+  ): Promise<object> {
+    return this.authService.requestPasswordReset(RequestPasswordDto, req);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Body() ResetPasswordDto: ResetPasswordDto): Promise<object> {
+    return this.authService.resetPassword(
+      ResetPasswordDto.token,
+      ResetPasswordDto.password,
+    );
+  }
+
+  @Post('send-otp')
+  async sendVerificationCodePhone(
+    @Body('user_id') user_id: string,
+    @Body('phone_prefix') phone_prefix: string,
+    @Body('phone') phone: string,
+  ): Promise<object> {
+    return this.authService.sendVerificationCodePhone(
+      user_id,
+      phone_prefix,
+      phone,
+    );
+  }
+
+  @Post('verify-otp')
+  async verifyPhoneCode(
+    @Body('user_id') user_id: string,
+    @Body('code') code: string,
+  ): Promise<object> {
+    return this.authService.verifyPhoneCode(user_id, code);
+  }
+}
+
+================
+File: src/management/auth/auth.module.ts
+================
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService, PrismaService],
+})
+export class AuthModule {}
+
+================
+File: src/management/auth/auth.service.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { AuthService } from './auth.service';
+
+describe('AuthService', () => {
+  let service: AuthService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [AuthService],
+    }).compile();
+
+    service = module.get<AuthService>(AuthService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+================
+File: src/management/auth/auth.service.ts
+================
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthHelper } from 'src/utils/auth.helper';
+import {
+  CreateUserDto,
+  GoogleUserDto,
+} from 'src/management/user/dto/create-user.dto';
+import { RequestPasswordDto } from './dto/password-auth.dto';
+import { EmailService } from 'src/services/email/email.service';
+import { Request } from 'express';
+import { recoverPasswordHtml } from 'src/services/email/templates/recoverPasswordHtml';
+import { ConfigService } from '@nestjs/config';
+import welcomeEmailHtml from 'src/services/email/templates/welcomeEmailHtml';
+import { TwilioService } from 'src/services/twilio/twilio.service';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
+    private readonly otpService: TwilioService,
+  ) {}
+  async create(data: CreateUserDto): Promise<object> {
+    try {
+      const saltRounds = parseInt(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
+      data.password = await AuthHelper.hashPassword(data.password, saltRounds);
+
+      await this.prisma.user.create({
+        data: data,
+      });
+
+      const htmlContent = welcomeEmailHtml(data.name);
+      await this.emailService.sendMail(
+        data.email,
+        htmlContent,
+        'Bienvenido a Segimed',
+      );
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado.',
+        );
+      }
+      console.log(error);
+      throw new BadRequestException('No se pudo crear el usuario.');
+    }
+
+    return { message: 'El usuario se ha creado con éxito' };
+  }
+  async login(createAuthDto: CreateAuthDto): Promise<object> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: createAuthDto.email },
+      });
+
+      if (!user) {
+        throw new BadRequestException('El email no está registrado');
+      }
+
+      const isPasswordValid = await AuthHelper.comparePasswords(
+        createAuthDto.password,
+        user.password,
+      );
+
+      if (!isPasswordValid) {
+        throw new BadRequestException('La contraseña es incorrecta');
+      }
+      const jwtPayload = {
+        email: user.email,
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name,
+        tenant_id: user.tenant_id || '',
+        role: user.role,
+        image: user.image,
+      };
+      const jwt = AuthHelper.generateToken(jwtPayload);
+
+      return { message: 'Login exitoso', jwt: jwt, user: jwtPayload };
+    } catch (error) {
+      console.log(error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error('Error al procesar la solicitud de login');
+    }
+  }
+
+  async googleLogin(GoogleUserDto: GoogleUserDto): Promise<object> {
+    try {
+      let user = await this.prisma.user.findUnique({
+        where: { email: GoogleUserDto.email },
+      });
+
+      if (!user) {
+        user = await this.prisma.user.create({
+          data: {
+            email: GoogleUserDto.email,
+            name: GoogleUserDto.name ?? '',
+            image: GoogleUserDto.image ?? '',
+            tenant_id: null,
+            password: '',
+          },
+        });
+      }
+
+      if (!user) {
+        throw new Error('Error al crear el usuario o el usuario no existe');
+      }
+
+      const jwtPayload = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.image,
+        tenant_id: user.tenant_id,
+        role: user.role,
+      };
+      const token = AuthHelper.generateToken(jwtPayload);
+
+      return {
+        message: 'Login exitoso',
+        token: token,
+        user: jwtPayload,
+      };
+    } catch (error) {
+      console.log(error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error('Error al procesar la solicitud de Google Login');
+    }
+  }
+
+  async requestPasswordReset(
+    RequestPasswordDto: RequestPasswordDto,
+    req: Request,
+  ): Promise<object> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email: RequestPasswordDto.email },
+      });
+
+      if (!user) {
+        throw new BadRequestException('El email no está registrado');
+      }
+      const origin =
+        req.headers.origin || req.protocol + '://' + req.headers.host;
+
+      const jwtPayload = {
+        email: user.email,
+      };
+
+      const token = AuthHelper.generateToken(jwtPayload, '1h');
+
+      await this.prisma.password_reset.create({
+        data: {
+          email: user.email,
+          token: token,
+        },
+      });
+
+      const resetUrl = `${origin}/reset-password?token=${token}`;
+
+      this.emailService.sendMail(
+        RequestPasswordDto.email,
+        recoverPasswordHtml(resetUrl),
+        'Recuperar contraseña',
+      );
+
+      return {
+        message:
+          'Se ha enviado un correo electrónico para restablecer la contraseña',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(
+        'Error al procesar la solicitud de restablecimiento de contraseña',
+      );
+    }
+  }
+
+  async resetPassword(token: string, password: string): Promise<object> {
+    try {
+      const jwtVerification = AuthHelper.verifyToken(token);
+      if (!jwtVerification || typeof jwtVerification === 'string') {
+        throw new BadRequestException('El token no es válido');
+      }
+      const validToken = await this.prisma.password_reset.findUnique({
+        where: { token: token, email: jwtVerification.email },
+      });
+      if (!validToken) {
+        throw new BadRequestException('El token no es válido');
+      }
+      const saltRounds = parseInt(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
+      const hashPassword = await AuthHelper.hashPassword(password, saltRounds);
+      await this.prisma.user.update({
+        where: { email: jwtVerification.email },
+        data: { password: hashPassword },
+      });
+      return { message: 'Contraseña restablecida con éxito.' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('El token no es válido o ha expirado.');
+    }
+  }
+
+  async sendVerificationCodePhone(
+    user_id: string,
+    phone_prefix: string,
+    phone: string,
+  ): Promise<object> {
+    try {
+      const verification_code = this.otpService.generateOtp();
+      const phoneNumber = phone_prefix + phone;
+      const code_expires_at = new Date(Date.now() + 5 * 60 * 1000);
+
+      await this.prisma.$transaction(async (transaction) => {
+        await transaction.otp_code.upsert({
+          where: { id: user_id },
+          create: {
+            id: user_id,
+            code: verification_code,
+            code_expires_at: code_expires_at,
+          },
+          update: {
+            code: verification_code,
+            code_expires_at: code_expires_at,
+          },
+        });
+
+        await transaction.user.update({
+          where: { id: user_id },
+          data: {
+            phone_prefix,
+            phone,
+          },
+        });
+
+        await this.otpService.sendOtp(phoneNumber, verification_code);
+      });
+
+      return { message: 'Código de verificación enviado.' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException(
+        'Error al enviar el código de verificación.',
+      );
+    }
+  }
+
+  async verifyPhoneCode(user_id: string, code: string): Promise<object> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: user_id },
+      });
+      const otp_exists = await this.prisma.otp_code.findUnique({
+        where: {
+          id: user_id,
+        },
+      });
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
+      }
+      if (!otp_exists) {
+        throw new BadRequestException(
+          'El usuario no tiene un código de verificación',
+        );
+      }
+      if (otp_exists.code !== code) {
+        throw new BadRequestException(
+          'El código de verificación es incorrecto',
+        );
+      }
+      if (otp_exists.code_expires_at < new Date()) {
+        throw new BadRequestException('El código de verificación ha expirado');
+      }
+      await this.prisma.user.update({
+        where: { id: user_id },
+        data: {
+          is_phone_verified: true,
+        },
+      });
+      return {
+        message: 'Número de teléfono verificado.',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException(
+        'Error al verificar el código de verificación.',
+      );
+    }
+  }
+}
+
+================
+File: src/management/auth/dto/create-auth.dto.ts
+================
+import { PickType } from '@nestjs/swagger';
+import { CreateUserDto } from 'src/management/user/dto/create-user.dto';
+
+export class CreateAuthDto extends PickType(CreateUserDto, [
+  'email',
+  'password',
+]) {}
+
+================
+File: src/management/auth/dto/password-auth.dto.ts
+================
+import { IsEmail, IsNotEmpty, IsStrongPassword } from 'class-validator';
+
+export class RequestPasswordDto {
+  @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
+  @IsStrongPassword(
+    {
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    },
+    {
+      message:
+        'La contraseña debe tener al menos 8 caracteres, incluyendo 1 número, 1 letra minúscula, 1 letra mayúscula y 1 símbolo.',
+    },
+  )
+  password: string;
+
+  @IsNotEmpty({ message: 'El token es obligatorio.' })
+  token: string;
+}
+
+================
+File: src/management/auth/dto/update-auth.dto.ts
+================
+import { PartialType } from '@nestjs/swagger';
+import { CreateAuthDto } from './create-auth.dto';
+
+export class UpdateAuthDto extends PartialType(CreateAuthDto) {}
+
+================
+File: src/management/auth/entities/auth.entity.ts
+================
+export class Auth {}
+
+================
+File: src/management/patient/dto/create-patient.dto.ts
+================
+import { IsOptional, IsString, Length } from 'class-validator';
+
+export class CreatePatientDto {
+  @IsString({ message: 'La dirección debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'La dirección debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  direction?: string;
+
+  @IsString({ message: 'El país debe ser un texto válido.' })
+  @Length(3, 50, { message: 'El país debe tener entre 3 y 50 caracteres.' })
+  country: string;
+
+  @IsString({ message: 'La provincia debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'La provincia debe tener entre 3 y 50 caracteres.',
+  })
+  province: string;
+
+  @IsString({ message: 'La ciudad debe ser un texto válido.' })
+  @Length(3, 50, { message: 'La ciudad debe tener entre 3 y 50 caracteres.' })
+  city: string;
+
+  @IsString({ message: 'El código postal debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'El código postal debe tener entre 3 y 50 caracteres.',
+  })
+  postal_code: string;
+
+  @IsString({ message: 'El número de dirección debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'El número de dirección debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  direction_number?: string;
+
+  @IsString({ message: 'El apartamento debe ser un texto válido.' })
+  @Length(1, 50, {
+    message: 'El apartamento debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  apartment?: string;
+
+  @IsString({ message: 'El número de seguro médico debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'El número de seguro médico debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  health_care_number?: string;
+}
+
+================
+File: src/management/patient/dto/get-patient.dto.ts
+================
+export class GetPatientsDto {
+  id: string;
+  name: string;
+  last_name: string;
+  image: string;
+  birth_date: Date;
+  gender: string;
+  email: string;
+  phone: string;
+  prefix: string;
+}
+
+export class GetPatientDto {
+  id: string;
+  name: string;
+  last_name: string;
+  image: string;
+  birth_date: Date;
+  email: string;
+  notes: string;
+}
+
+================
+File: src/management/patient/dto/medical-patient.dto.ts
+================
+import { Type } from 'class-transformer';
+import { IsNotEmpty, ValidateNested } from 'class-validator';
+
+import { CreatePatientDto } from './create-patient.dto';
+import { BaseUserDto } from 'src/management/user/dto/create-user.dto';
+
+export class MedicalPatientDto {
+  @ValidateNested()
+  @Type(() => BaseUserDto)
+  @IsNotEmpty({ message: 'El objeto user no puede estar vacío' })
+  user: Omit<BaseUserDto, 'role' | 'password'>;
+
+  @ValidateNested()
+  @Type(() => CreatePatientDto)
+  @IsNotEmpty({ message: 'El objeto patient no puede estar vacío' })
+  patient: CreatePatientDto;
+}
+
+================
+File: src/management/patient/dto/update-patient.dto.ts
+================
+import { PartialType } from '@nestjs/swagger';
+import { CreatePatientDto } from './create-patient.dto';
+
+export class UpdatePatientDto extends PartialType(CreatePatientDto) {}
+
+================
+File: src/management/patient/entities/patient.interface.ts
+================
+export interface Patient {
+  id?: string;
+  direction?: string;
+  country?: string;
+  province?: string;
+  city?: string;
+  postal_code?: string;
+  direction_number?: string;
+  apparment?: string;
+  health_care_number?: string;
+  userId?: string;
+  appointments?: any[];
+  medical_events?: any[];
+}
+
+================
+File: src/management/patient/patient.controller.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { PatientController } from './patient.controller';
+import { PatientService } from './patient.service';
+
+describe('PatientController', () => {
+  let controller: PatientController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [PatientController],
+      providers: [PatientService],
+    }).compile();
+
+    controller = module.get<PatientController>(PatientController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
+
+================
+File: src/management/patient/patient.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+  Query,
+} from '@nestjs/common';
+import { PatientService } from './patient.service';
+import { UpdatePatientDto } from './dto/update-patient.dto';
+
+import { MedicalPatientDto } from './dto/medical-patient.dto';
+import { Request } from 'express';
+import { PaginationParams } from 'src/utils/pagination.helper';
+/* import { MedicalPatientDto } from './dto/medical-patient.dto';
+ */
+@Controller('patient')
+export class PatientController {
+  constructor(private readonly patientService: PatientService) {}
+
+  @Post()
+  create(@Body() medicalPatientDto: MedicalPatientDto): Promise<object> {
+    console.log(medicalPatientDto);
+    return this.patientService.create(medicalPatientDto);
+  }
+
+  @Get()
+  findAll(@Req() req: Request, @Query() pagination: PaginationParams) {
+    const tenant_id = req['tenant_id'];
+    return this.patientService.findAll(tenant_id, pagination);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string, @Req() req: Request) {
+    const tenant_id = req['tenant_id'];
+    return this.patientService.findOne(id, tenant_id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
+    return this.patientService.update(id, updatePatientDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.patientService.remove(id);
+  }
+}
+
+================
+File: src/management/patient/patient.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PatientService } from './patient.service';
+import { PatientController } from './patient.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from 'src/management/user/user.service';
+
+@Module({
+  controllers: [PatientController],
+  providers: [PatientService, PrismaService, UserService],
+})
+export class PatientModule {}
+
+================
+File: src/management/patient/patient.service.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { PatientService } from './patient.service';
+
+describe('PatientService', () => {
+  let service: PatientService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [PatientService],
+    }).compile();
+
+    service = module.get<PatientService>(PatientService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+================
+File: src/management/patient/patient.service.ts
+================
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { UpdatePatientDto } from './dto/update-patient.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { EmailService } from 'src/services/email/email.service';
+import { MedicalPatientDto } from './dto/medical-patient.dto';
+import { sendCredentialsHtml } from 'src/services/email/templates/credentialsHtml';
+import { GetPatientDto, GetPatientsDto } from './dto/get-patient.dto';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
+/* import { MedicalPatientDto } from './dto/medical-patient.dto';
+ */
+@Injectable()
+export class PatientService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
+
+  async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
+    try {
+      const { patient, user } = medicalPatientDto;
+      const validTenant = await this.prisma.tenant.findUnique({
+        where: { id: user.tenant_id },
+      });
+
+      if (!validTenant) {
+        throw new BadRequestException('El tenant no existe');
+      }
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: user.email },
+      });
+
+      if (existingUser) {
+        const patient = await this.prisma.patient.findFirst({
+          where: { user_id: existingUser.id },
+        });
+        if (!patient) {
+          throw new BadRequestException(
+            'El usuario ya existe pero no es un paciente. Contactar a soporte.',
+          );
+        }
+        await this.prisma.patient_tenant.create({
+          data: {
+            patient_id: patient.id,
+            tenant_id: user.tenant_id,
+          },
+        });
+        return { message: 'Paciente asociado exitosamente' };
+      } else {
+        const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
+        return await this.prisma.$transaction(async (transaction) => {
+          const newUser = await transaction.user.create({
+            data: {
+              ...user,
+              role: 'patient',
+              password: newPassword,
+            },
+          });
+          const newPatient = await transaction.patient.create({
+            data: {
+              ...patient,
+              user_id: newUser.id,
+            },
+          });
+          await transaction.patient_tenant.create({
+            data: {
+              patient_id: newPatient.id,
+              tenant_id: user.tenant_id,
+            },
+          });
+
+          this.emailService.sendMail(
+            user.email,
+            sendCredentialsHtml(user.email, newPassword),
+            'Credenciales Segimed',
+          );
+          return { message: 'Paciente creado exitosamente' };
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException('Error al crear el paciente');
+    }
+  }
+
+  async findAll(
+    tenant_id: string,
+    pagination: PaginationParams,
+  ): Promise<GetPatientsDto[]> {
+    const { skip, take, orderBy, orderDirection } =
+      parsePaginationAndSorting(pagination);
+    const users = await this.prisma.user.findMany({
+      where: {
+        role: 'patient',
+        tenant_id,
+      },
+      skip,
+      take,
+      orderBy: { [orderBy]: orderDirection },
+    });
+    if (users.length === 0) {
+      throw new BadRequestException('No hay pacientes que mostrar.');
+    }
+    return users.map((user) => {
+      return {
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name,
+        image: user.image,
+        birth_date: user.birth_date,
+        gender: user.gender,
+        email: user.email,
+        phone: user.phone,
+        prefix: user.phone_prefix,
+      };
+    });
+  }
+
+  async findOne(id: string, tenant_id: string): Promise<GetPatientDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id, tenant_id },
+      include: { patient: true },
+    });
+    return {
+      id: user.id,
+      name: user.name,
+      last_name: user.last_name,
+      image: user.image,
+      birth_date: user.birth_date,
+      email: user.email,
+      notes: user.patient.notes,
+    };
+  }
+
+  async update(id: string, updatePatientDto: UpdatePatientDto) {
+    const { ...filteredDto } = updatePatientDto;
+    const newPatient = await this.prisma.patient.update({
+      where: { id: id },
+      data: filteredDto as any,
+    });
+    return newPatient;
+  }
+
+  remove(id: string) {
+    return this.prisma.patient.delete({ where: { id: id } });
+  }
+}
+
+================
+File: src/management/suscription/paypal/paypal.controller.ts
+================
+/* import { Controller, Post, Body, Param } from '@nestjs/common';
+import { PayPalService } from './services/paypal.service';
+import { TransactionService } from './services/transaction.service';
+
+@Controller('paypal')
+export class PayPalController {
+  constructor(
+    private readonly payPalService: PayPalService,
+    private readonly transactionService: TransactionService,
+  ) {}
+
+  @Post('capture-order/:orderId')
+  async captureOrder(
+    @Param('orderId') orderId: string,
+    @Body() body: { userId: string },
+  ) {
+    const captureResult = await this.payPalService.captureOrder(orderId);
+
+    // Guardar la transacción en la base de datos
+    await this.transactionService.createTransaction({
+      orderId,
+      status: captureResult.status,
+      amount: parseFloat(captureResult.purchase_units[0].amount.value),
+      currency: captureResult.purchase_units[0].amount.currency_code,
+      userId: body.userId,
+      tenant_id: body.userId,
+    });
+
+    return captureResult;
+  }
+}
+ */
+
+================
+File: src/management/suscription/paypal/paypal.module.ts
+================
+/* import { Module } from '@nestjs/common';
+import { PayPalService } from './services/paypal.service';
+import { PayPalController } from './paypal.controller';
+import { TransactionService } from './services/transaction.service';
+
+@Module({
+  controllers: [PayPalController],
+  providers: [PayPalService, TransactionService],
+})
+export class PayPalModule {}
+ */
+
+================
+File: src/management/suscription/paypal/services/paypal.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import * as paypal from '@paypal/checkout-server-sdk';
+
+@Injectable()
+export class PayPalService {
+  private environment:
+    | paypal.core.SandboxEnvironment
+    | paypal.core.LiveEnvironment;
+  private client: paypal.core.PayPalHttpClient;
+
+  constructor() {
+    const clientId = process.env.PAYPAL_CLIENT_ID;
+    const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+
+    // Configura el entorno (Sandbox o Live)
+    this.environment = new paypal.core.SandboxEnvironment(
+      clientId,
+      clientSecret,
+    );
+    this.client = new paypal.core.PayPalHttpClient(this.environment);
+  }
+
+  async createOrder(total: string, currency: string) {
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.requestBody({
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          amount: {
+            currency_code: currency,
+            value: total,
+          },
+        },
+      ],
+    });
+
+    try {
+      const response = await this.client.execute(request);
+      return response.result;
+    } catch (error) {
+      throw new Error(`PayPal Order Creation Error: ${error.message}`);
+    }
+  }
+
+  async captureOrder(orderId: string) {
+    const request = new paypal.orders.OrdersCaptureRequest(orderId);
+    request.requestBody({});
+
+    try {
+      const response = await this.client.execute(request);
+      return response.result;
+    } catch (error) {
+      throw new Error(`PayPal Order Capture Error: ${error.message}`);
+    }
+  }
+}
+
+================
+File: src/management/suscription/paypal/services/transaction.service.ts
+================
+/* import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
+
+@Injectable()
+export class TransactionService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async createTransaction(data: {
+    orderId: string;
+    status: string;
+    amount: number;
+    currency: string;
+    userId: string;
+    tenant_id: string;
+  }) {
+    return this.prisma.transaction.create({ data });
+  }
+
+  async getTransactionsByUser(userId: string) {
+    return this.prisma.transaction.findMany({
+      where: { userId },
+    });
+  }
+}
+ */
+
+================
+File: src/management/user/dto/create-user.dto.ts
+================
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsStrongPassword,
+  IsUrl,
+  Length,
+} from 'class-validator';
+import { role_type } from '@prisma/client';
+
+export class BaseUserDto {
+  @IsString({ message: 'El nombre debe ser un texto válido.' })
+  @Length(2, 50, { message: 'El nombre debe tener entre 2 y 50 caracteres.' })
+  @IsNotEmpty({ message: 'El nombre es obligatorio.' })
+  name: string;
+
+  @IsString({ message: 'El apellido debe ser un texto válido.' })
+  @Length(3, 50, { message: 'El apellido debe tener entre 3 y 50 caracteres.' })
+  last_name: string;
+
+  @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
+  @IsNotEmpty({ message: 'El correo electrónico es obligatorio.' })
+  email: string;
+
+  @IsString({ message: 'El DNI debe ser un texto válido.' })
+  @Length(7, 9, { message: 'El DNI debe tener entre 7 y 9 caracteres.' })
+  @IsOptional()
+  dni?: string;
+
+  @IsOptional()
+  birth_date?: Date;
+
+  @IsString({ message: 'La nacionalidad debe ser un texto válido.' })
+  @Length(3, 50, {
+    message: 'La nacionalidad debe tener entre 3 y 50 caracteres.',
+  })
+  @IsOptional()
+  nationality: string;
+
+  @IsString({ message: 'El género debe ser un texto válido.' })
+  @Length(1, 14, { message: 'El género debe tener entre 1 y 14 caracteres.' })
+  @IsOptional()
+  gender: string;
+
+  @IsString({ message: 'El prefijo del teléfono debe ser un texto válido.' })
+  @Length(1, 4, {
+    message: 'El prefijo del teléfono debe tener entre 1 y 4 caracteres.',
+  })
+  phone_prefix: string;
+
+  @IsString({ message: 'El número de teléfono debe ser un texto válido.' })
+  @Length(4, 20, {
+    message: 'El número de teléfono debe tener entre 4 y 20 caracteres.',
+  })
+  phone: string;
+
+  @IsUrl({}, { message: 'La URL de la imagen no tiene un formato válido.' })
+  @IsOptional()
+  image: string;
+
+  @IsString({ message: 'El rol debe ser un texto válido.' })
+  @IsOptional()
+  role: role_type;
+
+  @IsOptional()
+  tenant_id: string;
+}
+
+export class CreateUserDto extends BaseUserDto {
+  @IsNotEmpty({ message: 'La contraseña es obligatoria.' })
+  @IsStrongPassword(
+    {
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    },
+    {
+      message:
+        'La contraseña debe tener al menos 8 caracteres, incluyendo 1 número, 1 letra minúscula, 1 letra mayúscula y 1 símbolo.',
+    },
+  )
+  password?: string;
+}
+
+export class GoogleUserDto {
+  @IsOptional()
+  name: string;
+
+  @IsEmail({}, { message: 'El correo electrónico no tiene un formato válido.' })
+  @IsNotEmpty({ message: 'El correo electrónico es obligatorio.' })
+  email: string;
+
+  @IsOptional()
+  image: string;
+}
+
+================
+File: src/management/user/dto/onboarding-user.dto.ts
+================
+import { tenant_type } from '@prisma/client';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  MaxLength,
+} from 'class-validator';
+
+export class OnboardingDto {
+  @IsNotEmpty({ message: 'El id del usuario es obligatorio' })
+  user_id: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'El nombre es obligatorio' })
+  @MaxLength(50, { message: 'El nombre no puede tener más de 50 caracteres' })
+  name: string;
+
+  @IsEnum(tenant_type, {
+    message: `El tipo debe ser uno de los siguientes: ${Object.values(tenant_type).join(', ')}`,
+  })
+  type: tenant_type;
+
+  @IsOptional()
+  @IsInt({ message: 'El número de empleados debe ser un número entero' })
+  @Min(1, { message: 'Debe haber al menos 1 empleado' })
+  number_of_employees?: number;
+
+  @IsOptional()
+  @IsInt({ message: 'El número de pacientes debe ser un número entero' })
+  @Min(1, { message: 'Debe haber al menos 1 paciente' })
+  number_of_patients?: number;
+
+  @IsString()
+  @IsNotEmpty({ message: 'El motivo de registro es obligatorio' })
+  @MaxLength(50, {
+    message: 'El motivo de registro no puede tener más de 50 caracteres',
+  })
+  reason_register: string;
+
+  @IsNotEmpty({ message: 'La especialidad es obligatoria' })
+  speciality?: number[];
+}
+
+================
+File: src/management/user/dto/update-user.dto.ts
+================
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateUserDto } from './create-user.dto';
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {}
+
+================
+File: src/management/user/entities/user.interface.ts
+================
+import { role_type } from '@prisma/client';
+/* import { Tenant } from 'src/tenant/entities/tenant.interface';
+ */
+export interface User {
+  id?: string;
+  name?: string;
+  last_name?: string;
+  email?: string;
+  dni?: string;
+  dniType?: string;
+  birthdate?: Date;
+  nationality?: string;
+  gender?: string;
+  phone_prefix?: string;
+  phone?: string;
+  password?: string;
+  google_id?: string;
+  image?: string;
+  role?: role_type;
+  /*   tenant?: Tenant; */
+  tenant_id?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+================
+File: src/management/user/roles.enum.ts
+================
+export enum Rol {
+  Patient = 'patient',
+  Physician = 'physician',
+  Organization_owner = 'organization_owner',
+}
+
+================
+File: src/management/user/user.controller.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
+
+describe('UserController', () => {
+  let controller: UserController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [UserController],
+      providers: [UserService],
+    }).compile();
+
+    controller = module.get<UserController>(UserController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
+
+================
+File: src/management/user/user.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Post,
+} from '@nestjs/common';
+import { UserService } from './user.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiTags } from '@nestjs/swagger';
+import { OnboardingDto } from './dto/onboarding-user.dto';
+
+@ApiTags('User')
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Post('onboarding')
+  onboarding(@Body() onboardingDto: OnboardingDto) {
+    return this.userService.onboarding(onboardingDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.userService.findAll();
+  }
+
+  @Get(':id')
+  findOneById(@Param('id') id: string) {
+    return this.userService.findOneById(id);
+  }
+  @Get('email/:email')
+  findOneByEmail(@Param('email') email: string) {
+    return this.userService.findOneByEmail(email);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(+id, updateUserDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.userService.remove(+id);
+  }
+}
+
+================
+File: src/management/user/user.module.ts
+================
+import { Module } from '@nestjs/common';
+import { UserService } from './user.service';
+import { UserController } from './user.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [UserController],
+  providers: [UserService, PrismaService],
+})
+export class UserModule {}
+
+================
+File: src/management/user/user.service.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { UserService } from './user.service';
+
+describe('UserService', () => {
+  let service: UserService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [UserService],
+    }).compile();
+
+    service = module.get<UserService>(UserService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+================
+File: src/management/user/user.service.ts
+================
+import { BadRequestException, Injectable } from '@nestjs/common';
+// import { Tenant } from 'src/tenant/entities/tenant.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { OnboardingDto } from './dto/onboarding-user.dto';
+
+@Injectable()
+export class UserService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async onboarding(onboardingDto: OnboardingDto): Promise<object> {
+    try {
+      const { speciality, user_id, ...rest } = onboardingDto;
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: user_id },
+      });
+
+      if (!user) {
+        throw new BadRequestException('El usuario no existe');
+      }
+
+      await this.prisma.$transaction(async (transaction) => {
+        const newTenant = await transaction.tenant.create({
+          data: {
+            type: onboardingDto.type,
+          },
+        });
+
+        const existingPhysician = await transaction.physician.findFirst({
+          where: { user_id },
+        });
+        if (existingPhysician) {
+          throw new BadRequestException('El usuario ya es un médico.');
+        }
+
+        const newPhysician = await transaction.physician.create({
+          data: {
+            user_id,
+            tenant_id: newTenant.id,
+          },
+        });
+        const newPhysicianSpeciality = speciality.map((speciality) => {
+          return {
+            physician_id: newPhysician.id,
+            speciality_id: speciality,
+          };
+        });
+
+        await transaction.physician_speciality.createMany({
+          data: newPhysicianSpeciality,
+          skipDuplicates: true,
+        });
+
+        await transaction.user.update({
+          where: { id: user_id },
+          data: {
+            tenant_id: newTenant.id,
+          },
+        });
+
+        const newOrganization = await transaction.organization.create({
+          data: {
+            tenant_id: newTenant.id,
+            ...rest,
+          },
+        });
+
+        await transaction.organization_physician.create({
+          data: {
+            physician_id: newPhysician.id,
+            organization_id: newOrganization.id,
+            tenant_id: newTenant.id,
+          },
+        });
+      });
+
+      return { message: 'Onboarding completo.' };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      console.log(error);
+      throw new BadRequestException('No se pudo guardar la información.');
+    }
+  }
+
+  async findAll(): Promise<any[]> {
+    const users = await this.prisma.user.findMany();
+    return users;
+  }
+
+  async findOneById(id: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: id },
+      });
+      if (user) {
+        return { message: 'Success', user: user };
+      } else {
+        return { message: 'El usuario no existe' };
+      }
+    } catch (error) {
+      return { message: 'Error en la consulta', Error: error };
+    }
+  }
+
+  async findOneByEmail(email: string) {
+    try {
+      console.log(email);
+      const user = await this.prisma.user.findUnique({
+        where: { email: email },
+      });
+      if (user) {
+        return { message: 'Success', user: user };
+      } else {
+        return { message: 'El usuario no existe' };
+      }
+    } catch (error) {
+      return { message: 'Error en la consulta', Error: error };
+    }
+  }
+
+  update(id: number, updateUserDto: UpdateUserDto) {
+    console.log(updateUserDto);
+    return `This action updates a #${id} user`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} user`;
+  }
+}
+
+================
+File: src/medical-scheduling/appointments/appointments.controller.ts
+================
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { AppointmentsService } from './appointments.service';
+import { status_type } from '@prisma/client';
+
+@Controller('appointments')
+export class AppointmentsController {
+  constructor(private readonly appointmentsService: AppointmentsService) {}
+
+  @Post()
+  async createAppointment(@Body() createAppointmentDto: CreateAppointmentDto) {
+    return this.appointmentsService.createAppointment(createAppointmentDto);
+  }
+
+  @Get(':userId')
+  async getAppointmentsByUser(
+    @Param('userId', new ParseUUIDPipe()) userId: string,
+    @Query('status') status?: status_type,
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+    @Query('orderBy') orderBy?: string,
+    @Query('orderDirection') orderDirection?: 'asc' | 'desc',
+  ) {
+    return this.appointmentsService.getAppointmentsByUser(userId, {
+      status,
+      page,
+      pageSize,
+      orderBy,
+      orderDirection,
+    });
+  }
+
+  @Patch(':id/status')
+  async updateAppointmentStatus(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body('status') status: status_type,
+    @Body('reason') reason?: string,
+  ) {
+    return this.appointmentsService.updateAppointmentStatus(id, status, reason);
+  }
+}
+
+================
+File: src/medical-scheduling/appointments/appointments.module.ts
+================
+import { Module } from '@nestjs/common';
+import { AppointmentsController } from './appointments.controller';
+import { AppointmentsService } from './appointments.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  imports: [],
+  controllers: [AppointmentsController],
+  providers: [AppointmentsService, PrismaService],
+})
+export class AppointmentsModule {}
+
+================
+File: src/medical-scheduling/appointments/appointments.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { appointment, status_type } from '@prisma/client';
+
+@Injectable()
+export class AppointmentsService {
+  constructor(private prisma: PrismaService) {}
+
+  async createAppointment(
+    data: CreateAppointmentDto,
+  ): Promise<{ message: string }> {
+    // Verificar que las fechas de inicio y fin sean válidas
+    if (!data.start || !data.end || data.start >= data.end) {
+      throw new BadRequestException(
+        'La fecha de inicio debe ser anterior a la fecha de fin',
+      );
+    }
+
+    try {
+      const patientExists = await this.prisma.patient.findUnique({
+        where: { id: data.patient_id },
+      });
+      if (!patientExists) {
+        throw new BadRequestException('El paciente no existe');
+      }
+
+      const physicianExists = await this.prisma.physician.findUnique({
+        where: { id: data.physician_id },
+      });
+      if (!physicianExists) {
+        throw new BadRequestException('El médico no existe');
+      }
+
+      // Verificar si hay conflicto de citas
+      const conflict = await this.prisma.appointment.findFirst({
+        where: {
+          physician_id: data.physician_id,
+          AND: [
+            { start: { lte: data.end } },
+            { end: { gte: data.start } },
+            { status: { not: 'cancelada' } },
+          ],
+        },
+      });
+
+      if (conflict) {
+        throw new BadRequestException(
+          'El médico ya tiene una cita en ese horario',
+        );
+      }
+
+      // Iniciar una transacción para asegurar la consistencia de los datos
+      await this.prisma.$transaction(async (prisma) => {
+        // Crear la cita
+        const appointment = await prisma.appointment.create({ data });
+
+        if (!appointment) {
+          throw new InternalServerErrorException('Error al crear la cita');
+        }
+
+        // Crear el evento médico asociado directamente con Prisma
+        await prisma.medical_event.create({
+          data: {
+            appointment_id: appointment.id,
+            patient_id: data.patient_id,
+            physician_id: data.physician_id,
+            tenant_id: data.tenant_id,
+          },
+        });
+      });
+
+      return { message: 'Cita creada exitosamente' };
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException('Error al crear la cita');
+      }
+      throw error;
+    }
+  }
+
+  async getAppointmentsByUser(
+    userId: string,
+    params: { status?: status_type } & PaginationParams,
+  ): Promise<appointment[]> {
+    // Desestructurar los parámetros de paginación y ordenación
+    const { skip, take, orderBy, orderDirection } =
+      parsePaginationAndSorting(params);
+
+    try {
+      const appointments = await this.prisma.appointment.findMany({
+        where: {
+          OR: [{ patient_id: userId }, { physician_id: userId }],
+          ...(params.status && { status: params.status }),
+        },
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      });
+
+      return appointments;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error al obtener las citas: ${error.message}`,
+      );
+    }
+  }
+
+  async updateAppointmentStatus(
+    id: string,
+    status: status_type,
+    reason?: string,
+  ): Promise<{ message: string }> {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id },
+    });
+
+    if (!appointment) {
+      throw new Error('Cita no encontrada');
+    }
+    if (status === 'cancelada' && !reason) {
+      throw new Error('Se requiere una razón para cancelar la cita');
+    }
+    if (
+      (appointment.status === 'pendiente' &&
+        !['atendida', 'cancelada'].includes(status)) ||
+      (appointment.status === 'atendida' && status !== 'cancelada') ||
+      appointment.status === 'cancelada'
+    ) {
+      throw new Error(
+        `Transición no permitida desde el estado ${appointment.status} a ${status}`,
+      );
+    }
+
+    try {
+      await this.prisma.appointment.update({
+        where: { id },
+        data: { status, cancelation_reason: reason || null },
+      });
+
+      return { message: `Estado de la cita actualizado a "${status}"` };
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new Error('Cita no encontrada');
+      }
+      throw new Error(`Error al actualizar la cita: ${error.message}`);
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/appointments/dto/create-appointment.dto.ts
+================
+import {
+  IsUUID,
+  IsString,
+  IsDate,
+  IsEnum,
+  IsOptional,
+  IsNotEmpty,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
+import { status_type } from '@prisma/client';
+
+export class CreateAppointmentDto {
+  @IsString()
+  @IsNotEmpty()
+  consultation_reason: string;
+
+  @IsDate()
+  @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
+  start: Date;
+
+  @IsDate()
+  @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
+  end: Date;
+
+  @IsUUID()
+  @IsNotEmpty()
+  patient_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  physician_id: string;
+
+  @IsEnum(['atendida', 'cancelada', 'pendiente'])
+  @IsOptional()
+  status?: status_type;
+
+  @IsString()
+  @IsOptional()
+  comments?: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  tenant_id: string;
+}
+
+================
+File: src/medical-scheduling/medical-events/dto/create-medical-event.dto.ts
+================
+import { IsUUID, IsString, IsNotEmpty, IsOptional } from 'class-validator';
+
+export class CreateMedicalEventDto {
+  @IsUUID()
+  @IsNotEmpty()
+  appointment_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  patient_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  physician_id: string;
+
+  @IsString()
+  @IsOptional()
+  physician_comments?: string;
+
+  @IsString()
+  @IsOptional()
+  main_diagnostic_cie?: string;
+
+  @IsString()
+  @IsOptional()
+  evolution?: string;
+
+  @IsString()
+  @IsOptional()
+  procedure?: string;
+
+  @IsString()
+  @IsOptional()
+  treatment?: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  tenant_id: string;
+}
+
+================
+File: src/medical-scheduling/medical-events/medical-events.controller.ts
+================
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
+import { MedicalEventsService } from './medical-events.service';
+
+@Controller('medical-events')
+export class MedicalEventsController {
+  constructor(private readonly medicalEventsService: MedicalEventsService) {}
+
+  @Post()
+  async createMedicalEvent(
+    @Body() createMedicalEventDto: CreateMedicalEventDto,
+  ) {
+    return this.medicalEventsService.createMedicalEvent(createMedicalEventDto);
+  }
+
+  @Get()
+  async getMedicalEvents(
+    @Query('patient_id') patient_id?: string,
+    @Query('physician_id') physician_id?: string,
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+    @Query('orderBy') orderBy?: string,
+    @Query('orderDirection') orderDirection?: 'asc' | 'desc',
+  ) {
+    const filters = {
+      patient_id,
+      physician_id,
+      page,
+      pageSize,
+      orderBy,
+      orderDirection,
+    };
+    return this.medicalEventsService.getMedicalEvents(filters);
+  }
+}
+
+================
+File: src/medical-scheduling/medical-events/medical-events.module.ts
+================
+import { Module } from '@nestjs/common';
+import { MedicalEventsController } from './medical-events.controller';
+import { MedicalEventsService } from './medical-events.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [MedicalEventsController],
+  providers: [MedicalEventsService, PrismaService],
+  exports: [],
+})
+export class MedicalEventsModule {}
+
+================
+File: src/medical-scheduling/medical-events/medical-events.service.ts
+================
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { parsePaginationAndSorting } from 'src/utils/pagination.helper';
+import { CreateMedicalEventDto } from './dto/create-medical-event.dto';
+import { medical_event } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+export class MedicalEventsService {
+  constructor(private prisma: PrismaService) {}
+
+  async createMedicalEvent(
+    data: CreateMedicalEventDto,
+  ): Promise<{ message: string }> {
+    try {
+      await this.prisma.medical_event.create({
+        data: {
+          appointment_id: data.appointment_id,
+          patient_id: data.patient_id,
+          physician_id: data.physician_id,
+          physician_comments: data.physician_comments ?? '',
+          main_diagnostic_cie: data.main_diagnostic_cie ?? '',
+          evolution: data.evolution ?? '',
+          procedure: data.procedure ?? '',
+          treatment: data.treatment ?? '',
+          tenant_id: data.tenant_id,
+        },
+      });
+
+      return { message: `Evento médico creado exitosamente` };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error al crear el evento médico: ${error.message}`,
+      );
+    }
+  }
+
+  async getMedicalEvents(filters?: {
+    patient_id?: string;
+    physician_id?: string;
+    page?: number;
+    pageSize?: number;
+    orderBy?: string;
+    orderDirection?: 'asc' | 'desc';
+  }): Promise<medical_event[]> {
+    const { skip, take, orderBy, orderDirection } =
+      parsePaginationAndSorting(filters);
+
+    try {
+      const medicalEvents = await this.prisma.medical_event.findMany({
+        where: {
+          ...(filters?.patient_id && { patient_id: filters.patient_id }),
+          ...(filters?.physician_id && { physician_id: filters.physician_id }),
+        },
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      });
+
+      return medicalEvents;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error al obtener los eventos médicos',
+        error.message,
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/background/background.controller.ts
+================
+import {
+  Controller,
+  Post,
+  Body,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
+import { BackgroundService } from './background.service';
+import { CreateBackgroundDto } from './dto/create-background.dto';
+
+@Controller('background')
+export class BackgroundController {
+  constructor(private readonly backgroundService: BackgroundService) {}
+
+  @Post()
+  async createBackground(@Body() data: CreateBackgroundDto) {
+    try {
+      return await this.backgroundService.createBackground(data);
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Error creating background',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/background/background.module.ts
+================
+import { Module } from '@nestjs/common';
+import { BackgroundController } from './background.controller';
+import { BackgroundService } from './background.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [BackgroundController],
+  providers: [BackgroundService, PrismaService],
+})
+export class BackgroundModule {}
+
+================
+File: src/medical-scheduling/modules/background/background.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateBackgroundDto } from './dto/create-background.dto';
+import { Prisma } from '@prisma/client';
+
+@Injectable()
+export class BackgroundService {
+  constructor(private prisma: PrismaService) {}
+
+  async createBackground(data: CreateBackgroundDto) {
+    try {
+      const backgroundCount = await this.prisma.background.count({
+        where: {
+          patient_id: data.patient_id,
+        },
+      });
+
+      if (backgroundCount > 0) {
+        throw new BadRequestException(
+          'Background already exists for this patient',
+        );
+      }
+
+      await this.prisma.background.create({
+        data: {
+          ...data,
+        },
+      });
+
+      return { message: 'Background created successfully' };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException(
+          `Database error: ${error.message}`,
+        );
+      }
+      throw new InternalServerErrorException(
+        error.message || 'Error creating background',
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/background/dto/create-background.dto.ts
+================
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+
+export class CreateBackgroundDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  patient_id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  vaccinations: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  allergies: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  pathological_history: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  family_medical_history: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  non_pathological_history: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  surgical_history: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  childhood_medical_history: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  current_medication: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  tenant_id: string;
+}
+
+================
+File: src/medical-scheduling/modules/medicine/medicine.controller.ts
+================
+import { Controller, Post, Query } from '@nestjs/common';
+import { MedicineService } from './medicine.service';
+
+@Controller('medicine')
+export class MedicineController {
+  constructor(private readonly medicineService: MedicineService) {}
+
+  @Post('searchMedicine')
+  searchMedicine(
+    @Query('drug') principioActivo: string,
+    @Query('product') product: string,
+  ) {
+    return this.medicineService.searchMedicine(principioActivo, product);
+  }
+}
+
+================
+File: src/medical-scheduling/modules/medicine/medicine.module.ts
+================
+import { Module } from '@nestjs/common';
+import { MedicineService } from './medicine.service';
+import { MedicineController } from './medicine.controller';
+import { HttpModule } from '@nestjs/axios';
+
+@Module({
+  imports: [HttpModule],
+  controllers: [MedicineController],
+  providers: [MedicineService],
+})
+export class MedicineModule {}
+
+================
+File: src/medical-scheduling/modules/medicine/medicine.service.ts
+================
+import { HttpException, Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+
+@Injectable()
+export class MedicineService {
+  private readonly apiUrl = 'https://www.datos.gov.co/resource/i7cb-raxc.json';
+
+  constructor(private readonly httpService: HttpService) {}
+
+  async searchMedicine(principioActivo: string, producto: string) {
+    const prActivo = principioActivo
+      ? `principioactivo%20like%20%27%25${principioActivo.toUpperCase()}%25%27`
+      : undefined;
+    const pr = producto
+      ? `producto%20like%20%27%25${producto.toUpperCase()}%25%27`
+      : undefined;
+    let query = '';
+    if (pr && prActivo) {
+      query = `${this.apiUrl}?$where=${pr}OR%20${prActivo}`;
+    } else if (pr) {
+      query = `${this.apiUrl}?$where=${pr}`;
+    } else if (prActivo) {
+      query = `${this.apiUrl}?$where=${prActivo}`;
+    } else {
+      query = this.apiUrl;
+    }
+
+    try {
+      const medicines = await firstValueFrom(this.httpService.get(query));
+      return medicines.data;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('La medicina no ha podido ser consultada', 500);
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/patient-studies/dto/create-patient-study.dto.ts
+================
+import {
+  IsString,
+  IsOptional,
+  Length,
+  IsBoolean,
+  IsUUID,
+  IsNotEmpty,
+} from 'class-validator';
+
+export class CreatePatientStudyDto {
+  @IsUUID('4', { message: 'El ID del paciente debe ser un UUID válido' })
+  patient_id: string;
+
+  @IsUUID('4', { message: 'El ID del médico debe ser un UUID válido' })
+  physician_id: string;
+
+  @IsOptional()
+  @IsString({ message: 'La URL debe ser una cadena de texto válida' })
+  url?: string;
+
+  @IsString({ message: 'El título debe ser una cadena de texto' })
+  @Length(3, 100, { message: 'El título debe tener entre 3 y 100 caracteres' })
+  title: string;
+
+  @IsString({ message: 'La descripción debe ser una cadena de texto' })
+  @Length(3, 500, {
+    message: 'La descripción debe tener entre 3 y 500 caracteres',
+  })
+  description: string;
+  /* 
+  @IsInt({ message: 'El ID del tipo de estudio debe ser un número entero' }) */
+  @IsNotEmpty()
+  cat_study_type_id: number;
+
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
+  tenant_id: string;
+
+  @IsBoolean({ message: 'El campo is_deleted debe ser un valor booleano' })
+  is_deleted: boolean = false;
+}
+
+================
+File: src/medical-scheduling/modules/patient-studies/dto/update-patient-study.dto.ts
+================
+import { PartialType } from '@nestjs/mapped-types';
+import { CreatePatientStudyDto } from './create-patient-study.dto';
+
+export class UpdatePatientStudyDto extends PartialType(CreatePatientStudyDto) {}
+
+================
+File: src/medical-scheduling/modules/patient-studies/entities/patient-study.interface.ts
+================
+export interface PatientStudy {
+  id?: string;
+  patient_id: string;
+  physician_id: string;
+  url?: string;
+  title: string;
+  description: string;
+  cat_study_type_id: number;
+  cat_study_type?: {
+    id: number;
+    name: string;
+  };
+  tenant_id: string;
+  is_deleted: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+================
+File: src/medical-scheduling/modules/patient-studies/patient-studies.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UploadedFile,
+  UseInterceptors,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { PatientStudiesService } from './patient-studies.service';
+import { CreatePatientStudyDto } from './dto/create-patient-study.dto';
+import { UpdatePatientStudyDto } from './dto/update-patient-study.dto';
+import { FileUploadService } from '../../../utils/file_upload/file_upload.service';
+import { Multer } from 'multer';
+import { CatStudyTypeService } from '../../../catalogs/cat-study-type/cat-study-type.service';
+
+@Controller('patient-studies')
+export class PatientStudiesController {
+  constructor(
+    private readonly patientStudiesService: PatientStudiesService,
+    private readonly fileUploadService: FileUploadService,
+    private readonly catStudyTypeService: CatStudyTypeService,
+  ) {}
+
+  @Post()
+  @UseInterceptors(FileInterceptor('file'))
+  async create(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 10 * 1024 * 1024, // 10MB para PDF, 5MB para imágenes
+            message:
+              'File exceeds the maximum size of 10MB for PDFs or 5MB for images',
+          }),
+          new FileTypeValidator({
+            fileType: /^(image\/(jpg|jpeg|png|webp|svg)|application\/pdf)$/i,
+          }),
+        ],
+      }),
+    )
+    file: Multer.File,
+    @Body() createPatientStudyDto: CreatePatientStudyDto,
+  ) {
+    const catStudyType = await this.catStudyTypeService.findOne(
+      createPatientStudyDto.cat_study_type_id,
+    );
+    if (!catStudyType) {
+      throw new BadRequestException('Invalid cat_study_type_id');
+    }
+    if (file) {
+      const uploadResult = await this.fileUploadService.uploadFile(file);
+      createPatientStudyDto.url = uploadResult.url;
+    }
+    return this.patientStudiesService.create(createPatientStudyDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.patientStudiesService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.patientStudiesService.findOne(id);
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updatePatientStudyDto: UpdatePatientStudyDto,
+  ) {
+    const catStudyType = await this.catStudyTypeService.findOne(
+      updatePatientStudyDto.cat_study_type_id,
+    );
+    if (!catStudyType) {
+      throw new BadRequestException('Invalid cat_study_type_id');
+    }
+    return this.patientStudiesService.update(id, updatePatientStudyDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.patientStudiesService.remove(id);
+  }
+}
+
+================
+File: src/medical-scheduling/modules/patient-studies/patient-studies.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { PatientStudiesService } from './patient-studies.service';
+import { PatientStudiesController } from './patient-studies.controller';
+import { FileUploadService } from '../../../utils/file_upload/file_upload.service';
+import { FileUploadRepository } from 'src/utils/file_upload/file_upload.repository';
+import { CatStudyTypeService } from '../../../catalogs/cat-study-type/cat-study-type.service';
+
+@Module({
+  controllers: [PatientStudiesController],
+  providers: [
+    PatientStudiesService,
+    CatStudyTypeService,
+    PrismaService,
+    FileUploadService,
+    FileUploadRepository,
+  ],
+})
+export class PatientStudiesModule {}
+
+================
+File: src/medical-scheduling/modules/patient-studies/patient-studies.service.ts
+================
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { CreatePatientStudyDto } from './dto/create-patient-study.dto';
+import { UpdatePatientStudyDto } from './dto/update-patient-study.dto';
+import { PatientStudy } from './entities/patient-study.interface';
+
+@Injectable()
+export class PatientStudiesService {
+  constructor(private prisma: PrismaService) {}
+
+  async create(
+    createPatientStudyDto: CreatePatientStudyDto,
+  ): Promise<PatientStudy> {
+    createPatientStudyDto.cat_study_type_id = Number(
+      createPatientStudyDto.cat_study_type_id,
+    );
+    return await this.prisma.patient_study.create({
+      data: {
+        ...createPatientStudyDto,
+        is_deleted: false,
+      },
+    });
+  }
+
+  async findAll(): Promise<PatientStudy[]> {
+    return this.prisma.patient_study.findMany({
+      where: { is_deleted: false },
+    });
+  }
+
+  async findOne(id: string): Promise<PatientStudy> {
+    return this.prisma.patient_study.findFirst({
+      where: { id, is_deleted: false },
+    });
+  }
+
+  async findByPatientId(patientId: string): Promise<PatientStudy[]> {
+    try {
+      return this.prisma.patient_study.findMany({
+        where: { patient_id: patientId, is_deleted: false },
+      });
+    } catch (error) {
+      throw new BadRequestException('Ocurrio un error: ' + error.message);
+    }
+  }
+
+  async update(
+    id: string,
+    updatePatientStudyDto: UpdatePatientStudyDto,
+  ): Promise<PatientStudy> {
+    return this.prisma.patient_study.update({
+      where: { id },
+      data: updatePatientStudyDto,
+    });
+  }
+
+  async remove(id: string): Promise<PatientStudy> {
+    return this.prisma.patient_study.update({
+      where: { id },
+      data: { is_deleted: true },
+    });
+  }
+}
+
+================
+File: src/medical-scheduling/modules/physical-examination-data/physical_subsystem/physical_subsystem.interface.ts
+================
+export interface physicalSubsystem {
+  id?: number;
+  name: string;
+}
+
+================
+File: src/medical-scheduling/modules/physical-examination-data/physical_subsystem/physical_subsystem.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { physicalSubsystem } from './physical_subsystem.interface';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
+
+@Injectable()
+export class PhysicalSubsystemService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(physicalSubsystem: physicalSubsystem) {
+    try {
+      await this.prisma.cat_physical_subsystem.create({
+        data: physicalSubsystem,
+      });
+      return { message: 'El subsistema físico ha sido creado' };
+    } catch (error) {
+      return { message: 'Error al crear el subsistema', Error: error };
+    }
+  }
+
+  async findOneById(id: string) {
+    try {
+      const phy_sub = await this.prisma.cat_physical_subsystem.findUnique({
+        where: { id: parseInt(id) },
+      });
+      if (phy_sub) {
+        return phy_sub;
+      } else {
+        return { message: 'El valor solicitado no existe' };
+      }
+    } catch (error) {
+      return { message: 'Error al buscar el subsistema', Error: error };
+    }
+  }
+
+  async findAll(pagination: PaginationParams) {
+    const { skip, take, orderBy, orderDirection } =
+      parsePaginationAndSorting(pagination);
+    try {
+      const phy_subs = await this.prisma.cat_physical_subsystem.findMany({
+        take,
+        skip,
+        orderBy: { [orderBy]: orderDirection },
+      });
+      if (phy_subs.length > 0) {
+        return phy_subs;
+      } else {
+        return { message: 'No existen datos' };
+      }
+    } catch (error) {
+      return { message: 'Error al buscar los subsistemas', Error: error };
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/physical-examination-data/physical-examination/physical_examination.interface.ts
+================
+import {
+  IsUUID,
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDate,
+} from 'class-validator';
+
+export class physicalExaminationDto {
+  @IsUUID(undefined, { message: 'ID debe ser un UUID válido' })
+  @IsOptional()
+  id?: string;
+
+  @IsOptional()
+  physical_subsystem_id?: number;
+
+  @IsUUID(undefined, { message: 'El ID del paciente debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del paciente no puede estar vacío' })
+  patient_id: string;
+
+  @IsString({ message: 'La descripción debe ser una cadena de texto' })
+  @IsNotEmpty({ message: 'La descripción no puede estar vacía' })
+  description: string;
+
+  @IsUUID(undefined, {
+    message: 'El ID del evento médico debe ser un UUID válido',
+  })
+  @IsNotEmpty({ message: 'El ID del evento médico no puede estar vacío' })
+  medical_event_id: string;
+
+  @IsUUID(undefined, { message: 'El ID del inquilino debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del inquilino no puede estar vacío' })
+  tenant_id: string;
+
+  @IsDate({ message: 'La fecha de creación debe ser una fecha válida' })
+  @IsNotEmpty({ message: 'La fecha de creación no puede estar vacía' })
+  createdAt: Date;
+
+  @IsDate({ message: 'La fecha de actualización debe ser una fecha válida' })
+  @IsNotEmpty({ message: 'La fecha de actualización no puede estar vacía' })
+  updatedAt: Date;
+}
+
+================
+File: src/medical-scheduling/modules/physical-examination-data/physical-examination/physical-examination.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  PaginationParams,
+  parsePaginationAndSorting,
+} from 'src/utils/pagination.helper';
+import { physicalExaminationDto } from './physical_examination.interface';
+
+@Injectable()
+export class PhysicalExaminationService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(
+    physical_examinations: physicalExaminationDto[],
+  ): Promise<object> {
+    try {
+      const result = [];
+      for (const physical_examination of physical_examinations) {
+        const { physical_subsystem_id, medical_event_id, patient_id, ...rest } =
+          physical_examination;
+
+        const patient = await this.prisma.patient.findUnique({
+          where: { id: patient_id },
+        });
+        if (!patient) {
+          result.push({
+            patient_id,
+            message: 'El paciente no existe',
+          });
+          continue;
+        }
+
+        if (physical_subsystem_id) {
+          const existingRelation =
+            await this.prisma.physical_examination.findFirst({
+              where: {
+                medical_event_id,
+                physical_subsystem_id,
+              },
+            });
+
+          if (existingRelation) {
+            result.push({
+              patient_id,
+              message:
+                'Ya existe un examen físico con el mismo subsistema y evento médico',
+            });
+            continue;
+          }
+        }
+
+        const phy_exa = await this.prisma.physical_examination.create({
+          data: {
+            ...rest,
+            medical_event: { connect: { id: medical_event_id } },
+            user: { connect: { id: patient_id } },
+            ...(physical_subsystem_id && {
+              physical_subsystem: { connect: { id: physical_subsystem_id } },
+            }),
+          },
+        });
+
+        if (phy_exa.id) {
+          result.push({
+            patient_id,
+            message: 'El examen físico ha sido correctamente generado',
+          });
+        } else {
+          result.push({
+            patient_id,
+            message: 'Error al crear el Examen Físico',
+          });
+        }
+      }
+      return result;
+    } catch (error) {
+      return {
+        message: 'Error al crear los Exámenes Físicos',
+        error: error.message || error,
+      };
+    }
+  }
+
+  async findOneById(id: string) {
+    try {
+      const phy_exa = await this.prisma.physical_examination.findUnique({
+        where: { id: id },
+      });
+
+      if (!phy_exa) throw new Error('El examen físico no existe');
+
+      return phy_exa;
+    } catch (error) {
+      return { message: 'Error al buscar el exámen', Error: error };
+    }
+  }
+
+  async findAll(pagination: PaginationParams, patient_id: string) {
+    const { skip, take, orderBy, orderDirection } =
+      parsePaginationAndSorting(pagination);
+    try {
+      const phy_exas = await this.prisma.physical_examination.findMany({
+        where: { patient_id: patient_id },
+        take,
+        skip,
+        orderBy: { [orderBy]: orderDirection },
+      });
+      if (phy_exas.length > 0) {
+        return phy_exas;
+      } else {
+        return { message: 'No existen datos' };
+      }
+    } catch (error) {
+      return { message: 'Error al buscar los exámenes', Error: error };
+    }
+  }
+
+  async update(physicalExaminations: physicalExaminationDto[]) {
+    const failedExams = [];
+
+    try {
+      await this.prisma.$transaction(async (prisma) => {
+        for (const exam of physicalExaminations) {
+          const phy_exa = await prisma.physical_examination.findUnique({
+            where: { id: exam.id },
+          });
+
+          if (!phy_exa) {
+            failedExams.push({
+              id: exam.id,
+              message: 'El examen físico no existe',
+            });
+            continue;
+          }
+
+          await prisma.physical_examination.update({
+            where: { id: exam.id },
+            data: exam,
+          });
+        }
+      });
+
+      if (failedExams.length === 0) {
+        return {
+          message: 'Todos los exámenes fueron actualizados correctamente',
+        };
+      } else {
+        return {
+          message:
+            'Algunos exámenes no pudieron ser actualizados. Vuelva a intentarlo',
+          failedExams,
+        };
+      }
+    } catch (error) {
+      return { message: 'Error al actualizar los exámenes', Error: error };
+    }
+  }
+
+  async delete(id: string) {
+    try {
+      const phy_exa = await this.prisma.physical_examination.findUnique({
+        where: { id },
+      });
+
+      if (!phy_exa) {
+        return { message: 'El examen físico no existe' };
+      }
+
+      await this.prisma.physical_examination.delete({
+        where: { id },
+      });
+
+      return { message: 'El examen físico ha sido eliminado' };
+    } catch (error) {
+      return { message: 'Error al eliminar el examen', error };
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/dto/create-physical-exploration-area.dto.ts
+================
+import { IsNotEmpty, IsString, Length } from 'class-validator';
+
+export class CreatePhysicalExplorationAreaDto {
+  @IsString()
+  @IsNotEmpty()
+  @Length(1, 100)
+  name_on_library: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(1, 100)
+  name: string;
+}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.controller.ts
+================
+import {
+  Body,
+  Controller,
+  HttpException,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
+import { PhysicalExplorationAreaService } from './physical-exploration-area.service';
+import { CreatePhysicalExplorationAreaDto } from './dto/create-physical-exploration-area.dto';
+
+@Controller('physical-exploration-areas')
+export class PhysicalExplorationAreaController {
+  constructor(
+    private readonly physicalExplorationAreaService: PhysicalExplorationAreaService,
+  ) {}
+
+  @Post()
+  async createPhysicalExplorationArea(
+    @Body() data: CreatePhysicalExplorationAreaDto,
+  ) {
+    try {
+      return await this.physicalExplorationAreaService.createPhysicalExplorationArea(
+        data,
+      );
+    } catch (error) {
+      throw new HttpException(
+        {
+          message: 'Error creating physical exploration area',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PhysicalExplorationAreaController } from './physical-exploration-area.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { PhysicalExplorationAreaService } from './physical-exploration-area.service';
+
+@Module({
+  controllers: [PhysicalExplorationAreaController],
+  providers: [PrismaService, PhysicalExplorationAreaService],
+})
+export class PhysicalExplorationAreaModule {}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreatePhysicalExplorationAreaDto } from './dto/create-physical-exploration-area.dto';
+import { Prisma } from '@prisma/client';
+
+@Injectable()
+export class PhysicalExplorationAreaService {
+  constructor(private prisma: PrismaService) {}
+
+  async createPhysicalExplorationArea(
+    data: CreatePhysicalExplorationAreaDto,
+  ): Promise<{ message: string }> {
+    try {
+      const existingCount = await this.prisma.physical_exploration_area.count({
+        where: {
+          OR: [{ name_on_library: data.name_on_library }, { name: data.name }],
+        },
+      });
+
+      if (existingCount > 0) {
+        throw new BadRequestException(
+          'A physical exploration area with the same name or name_on_library already exist',
+        );
+      }
+
+      await this.prisma.physical_exploration_area.create({
+        data,
+      });
+
+      return { message: 'Physical exploration area created successfully' };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException(
+          `Database error: ${error.message}`,
+        );
+      }
+
+      throw new InternalServerErrorException(
+        error.message || 'Error creating physical exploration area',
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration/dto/create-physical-exploration.dto.ts
+================
+import {
+  IsUUID,
+  IsString,
+  IsInt,
+  Min,
+  IsNotEmpty,
+  Length,
+} from 'class-validator';
+
+export class CreatePhysicalExplorationDto {
+  @IsUUID()
+  @IsNotEmpty()
+  patient_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  physician_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  medical_event_id: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Length(1, 500)
+  description: string;
+
+  @IsInt()
+  @Min(1)
+  physical_exploration_area_id: number;
+
+  @IsUUID()
+  @IsNotEmpty()
+  tenant_id: string;
+}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.controller.ts
+================
+import { Body, Controller, HttpException, Post } from '@nestjs/common';
+import { PhysicalExplorationService } from './physical-exploration.service';
+import { CreatePhysicalExplorationDto } from './dto/create-physical-exploration.dto';
+
+@Controller('physical-explorations')
+export class PhysicalExplorationController {
+  constructor(
+    private readonly physicalExplorationService: PhysicalExplorationService,
+  ) {}
+
+  @Post()
+  async createPhysicalExploration(@Body() data: CreatePhysicalExplorationDto) {
+    try {
+      return this.physicalExplorationService.createPhysicalExploration(data);
+    } catch (error) {
+      throw new HttpException(
+        'Error creating physical exploration',
+        error.message,
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PhysicalExplorationController } from './physical-exploration.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { PhysicalExplorationService } from './physical-exploration.service';
+
+@Module({
+  controllers: [PhysicalExplorationController],
+  providers: [PrismaService, PhysicalExplorationService],
+})
+export class PhysicalExplorationModule {}
+
+================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.service.ts
+================
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreatePhysicalExplorationDto } from './dto/create-physical-exploration.dto';
+
+@Injectable()
+export class PhysicalExplorationService {
+  constructor(private prisma: PrismaService) {}
+
+  async createPhysicalExploration(
+    data: CreatePhysicalExplorationDto,
+  ): Promise<{ message: string }> {
+    try {
+      const existingExploration =
+        await this.prisma.physical_exploration.findFirst({
+          where: {
+            medical_event_id: data.medical_event_id,
+          },
+        });
+
+      if (existingExploration) {
+        throw new HttpException(
+          'Physical exploration already exists for this medical event',
+          HttpStatus.CONFLICT,
+        );
+      }
+
+      await this.prisma.physical_exploration.create({
+        data: {
+          patient_id: data.patient_id,
+          physician_id: data.physician_id,
+          medical_event_id: data.medical_event_id,
+          description: data.description,
+          physical_exploration_area_id: data.physical_exploration_area_id,
+          tenant_id: data.tenant_id,
+        },
+      });
+
+      return { message: 'Physical exploration created successfully' };
+    } catch (error) {
+      throw new HttpException(
+        'Error creating physical exploration',
+        error.message,
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/pres_mod_history/dto/create-pres-history.dto.ts
+================
+import { IsBoolean, IsDate, IsOptional, IsString } from 'class-validator';
+
+export class CreatePresHistoryDto {
+  // Prescription - information
+  @IsDate()
+  @IsOptional()
+  start_timestamp?: Date;
+
+  @IsDate()
+  @IsOptional()
+  end_timestamp?: Date;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean;
+
+  @IsString()
+  @IsOptional()
+  patient_id?: string;
+
+  @IsString()
+  @IsOptional()
+  monodrug?: string;
+
+  @IsString()
+  @IsOptional()
+  tenat_id?: string;
+
+  // Prescription modification History
+
+  @IsString()
+  @IsOptional()
+  prescription_id: string;
+
+  @IsString()
+  @IsOptional()
+  physician_id: string;
+
+  @IsDate()
+  @IsOptional()
+  mod_timestamp: Date;
+
+  @IsOptional()
+  medical_event_id?: string;
+
+  // @IsOptional()
+  // medical_order_id:string?
+
+  @IsOptional()
+  observations?: string;
+
+  @IsString()
+  dose: string;
+
+  @IsString()
+  dose_units: string;
+
+  @IsString()
+  frecuency: string;
+
+  @IsString()
+  duration: string;
+
+  @IsString()
+  duration_units: string;
+}
+
+================
+File: src/medical-scheduling/modules/pres_mod_history/dto/update-pres_mod_history.dto.ts
+================
+import { PartialType } from '@nestjs/swagger';
+import { CreatePresHistoryDto } from './create-pres-history.dto';
+
+export class UpdatePresModHistoryDto extends PartialType(
+  CreatePresHistoryDto,
+) {}
+
+================
+File: src/medical-scheduling/modules/pres_mod_history/entities/pres_mod_history.entity.ts
+================
+export class PresModHistory {}
+
+================
+File: src/medical-scheduling/modules/pres_mod_history/pres_mod_history.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
+import { PresModHistoryService } from './pres_mod_history.service';
+import { CreatePresHistoryDto } from './dto/create-pres-history.dto';
+
+@Controller('pres-mod-history')
+export class PresModHistoryController {
+  constructor(private readonly presModHistoryService: PresModHistoryService) {}
+
+  @Post()
+  create(@Body() createPresHistoryDto: CreatePresHistoryDto) {
+    return this.presModHistoryService.create(createPresHistoryDto);
+  }
+
+  @Get('prescription/:id')
+  findByPrescription_id(@Param('id') id: string) {
+    return this.presModHistoryService.findByPrescription_id(id);
+  }
+
+  @Get('physician/:id')
+  findByPhysician_id(@Param('id') id: string) {
+    return this.presModHistoryService.findByPhysician_id(id);
+  }
+
+  @Get('medical_event/:id')
+  findByMedical_event_id(@Param('id') id: string) {
+    return this.presModHistoryService.findByMedical_event_id(id);
+  }
+}
+
+================
+File: src/medical-scheduling/modules/pres_mod_history/pres_mod_history.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PresModHistoryService } from './pres_mod_history.service';
+import { PresModHistoryController } from './pres_mod_history.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [PresModHistoryController],
+  providers: [PresModHistoryService, PrismaService],
+})
+export class PresModHistoryModule {}
+
+================
+File: src/medical-scheduling/modules/pres_mod_history/pres_mod_history.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreatePresHistoryDto } from './dto/create-pres-history.dto';
+
+@Injectable()
+export class PresModHistoryService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  // Implementar transactions
+  async create(createPresHistoryDto: CreatePresHistoryDto) {
+    try {
+      await this.prisma.$transaction(async (op) => {
+        let prescription = await op.prescription.findFirst({
+          where: {
+            AND: [
+              { monodrug: createPresHistoryDto.monodrug },
+              { active: true },
+            ],
+          },
+        });
+        if (!prescription) {
+          prescription = await op.prescription.create({
+            data: { monodrug: createPresHistoryDto.monodrug },
+          });
+        }
+
+        delete createPresHistoryDto.start_timestamp;
+        delete createPresHistoryDto.end_timestamp;
+        delete createPresHistoryDto.description;
+        delete createPresHistoryDto.active;
+        delete createPresHistoryDto.patient_id;
+        delete createPresHistoryDto.monodrug;
+        delete createPresHistoryDto.tenat_id;
+
+        createPresHistoryDto.prescription_id = prescription.id;
+
+        const history = await op.pres_mod_history.create({
+          data: { ...createPresHistoryDto },
+        });
+      });
+      return { message: 'La historia ha sido creada' };
+    } catch (error) {
+      throw new Error(`No se ha podido generar la historia ${error.message}`);
+    }
+  }
+
+  async findByPrescription_id(id: string) {
+    try {
+      const search = await this.prisma.pres_mod_history.findMany({
+        where: { prescription_id: id },
+      });
+      return search;
+    } catch (error) {
+      throw new Error(
+        `No se ha podido consultar por prescripción ${error.message}`,
+      );
+    }
+  }
+
+  async findByPhysician_id(id: string) {
+    try {
+      const search = await this.prisma.pres_mod_history.findMany({
+        where: { physician_id: id },
+      });
+      return search;
+    } catch (error) {
+      throw new Error(`No se ha podido consultar por médico ${error.message}`);
+    }
+  }
+
+  async findByMedical_event_id(id: string) {
+    try {
+      const search = await this.prisma.pres_mod_history.findMany({
+        where: { medical_event_id: id },
+      });
+      return search;
+    } catch (error) {
+      throw new Error(
+        `No se ha podido consultar por evento médico ${error.message}`,
+      );
+    }
+  }
+}
+
+================
+File: src/medical-scheduling/modules/prescription/dto/create-prescription.dto.ts
+================
+import { IsBoolean, IsDate, IsOptional, IsString } from 'class-validator';
+
+export class CreatePrescriptionDto {
+  @IsDate()
+  @IsOptional()
+  start_timestamp?: Date;
+
+  @IsDate()
+  @IsOptional()
+  end_timestamp?: Date;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean;
+
+  @IsString()
+  @IsOptional()
+  patient_id?: string;
+
+  @IsString()
+  monodrug: string;
+
+  @IsString()
+  @IsOptional()
+  tenat_id?: string;
+}
+
+================
+File: src/medical-scheduling/modules/prescription/dto/update-prescription.dto.ts
+================
+import { PartialType } from '@nestjs/swagger';
+import { CreatePrescriptionDto } from './create-prescription.dto';
+
+export class UpdatePrescriptionDto extends PartialType(CreatePrescriptionDto) {}
+
+================
+File: src/medical-scheduling/modules/prescription/entities/prescription.entity.ts
+================
+export class Prescription {}
+
+================
+File: src/medical-scheduling/modules/prescription/prescription.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
+import { PrescriptionService } from './prescription.service';
+import { CreatePrescriptionDto } from './dto/create-prescription.dto';
+import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
+
+@Controller('prescription')
+export class PrescriptionController {
+  constructor(private readonly prescriptionService: PrescriptionService) {}
+
+  @Post()
+  create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
+    return this.prescriptionService.create(createPrescriptionDto);
+  }
+
+  @Get('patient/:id')
+  findAllById(@Param('id') id: string) {
+    this.prescriptionService.findAllById(id);
+  }
+
+  @Get()
+  findAll() {
+    return this.prescriptionService.findAll();
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.prescriptionService.remove(id);
+  }
+
+  // @IsOptional()
+  // medical_order_id:string?
+}
+
+================
+File: src/medical-scheduling/modules/prescription/prescription.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PrescriptionService } from './prescription.service';
+import { PrescriptionController } from './prescription.controller';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Module({
+  controllers: [PrescriptionController],
+  providers: [PrescriptionService, PrismaService],
+})
+export class PrescriptionModule {}
+
+================
+File: src/medical-scheduling/modules/prescription/prescription.service.ts
+================
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreatePrescriptionDto } from './dto/create-prescription.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+export class PrescriptionService {
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createPrescriptionDto: CreatePrescriptionDto) {
+    try {
+      const prescription = await this.prisma.prescription.create({
+        data: { ...createPrescriptionDto },
+      });
+      return { message: 'La prescripción ha sido correctamente generada' };
+    } catch (error) {
+      throw new Error(
+        `No se ha podido generar la prescripción ${error.message}`,
+      );
+    }
+  }
+
+  async findAll() {
+    try {
+      const prescriptions = await this.prisma.prescription.findMany({
+        where: {
+          active: true,
+        },
+      });
+      return prescriptions;
+    } catch (error) {
+      throw new Error(
+        `No se ha podido consultar las prescripciones ${error.message}`,
+      );
+    }
+  }
+
+  async findAllById(id: string) {
+    try {
+      const prescriptions = await this.prisma.prescription.findMany({
+        where: {
+          AND: [{ active: true }, { patient_id: id }],
+        },
+      });
+      return prescriptions;
+    } catch (error) {
+      throw new Error(
+        `No se ha podido consultar las prescripciones ${error.message}`,
+      );
+    }
+  }
+
+  async remove(id: string) {
+    try {
+      const prescription = await this.prisma.prescription.update({
+        where: { id: id },
+        data: { active: false },
+      });
+      if (!prescription)
+        throw new NotFoundException('La prescripción no ha sido localizada');
+      return { message: 'La prescripción ha sido eliminada' };
+    } catch (error) {
+      throw new Error(
+        `No se ha podido eliminar la prescripción ${error.message}`,
+      );
+    }
+  }
+}
+
+================
+File: src/prisma/prisma.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService],
+})
+export class PrismaModule {}
+
+================
+File: src/prisma/prisma.service.ts
+================
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+import { tenantPrismaMiddleware } from 'src/utils/middlewares/tenantPrismaMiddleware';
+
+@Injectable()
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  async onModuleInit() {
+    await this.$connect();
+
+    this.$use(tenantPrismaMiddleware());
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+}
+
+================
+File: src/services/email/email.module.ts
+================
+import { Global, Module } from '@nestjs/common';
+import { EmailService } from './email.service';
+@Global()
+@Module({
+  providers: [EmailService],
+  exports: [EmailService],
+  controllers: [],
+})
+export class EmailModule {}
+
+================
+File: src/services/email/email.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { google } from 'googleapis';
+
+@Injectable()
+export class EmailService {
+  private oauth2Client;
+  private gmail;
+  constructor(private configService: ConfigService) {
+    const MAIL_CLIENT_ID = this.configService.get<string>('MAIL_CLIENT_ID');
+    const MAIL_CLIENT_SECRET =
+      this.configService.get<string>('MAIL_CLIENT_SECRET');
+    const MAIL_REFRESH_TOKEN =
+      this.configService.get<string>('MAIL_REFRESH_TOKEN');
+
+    this.oauth2Client = new google.auth.OAuth2(
+      MAIL_CLIENT_ID,
+      MAIL_CLIENT_SECRET,
+    );
+
+    this.oauth2Client.setCredentials({
+      refresh_token: MAIL_REFRESH_TOKEN,
+    });
+
+    this.gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
+  }
+
+  private encodeBase64URL(str: string) {
+    return Buffer.from(str, 'utf8')
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  }
+
+  private encodeMIMEHeader(text: string) {
+    return `=?UTF-8?B?${Buffer.from(text, 'utf8').toString('base64')}?=`;
+  }
+
+  async sendMail(destination: string, mailBody: string, mailSubject: string) {
+    const encodedSubject = this.encodeMIMEHeader(mailSubject);
+
+    const message = [
+      `To: ${destination}`,
+      `From: ${this.configService.get('SENDER_MAIL_ADDRESS')}`,
+      'Content-Type: text/html; charset=utf-8',
+      `Subject: ${encodedSubject}`,
+      '',
+      mailBody,
+    ].join('\n');
+
+    const encodedMessage = this.encodeBase64URL(message);
+
+    try {
+      const response = await this.gmail.users.messages.send({
+        userId: 'me',
+        resource: {
+          raw: encodedMessage,
+        },
+      });
+
+      return response.data;
+    } catch {
+      throw new Error('Error al enviar el correo');
+    }
+  }
+}
+
+================
+File: src/services/email/templates/credentialsHtml.ts
+================
+export const sendCredentialsHtml = (
+  email: string,
+  password: string,
+): string => {
+  return `<!DOCTYPE html>
+  <html>
+    <head>
+      <meta
+        name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=2,shrink-to-fit=no" />
+      <title>Credenciales de acceso</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: "Poppins", sans-serif;
+          background-color: #fafafc;
+          margin: 0;
+          padding: 0;
+          width: 600px;
+        }
+        .container {
+          width: 100%;
+          padding: 20px 0;
+          text-align: center;
+          background-color: #fafafc;
+        }
+        .email-content {
+          width: 90%;
+          padding: 0 15px;
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #fff;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .logo-container {
+          padding: 20px 0;
+        }
+        .logo-container img {
+          display: block;
+          margin: 0 auto;
+          width: 180px;
+        }
+        .content {
+          padding: 45px 0 20px 0;
+          text-align: center;
+          color: #808080;
+          font-size: 16px;
+          width: 100%;
+          margin: 0 auto;
+        }
+        .content h1 {
+          font-size: 32px;
+          color: #487ffa;
+          font-weight: 500;
+          margin-bottom: 30px;
+        }
+        .credentials {
+          font-size: 18px;
+          background-color: #f4f4f4;
+          padding: 15px;
+          border-radius: 5px;
+          display: inline-block;
+          margin-top: 10px;
+        }
+        .footer {
+          padding: 40px 0;
+          font-size: 14px;
+          color: #808080;
+          width: 60%;
+          margin: 0 auto;
+          text-align: center;
+        }
+        @media only screen and (max-width: 600px) {
+          body {
+            width: 90%;
+          }
+          .email-content {
+            width: 100% !important;
+            box-shadow: none;
+          }
+          .logo-container img {
+            width: 150px;
+          }
+          .content {
+            padding: 30px 10px 10px 10px;
+            font-size: 18px;
+            width: 100%;
+          }
+          .content h1 {
+            font-size: 28px;
+          }
+          .footer {
+            padding: 20px 0;
+            font-size: 12px;
+            width: 100%;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <table class="container" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td align="center" class="logo-container">
+            <img
+              src="https://res.cloudinary.com/dya1ekkd5/image/upload/v1721930541/oidzxqlccwuewq2daqoa.png"
+              alt="Logo" />
+          </td>
+        </tr>
+        <tr>
+          <td align="center">
+            <table
+              class="email-content"
+              cellpadding="0"
+              cellspacing="0"
+              width="100%">
+              <tr>
+                <td class="content">
+                  <h1>Bienvenido a nuestra plataforma</h1>
+                  <p>Estas son tus credenciales de acceso:</p>
+                  <p class="credentials"><strong>Email:</strong> ${email}</p>
+                  <p class="credentials"><strong>Contraseña:</strong> ${password}</p>
+                  <p>Te recomendamos cambiar tu contraseña después de iniciar sesión.</p>
+                </td>
+              </tr>
+              <tr>
+                <td class="footer">
+                  <p>
+                    Si no solicitaste estas credenciales, por favor ignora este correo.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>
+    `;
+};
+
+================
+File: src/services/email/templates/recoverPasswordHtml.ts
+================
+export const recoverPasswordHtml = (link: string): string => {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=2,shrink-to-fit=no" />
+    <title>Recuperar contraseña</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #fafafc;
+        margin: 0;
+        padding: 0;
+        width: 600px;
+      }
+      .container {
+        width: 100%;
+        padding: 20px 0;
+        text-align: center;
+        background-color: #fafafc;
+      }
+      .email-content {
+        width: 90%;
+        padding: 0 15px;
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .logo-container {
+        padding: 20px 0;
+      }
+      .logo-container img {
+        display: block;
+        margin: 0 auto;
+        width: 180px;
+      }
+      .content {
+        padding: 45px 0 20px 0;
+        text-align: center;
+        color: #808080;
+        font-size: 16px;
+        width: 100%;
+        margin: 0 auto;
+      }
+      .content h1 {
+        font-size: 32px;
+        color: #487ffa;
+        font-weight: 500;
+        margin-bottom: 30px;
+      }
+      .content h2 {
+        font-size: 42px;
+        color: #487ffa;
+        font-weight: 500;
+      }
+      .content p {
+        margin-bottom: 20px;
+      }
+      .button {
+        text-align: center;
+        color: #808080;
+        font-size: 16px;
+        width: 60%;
+        margin: 0 auto;
+      }
+      .footer {
+        padding: 40px 0;
+        font-size: 14px;
+        color: #808080;
+        width: 60%;
+        margin: 0 auto;
+        text-align: center;
+      }
+      @media only screen and (max-width: 600px) {
+        body {
+          width: 90%;
+        }
+        .email-content {
+          width: 100% !important;
+          box-shadow: none;
+        }
+        .logo-container img {
+          width: 150px;
+        }
+        .content {
+          padding: 30px 10px 10px 10px;
+          font-size: 18px;
+          width: 100%;
+        }
+        .content h1 {
+          font-size: 28px;
+        }
+        .button {
+          padding-top: 10px;
+          padding-bottom: 25px;
+        }
+        .footer {
+          padding: 20px 0;
+          font-size: 12px;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <table class="container" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center" class="logo-container">
+          <img
+            src="https://res.cloudinary.com/dya1ekkd5/image/upload/v1721930541/oidzxqlccwuewq2daqoa.png"
+            alt="Logo" />
+        </td>
+      </tr>
+      <tr>
+        <td align="center">
+          <table
+            class="email-content"
+            cellpadding="0"
+            cellspacing="0"
+            width="100%">
+            <tr>
+              <td class="content">
+                <h1>Tu link para cambiar contraseña</h1>
+                <p>
+                  Entra al siguiente
+                  <a style="color: #808080; font-weight: 700" href="${link}"
+                    >link</a
+                  >
+                  o presiona el botón para poder cambiar tu contraseña.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td class="button">
+                <a
+                  href="${link}"
+                  style="
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    text-decoration: none;
+                    background: #487ffa;
+                    color: white;
+                    font-weight: 700;
+                  ">
+                  Cambiar contraseña
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                <p>
+                  Si no solicitaste cambiar tu contraseña, puedes ignorar este
+                  correo. Solo las personas con acceso a tu email cambiar tu contraseña.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+
+
+`;
+};
+
+================
+File: src/services/email/templates/welcomeEmailHtml.ts
+================
+const welcomeEmailHtml = (name: string): string => {
+  return `<!DOCTYPE html>
+  <html>
+    <head>
+      <title>Confirmar email</title>
+      <meta
+        name="viewport"
+        content="width=device-width,initial-scale=1,maximum-scale=2,shrink-to-fit=no" />
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: "Poppins", sans-serif;
+          background-color: #fafafc;
+          margin: 0;
+          padding: 0;
+          width: 600px;
+        }
+        .container {
+          width: 100%;
+          padding: 20px 0;
+          text-align: center;
+          background-color: #fafafc;
+        }
+        .email-content {
+          width: 90%;
+          padding: 0 15px;
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #fff;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .logo-container {
+          padding: 20px 0;
+        }
+        .logo-container img {
+          display: block;
+          margin: 0 auto;
+          width: 180px;
+        }
+        .content {
+          padding: 35px 0 10px 0;
+          text-align: center;
+          color: #808080;
+          font-size: 16px;
+          width: 100%;
+          margin: 0 auto;
+        }
+        .content h1 {
+          font-size: 32px;
+          color: #487ffa;
+          font-weight: 500;
+          margin-bottom: 10px;
+        }
+        .content h2 {
+          font-size: 42px;
+          color: #487ffa;
+          font-weight: 500;
+        }
+        .content p {
+          margin-bottom: 20px;
+        }
+        .body {
+          text-align: center;
+          color: #808080;
+          font-size: 20px;
+          width: 60%;
+        }
+        .body p {
+          margin-bottom: 20px;
+        }
+        .footer {
+          padding: 10px 0 20px 0;
+          font-size: 20px;
+          color: #808080;
+          width: 60%;
+          margin: 0 auto;
+          text-align: center;
+        }
+        @media only screen and (max-width: 600px) {
+          body {
+            width: 90%;
+          }
+          .email-content {
+            width: 100% !important;
+            box-shadow: none;
+          }
+          .logo-container img {
+            width: 150px;
+          }
+          .content {
+            padding: 20px 10px 10px 10px;
+            font-size: 18px;
+            width: 100%;
+          }
+          .content h1 {
+            font-size: 28px;
+          }
+          .body {
+            padding-top: 10px;
+            padding-bottom: 25px;
+          }
+          .footer {
+            padding: 20px 0;
+            font-size: 20px;
+            width: 100%;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <table class="container" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td align="center" class="logo-container">
+            <img
+              src="https://res.cloudinary.com/dya1ekkd5/image/upload/v1721930541/oidzxqlccwuewq2daqoa.png"
+              alt="Logo" />
+          </td>
+        </tr>
+        <tr>
+          <td align="center">
+            <table
+              class="email-content"
+              cellpadding="0"
+              cellspacing="0"
+              width="100%">
+              <tr>
+                <td class="content">
+                  <h1>¡Bienvenido a Segimed!</h1>
+                </td>
+              </tr>
+              <tr>
+                <td class="body">
+                  <p>Hola ${name},</p>
+                  <p>
+                    ¡Nos alegra mucho darte la bienvenida a Segimed! Estamos
+                    encantados de que te unas a nosotros.
+                  </p>
+                  <p>
+                    En Segimed, nos esforzamos por ofrecerte la mejor experiencia
+                    posible. Si tenes alguna pregunta o necesitas ayuda, no dudes
+                    en ponerte en contacto con nuestro equipo de soporte. Estamos
+                    para ayudarte en cada paso.
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td class="footer">
+                  <p>-El equipo de Segimed.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>`;
+};
+
+export default welcomeEmailHtml;
+
+================
+File: src/services/twilio/twilio.module.ts
+================
+import { Global, Module } from '@nestjs/common';
+import { TwilioService } from './twilio.service';
+
+@Global()
+@Module({
+  providers: [TwilioService],
+  exports: [TwilioService],
+})
+export class TwilioModule {}
+
+================
+File: src/services/twilio/twilio.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Twilio } from 'twilio';
+
+@Injectable()
+export class TwilioService {
+  private twilioClient: Twilio;
+
+  constructor(private configService: ConfigService) {
+    this.twilioClient = new Twilio(
+      this.configService.get<string>('TWILIO_ACCOUNT_SID'),
+      this.configService.get<string>('TWILIO_AUTH_TOKEN'),
+    );
+  }
+
+  async sendOtp(phoneNumber: string, otp: string): Promise<void> {
+    const message = `Tu código de verificación es: ${otp}`;
+
+    await this.twilioClient.messages.create({
+      body: message,
+      from: `whatsapp:${this.configService.get<string>('TWILIO_WHATSAPP_FROM')}`,
+      to: `whatsapp:${phoneNumber}`,
+    });
+  }
+
+  generateOtp(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+}
+
+================
+File: src/utils/auth.helper.ts
+================
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
+
+export class AuthHelper {
+  static async hashPassword(
+    password: string,
+    saltRounds: number,
+  ): Promise<string> {
+    const salt = await bcrypt.genSalt(saltRounds);
+    return bcrypt.hash(password, salt);
+  }
+
+  static async comparePasswords(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  static generateToken(payload: object, expiresIn: string = '7d'): string {
+    const secret = process.env.JWT_SECRET || 'defaultSecret';
+    return jwt.sign(payload, secret, { expiresIn });
+  }
+
+  static verifyToken(token: string): string | jwt.JwtPayload {
+    const secret = process.env.JWT_SECRET || 'defaultSecret';
+    return jwt.verify(token, secret);
+  }
+}
+
+================
+File: src/utils/cloudinary.ts
+================
+import { v2 as cloudinary } from 'cloudinary';
+import { config as dontenvcongif } from 'dotenv';
+
+dontenvcongif({ path: '.env.development' });
+
+export const CloudinaryConfig = {
+  provide: 'CLOUDINARY',
+  useFactory: () => {
+    return cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+  },
+};
+
+================
+File: src/utils/file_upload/file_upload.controller.ts
+================
+import {
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileUploadService } from './file_upload.service';
+import { ApiTags } from '@nestjs/swagger';
+import { Multer } from 'multer';
+
+@Controller('files')
+@ApiTags('Upload File')
+export class FileUploadController {
+  constructor(private readonly fileUploadService: FileUploadService) {}
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 10 * 1024 * 1024, // 10MB para PDF, 5MB para imágenes
+            message:
+              'File exceeds the maximum size of 10MB for PDFs or 5MB for images',
+          }),
+          new FileTypeValidator({
+            fileType: /^(image\/(jpg|jpeg|png|webp|svg)|application\/pdf)$/i,
+          }),
+        ],
+      }),
+    )
+    file: Multer.File,
+  ) {
+    try {
+      const result = await this.fileUploadService.uploadFile(file);
+      return result; // Retorna la URL y el tipo
+    } catch (error) {
+      throw new Error('File upload failed: ' + error.message); // Maneja errores aquí
+    }
+  }
+}
+
+================
+File: src/utils/file_upload/file_upload.module.ts
+================
+import { Module } from '@nestjs/common';
+import { FileUploadController } from './file_upload.controller';
+import { FileUploadService } from './file_upload.service';
+import { CloudinaryConfig } from '../cloudinary';
+import { FileUploadRepository } from './file_upload.repository';
+
+@Module({
+  imports: [],
+  controllers: [FileUploadController],
+  providers: [FileUploadService, CloudinaryConfig, FileUploadRepository],
+})
+export class FileUploadModule {}
+
+================
+File: src/utils/file_upload/file_upload.repository.ts
+================
+import { Injectable } from '@nestjs/common';
+import { v2 as cloudinary } from 'cloudinary';
+import { Multer } from 'multer';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class FileUploadRepository {
+  constructor(private configService: ConfigService) {
+    cloudinary.config({
+      cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
+      api_key: this.configService.get('CLOUDINARY_API_KEY'),
+      api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
+    });
+  }
+
+  async uploadFile(file: Multer.File): Promise<any> {
+    try {
+      // Convertir el buffer a base64
+      const base64String = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      console.log(base64String);
+      console.log(file);
+
+      // Determinar el tipo de recurso
+      let resourceType = 'auto';
+      if (file.mimetype.startsWith('image/')) {
+        resourceType = 'image';
+      } else if (file.mimetype === 'application/pdf') {
+        resourceType = 'auto';
+      }
+
+      // Subir a Cloudinary
+      const uploadResult = await cloudinary.uploader.upload(base64String, {
+        resource_type: resourceType as 'auto' | 'image' | 'raw',
+        folder: resourceType === 'image' ? 'images' : 'documents',
+      });
+
+      return uploadResult;
+    } catch (error) {
+      console.error('Error al subir el archivo a Cloudinary:', error);
+      throw new Error('Error al subir el archivo a Cloudinary');
+    }
+  }
+}
+
+================
+File: src/utils/file_upload/file_upload.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { FileUploadRepository } from './file_upload.repository';
+import { Multer } from 'multer';
+
+@Injectable()
+export class FileUploadService {
+  constructor(private readonly fileUploadRepository: FileUploadRepository) {}
+
+  async uploadFile(file: Multer.File): Promise<{ url: string; type: string }> {
+    const result = await this.fileUploadRepository.uploadFile(file);
+
+    return {
+      url: result.secure_url,
+      type: file.mimetype.startsWith('image/') ? 'image' : 'pdf',
+    };
+  }
+}
+
+================
+File: src/utils/middlewares/tenantMiddleware.ts
+================
+import {
+  Injectable,
+  NestMiddleware,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthHelper } from '../auth.helper';
+
+@Injectable()
+export class TenantMiddleware implements NestMiddleware {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async use(req: Request, res: Response, next: NextFunction) {
+    const authorization = req.headers['authorization'];
+    if (!authorization) {
+      throw new UnauthorizedException('Authorization header missing');
+    }
+
+    const token = authorization.replace('Bearer ', '');
+    const payload: any = AuthHelper.verifyToken(token);
+
+    const tenant_id = payload?.tenant_id;
+    if (!tenant_id) {
+      throw new UnauthorizedException('Tenant ID not found in token');
+    }
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenant_id },
+    });
+    if (!tenant) {
+      throw new UnauthorizedException('Invalid tenant');
+    }
+
+    req['tenant_id'] = tenant_id;
+    next();
+  }
+}
+
+================
+File: src/utils/middlewares/tenantPrismaMiddleware.ts
+================
+import { Prisma } from '@prisma/client';
+
+export function tenantPrismaMiddleware() {
+  return async (params: Prisma.MiddlewareParams, next: Prisma.Middleware) => {
+    const tenantRules: Record<
+      string,
+      { actions: string[]; requireTenantId: boolean }
+    > = {
+      user: { actions: ['findMany'], requireTenantId: true },
+      patient: {
+        actions: ['findMany', 'update'],
+        requireTenantId: true,
+      },
+      appointment: {
+        actions: ['findMany', 'findFirst'],
+        requireTenantId: true,
+      },
+      medical_event: {
+        actions: ['findMany', 'create', 'update'],
+        requireTenantId: true,
+      },
+      tenant: { actions: ['findUnique'], requireTenantId: false },
+      transaction: { actions: ['findMany', 'create'], requireTenantId: true },
+      organization: { actions: ['create'], requireTenantId: true },
+      patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },
+    };
+
+    const modelRules = tenantRules[params.model];
+
+    if (!modelRules || !modelRules.actions.includes(params.action)) {
+      return next(params, params.args);
+    }
+
+    if (modelRules.requireTenantId) {
+      const tenantId =
+        params.args?.data?.tenant_id ?? params.args?.where?.tenant_id;
+      if (!tenantId) {
+        throw new Error(
+          `Tenant verification failed: missing tenant_id for ${params.model} in ${params.action} action.`,
+        );
+      }
+    }
+
+    if (
+      ['findMany', 'findFirst', 'findUnique'].includes(params.action) &&
+      modelRules.requireTenantId
+    ) {
+      params.args.where = {
+        ...params.args.where,
+        tenant_id:
+          params.args?.where?.tenant_id ?? params.args?.data?.tenant_id,
+      };
+    }
+
+    if (
+      ['create', 'update'].includes(params.action) &&
+      modelRules.requireTenantId
+    ) {
+      params.args.data = {
+        ...params.args.data,
+        tenant_id: params.args.data?.tenant_id ?? params.args?.where?.tenant_id,
+      };
+    }
+
+    return next(params, params.args);
+  };
+}
+
+================
+File: src/utils/pagination.helper.ts
+================
+export interface PaginationParams {
+  page?: number | string;
+  pageSize?: number | string;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+}
+
+export function parsePaginationAndSorting(params: PaginationParams) {
+  const page = params.page && Number(params.page) > 0 ? Number(params.page) : 1;
+  const pageSize =
+    params.pageSize && Number(params.pageSize) > 0
+      ? Number(params.pageSize)
+      : 10;
+  const skip = (page - 1) * pageSize;
+  const take = pageSize;
+
+  const orderBy = params.orderBy || 'id';
+  const orderDirection = params.orderDirection || 'asc';
+
+  return { skip, take, orderBy, orderDirection };
+}
+
+================
+File: test/app.e2e-spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from './../src/app.module';
+
+describe('AppController (e2e)', () => {
+  let app: INestApplication;
+
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it('/ (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect('Hello World!');
+  });
+});
+
+================
+File: test/jest-e2e.json
+================
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  }
+}
+
+================
+File: tsconfig.build.json
+================
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+}
+
+================
+File: tsconfig.json
+================
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES6",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+  }
+}
+
+
+
+================================================================
+End of Codebase
+================================================================

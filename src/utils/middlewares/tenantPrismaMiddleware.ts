@@ -8,7 +8,7 @@ export function tenantPrismaMiddleware() {
     > = {
       user: { actions: ['findMany'], requireTenantId: true },
       patient: {
-        actions: ['findMany', 'update'],
+        actions: ['findMany', 'update', 'create'],
         requireTenantId: true,
       },
       appointment: {
@@ -21,7 +21,7 @@ export function tenantPrismaMiddleware() {
       },
       tenant: { actions: ['findUnique'], requireTenantId: false },
       transaction: { actions: ['findMany', 'create'], requireTenantId: true },
-      organization: { actions: ['create'], requireTenantId: true },
+      organization: { actions: ['update'], requireTenantId: true },
       patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },
     };
 
@@ -31,37 +31,33 @@ export function tenantPrismaMiddleware() {
       return next(params, params.args);
     }
 
-    if (modelRules.requireTenantId) {
-      const tenantId =
-        params.args?.data?.tenant_id ?? params.args?.where?.tenant_id;
-      if (!tenantId) {
+    try {
+      const tenant_id = params.args?.tenant_id || global.tenant_id;
+
+      if (modelRules.requireTenantId && !tenant_id) {
         throw new Error(
           `Tenant verification failed: missing tenant_id for ${params.model} in ${params.action} action.`,
         );
       }
-    }
 
-    if (
-      ['findMany', 'findFirst', 'findUnique'].includes(params.action) &&
-      modelRules.requireTenantId
-    ) {
-      params.args.where = {
-        ...params.args.where,
-        tenant_id:
-          params.args?.where?.tenant_id ?? params.args?.data?.tenant_id,
-      };
-    }
+      if (['create'].includes(params.action)) {
+        params.args.data = {
+          ...params.args.data,
+          tenant_id: tenant_id,
+        };
+      }
 
-    if (
-      ['create', 'update'].includes(params.action) &&
-      modelRules.requireTenantId
-    ) {
-      params.args.data = {
-        ...params.args.data,
-        tenant_id: params.args.data?.tenant_id ?? params.args?.where?.tenant_id,
-      };
-    }
+      if (['findMany', 'findFirst', 'findUnique'].includes(params.action)) {
+        params.args.where = {
+          ...params.args.where,
+          tenant_id: tenant_id,
+        };
+      }
 
-    return next(params, params.args);
+      return next(params, params.args);
+    } catch (error) {
+      console.error('Error in tenantPrismaMiddleware:', error);
+      throw new Error(`Middleware error: ${error.message}`);
+    }
   };
 }
