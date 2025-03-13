@@ -387,7 +387,8 @@ model pres_mod_history {
 
 model medical_order_type {
   id                    String                   @id @default(uuid())
-  description           String
+  name                  String
+  description           String?
   medical_order         medical_order[]
 }
 
