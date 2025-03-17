@@ -157,7 +157,7 @@ export class PatientService {
     try {
       const { ...filteredDto } = updatePatientDto;
       const newPatient = await this.prisma.patient.update({
-        where: { id: id },
+        where: { user_id: id },
         data: filteredDto as any,
       });
       return newPatient;

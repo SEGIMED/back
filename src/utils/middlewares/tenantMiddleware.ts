@@ -33,7 +33,9 @@ export class TenantMiddleware implements NestMiddleware {
       }
 
       const tenant = await this.prisma.tenant.findUnique({
-        where: { id: tenant_id },
+        where: {
+          id: tenant_id,
+        },
       });
       if (!tenant) {
         throw new UnauthorizedException('Invalid tenant');
