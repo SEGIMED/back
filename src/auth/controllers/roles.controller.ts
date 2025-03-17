@@ -46,6 +46,28 @@ export class RolesController {
     private readonly permissionsService: PermissionsService,
   ) {}
 
+  @Delete('assign')
+  @UseGuards(TenantAdminGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async removeRoleFromUser(@Body() assignRoleDto: AssignRoleDto) {
+    try {
+      return await this.rolesService.removeRoleFromUser(
+        assignRoleDto.userId,
+        assignRoleDto.roleId,
+      );
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al eliminar rol del usuario: ${error.message}`,
+      );
+    }
+  }
+
   @Get('permissions')
   @UseGuards(TenantAccessGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
@@ -153,28 +175,6 @@ export class RolesController {
     }
   }
 
-  @Delete('assign')
-  @UseGuards(TenantAdminGuard)
-  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
-  async removeRoleFromUser(@Body() assignRoleDto: AssignRoleDto) {
-    try {
-      return await this.rolesService.removeRoleFromUser(
-        assignRoleDto.userId,
-        assignRoleDto.roleId,
-      );
-    } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof NotFoundException
-      ) {
-        throw error;
-      }
-      throw new BadRequestException(
-        `Error al eliminar rol del usuario: ${error.message}`,
-      );
-    }
-  }
-
   @Get('user/:userId')
   @UseGuards(TenantAccessGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
@@ -195,10 +195,8 @@ export class RolesController {
   @UseGuards(SuperAdminGuard)
   async seedRolesAndPermissions() {
     try {
-      // Primero crear los permisos
       await this.permissionsService.seedPermissions();
 
-      // Luego crear los roles por defecto
       return await this.rolesService.seedDefaultRoles();
     } catch (error) {
       throw new BadRequestException(

@@ -8,6 +8,7 @@ import {
 } from 'src/management/user/dto/create-user.dto';
 import { RequestPasswordDto, ResetPasswordDto } from './dto/password-auth.dto';
 import { Request } from 'express';
+import { CreateSuperAdminDto } from './dto/create-superadmin.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -18,6 +19,12 @@ export class AuthController {
   register(@Body() createUserDto: CreateUserDto) {
     return this.authService.create(createUserDto);
   }
+
+  @Post('create-superadmin')
+  createSuperAdmin(@Body() createSuperAdminDto: CreateSuperAdminDto) {
+    return this.authService.createSuperAdmin(createSuperAdminDto);
+  }
+
   @Post()
   login(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.login(createAuthDto);

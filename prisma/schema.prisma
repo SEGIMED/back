@@ -56,7 +56,7 @@ model user {
 
   tenant_id String?
   patient   patient?
-  tenant    tenant?  @relation(fields: [tenant_id], references: [id])
+  tenant    tenant?  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
   physicianAppointment appointment[]      @relation(name: "physician")
   patientAppointments  appointment[]      @relation(name: "patient")
@@ -65,12 +65,13 @@ model user {
   pres_mod_history     pres_mod_history[]
   background           background[]
 
-  physical_exploration_patients   physical_exploration[]  @relation(name: "patients")
-  physical_exploration_physicians physical_exploration[]  @relation(name: "physicians")
-  self_evaluation_event           self_evaluation_event[]
-  vital_signs                     vital_signs[]
+  self_evaluation_event self_evaluation_event[]
+  vital_signs           vital_signs[]
 
   roles user_role[]
+
+  physical_exploration_physician physical_exploration[] @relation("physician")
+  physical_exploration_patient   physical_exploration[] @relation("patient")
 }
 
 model organization {
@@ -86,7 +87,7 @@ model organization {
   deleted_at          DateTime?
 
   tenant_id              String?
-  tenant                 tenant?                  @relation(fields: [tenant_id], references: [id])
+  tenant                 tenant?                  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   organization_physician organization_physician[]
 }
 
@@ -98,10 +99,10 @@ model organization_physician {
   updated_at      DateTime     @updatedAt
   deleted         Boolean      @default(false)
   deleted_at      DateTime?
-  organization    organization @relation(fields: [organization_id], references: [id])
-  physician       physician    @relation(fields: [physician_id], references: [id])
+  organization    organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  physician       physician    @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   tenant_id       String
-  tenant          tenant?      @relation(fields: [tenant_id], references: [id])
+  tenant          tenant?      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model patient {
@@ -120,7 +121,7 @@ model patient {
   deleted            Boolean   @default(false)
   deleted_at         DateTime?
   user_id            String    @unique
-  user               user      @relation(fields: [user_id], references: [id])
+  user               user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   medical_event  medical_event[]
   patient_tenant patient_tenant[]
@@ -129,11 +130,11 @@ model patient {
 model patient_tenant {
   id         String    @id @default(uuid())
   patient_id String
-  patient    patient   @relation(fields: [patient_id], references: [id])
+  patient    patient   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   tenant_id  String
-  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+  tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  updated_at DateTime  @default(now())
   deleted    Boolean   @default(false)
   deleted_at DateTime?
 
@@ -143,9 +144,9 @@ model patient_tenant {
 model physician {
   id               String    @id @default(uuid())
   user_id          String
-  user             user      @relation(fields: [user_id], references: [id])
+  user             user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   tenant_id        String?
-  tenant           tenant?   @relation(fields: [tenant_id], references: [id])
+  tenant           tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   medical_registry String?
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
@@ -193,14 +194,14 @@ model medical_event {
   updated_at           DateTime               @updatedAt
   deleted              Boolean                @default(false)
   deleted_at           DateTime?
-  appointment          appointment            @relation(fields: [appointment_id], references: [id])
+  appointment          appointment            @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
   patient              patient                @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician            physician              @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   physical_examination physical_examination[]
   physical_exploration physical_exploration[]
 
   tenant_id                 String
-  tenant                    tenant?                     @relation(fields: [tenant_id], references: [id])
+  tenant                    tenant?                     @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   pres_mod_history          pres_mod_history[]
   subcategory_medical_event subcategory_medical_event[]
   self_evaluation_event     self_evaluation_event[]
@@ -218,10 +219,10 @@ model transaction {
   updated_at DateTime  @updatedAt
   deleted    Boolean   @default(false)
   deleted_at DateTime?
-  user       user      @relation(fields: [userId], references: [id])
+  user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   tenant_id String
-  tenant    tenant? @relation(fields: [tenant_id], references: [id])
+  tenant    tenant? @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model patient_study {
@@ -236,7 +237,7 @@ model patient_study {
   is_deleted        Boolean        @default(false)
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id])
+  cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id], onDelete: Cascade)
 
   @@map("patient_studies")
 }
@@ -267,8 +268,8 @@ model physical_examination {
   updated_at            DateTime                @updatedAt
   deleted               Boolean                 @default(false)
   deleted_at            DateTime?
-  medical_event         medical_event           @relation(fields: [medical_event_id], references: [id])
-  user                  user                    @relation(fields: [patient_id], references: [id])
+  medical_event         medical_event           @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  user                  user                    @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physical_subsystem    cat_physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
 }
 
@@ -281,11 +282,11 @@ model physical_exploration {
   physical_exploration_area_id Int
   tenant_id                    String
 
-  patient                   user                      @relation(fields: [patient_id], references: [id], name: "patients")
-  physician                 user                      @relation(fields: [physician_id], references: [id], name: "physicians")
-  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id])
+  patient                   user                      @relation("patient", fields: [patient_id], references: [id], onDelete: Cascade)
+  physician                 user                      @relation("physician", fields: [physician_id], references: [id], onDelete: Cascade)
+  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
-  tenant                    tenant                    @relation(fields: [tenant_id], references: [id])
+  tenant                    tenant                    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model physical_exploration_area {
@@ -304,8 +305,8 @@ model physician_speciality {
   updated_at    DateTime       @updatedAt
   deleted       Boolean        @default(false)
   deleted_at    DateTime?
-  physician     physician      @relation(fields: [physician_id], references: [id])
-  speciality    cat_speciality @relation(fields: [speciality_id], references: [id])
+  physician     physician      @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  speciality    cat_speciality @relation(fields: [speciality_id], references: [id], onDelete: Cascade)
 }
 
 model otp_code {
@@ -329,16 +330,16 @@ model background {
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt
 
-  patient user   @relation(fields: [patient_id], references: [id])
-  tenant  tenant @relation(fields: [tenant_id], references: [id])
+  patient user   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  tenant  tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model subcategory_medical_event {
   id                     String                 @id @default(uuid())
   subCategoryId          Int
-  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id])
+  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
   medical_eventId        String
-  medical_event          medical_event          @relation(fields: [medical_eventId], references: [id])
+  medical_event          medical_event          @relation(fields: [medical_eventId], references: [id], onDelete: Cascade)
 
   @@unique([subCategoryId, medical_eventId])
 }
@@ -350,22 +351,22 @@ model prescription {
   description      String?
   active           Boolean            @default(true)
   patient_id       String?
-  user             user?              @relation(fields: [patient_id], references: [id])
+  user             user?              @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   monodrug         String
   tenant_id        String?
-  tenant           tenant?            @relation(fields: [tenant_id], references: [id])
+  tenant           tenant?            @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   pres_mod_history pres_mod_history[]
 }
 
 model pres_mod_history {
   id               String         @id @default(uuid())
   prescription_id  String
-  prescription     prescription?  @relation(fields: [prescription_id], references: [id])
+  prescription     prescription?  @relation(fields: [prescription_id], references: [id], onDelete: Cascade)
   physician_id     String?
-  physician        user?          @relation(fields: [physician_id], references: [id])
+  physician        user?          @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   mod_timestamp    DateTime       @default(now())
   medical_event_id String?
-  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id])
+  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   // medical_order_id      String?
   // medical_order         medical_order         @relation(fields: [medical_order_id], references: [id])
   observations     String?
@@ -379,11 +380,11 @@ model pres_mod_history {
 model self_evaluation_event {
   id               String        @id @default(uuid())
   patient_id       String
-  patient          user          @relation(fields: [patient_id], references: [id])
+  patient          user          @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   medical_event_id String
-  medical_event    medical_event @relation(fields: [medical_event_id], references: [id])
+  medical_event    medical_event @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   tenant_id        String
-  tenant           tenant        @relation(fields: [tenant_id], references: [id])
+  tenant           tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   created_at       DateTime      @default(now())
   updated_at       DateTime      @updatedAt
   vital_signs      vital_signs[]
@@ -392,16 +393,16 @@ model self_evaluation_event {
 model vital_signs {
   id                       String                 @id @default(uuid())
   patient_id               String
-  patient                  user                   @relation(fields: [patient_id], references: [id])
+  patient                  user                   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   medical_event_id         String?
-  medical_event            medical_event?         @relation(fields: [medical_event_id], references: [id])
+  medical_event            medical_event?         @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   self_evaluation_event_id String?
-  self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id])
+  self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id], onDelete: Cascade)
   vital_sign_id            Int
-  vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id])
+  vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id], onDelete: Cascade)
   measure                  Int
   tenant_id                String
-  tenant                   tenant                 @relation(fields: [tenant_id], references: [id])
+  tenant                   tenant?                @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   created_at               DateTime               @default(now())
   updated_at               DateTime               @updatedAt
   deleted                  Boolean                @default(false)
@@ -471,6 +472,7 @@ enum role_type {
   patient
   physician
   organization_owner
+  superadmin
 }
 
 enum status_type {

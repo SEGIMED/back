@@ -18,6 +18,7 @@ export class AppointmentsService {
 
   async createAppointment(
     data: CreateAppointmentDto,
+    tenant?: string,
   ): Promise<{ message: string }> {
     // Verificar que las fechas de inicio y fin sean válidas
     if (!data.start || !data.end || data.start >= data.end) {
@@ -62,7 +63,12 @@ export class AppointmentsService {
       // Iniciar una transacción para asegurar la consistencia de los datos
       await this.prisma.$transaction(async (prisma) => {
         // Crear la cita
-        const appointment = await prisma.appointment.create({ data });
+        const appointment = await prisma.appointment.create({
+          data: {
+            ...data,
+            tenant_id: tenant,
+          },
+        });
 
         if (!appointment) {
           throw new InternalServerErrorException('Error al crear la cita');
@@ -74,7 +80,7 @@ export class AppointmentsService {
             appointment_id: appointment.id,
             patient_id: data.patient_id,
             physician_id: data.physician_id,
-            tenant_id: data.tenant_id,
+            tenant_id: tenant,
           },
         });
       });
@@ -119,9 +125,10 @@ export class AppointmentsService {
     id: string,
     status: status_type,
     reason?: string,
+    tenant?: string,
   ): Promise<{ message: string }> {
     const appointment = await this.prisma.appointment.findUnique({
-      where: { id },
+      where: { id, tenant_id: tenant },
     });
 
     if (!appointment) {

@@ -25,7 +25,6 @@ export class RolesService {
   constructor(private prisma: PrismaService) {}
 
   async seedDefaultRoles() {
-    // Crear roles por defecto si no existen
     const defaultRoles = [
       {
         name: 'SuperAdmin',
@@ -295,7 +294,7 @@ export class RolesService {
       }
 
       // Verificar si el rol existe
-      const role = await this.getRoleById(roleId);
+      /*     const role = await this.getRoleById(roleId); */
 
       // Verificar si el usuario ya tiene este rol
       const existingUserRole = await this.prisma.user_role.findFirst({
@@ -331,14 +330,12 @@ export class RolesService {
 
   async removeRoleFromUser(userId: string, roleId: string) {
     try {
-      // Verificar si la relación existe
       const userRole = await this.prisma.user_role.findFirst({
         where: {
           user_id: userId,
           role_id: roleId,
         },
       });
-
       if (!userRole) {
         throw new NotFoundException('El usuario no tiene asignado este rol');
       }

@@ -28,9 +28,12 @@ import { PrescriptionModule } from './medical-scheduling/modules/prescription/pr
 import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_history/pres_mod_history.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TenantExtractorMiddleware } from './auth/middlewares/tenant-extractor.middleware';
+import { JwtUserExtractorMiddleware } from './auth/middlewares/jwt-user-extractor.middleware';
 import { CatVitalSignsModule } from './catalogs/cat-vital-signs/cat-vital-signs.module';
 import { CatMeasureUnitModule } from './catalogs/cat-measure-unit/cat-measure-unit.module';
 import { GuardAuthModule } from './auth/guard-auth.module';
+import { VitalSignsModule } from './medical-scheduling/modules/vital-signs/vital-signs.module';
+import { MobileFunctionsModule } from './mobile-functions/mobile-functions.module';
 
 config({ path: '.env' });
 
@@ -69,6 +72,8 @@ config({ path: '.env' });
     SubcatCieDiezModule,
     CatVitalSignsModule,
     CatMeasureUnitModule,
+    VitalSignsModule,
+    MobileFunctionsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -91,11 +96,18 @@ export class AppModule {
         { path: 'auth/send-otp', method: RequestMethod.POST },
         { path: 'auth/verify-otp', method: RequestMethod.POST },
         { path: 'user/onboarding', method: RequestMethod.POST },
+        { path: 'auth/create-superadmin', method: RequestMethod.POST },
       )
       .forRoutes('*');
 
     consumer
+      .apply(JwtUserExtractorMiddleware)
+      .exclude({ path: 'auth/create-superadmin', method: RequestMethod.POST })
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+
+    consumer
       .apply(TenantExtractorMiddleware)
+      .exclude({ path: 'auth/create-superadmin', method: RequestMethod.POST })
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

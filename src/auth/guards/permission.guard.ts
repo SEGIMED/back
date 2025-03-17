@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PermissionCheckerService } from '../permissions/permission-checker.service';
@@ -32,7 +33,11 @@ export class PermissionGuard implements CanActivate {
 
     // Si no hay usuario autenticado, denegar acceso
     if (!userId) {
-      throw new ForbiddenException('No autorizado');
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+
+    if (!tenantId) {
+      throw new ForbiddenException('No se pudo determinar el tenant');
     }
 
     // Verificar si el usuario tiene el permiso requerido

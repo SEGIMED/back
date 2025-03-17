@@ -14,7 +14,6 @@ export class TenantAdminGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const userId = request.user?.id;
     const tenantId = request.tenant?.id;
-
     // Si no hay usuario autenticado o tenant, denegar acceso
     if (!userId || !tenantId) {
       throw new ForbiddenException('No autorizado');

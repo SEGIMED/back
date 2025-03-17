@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PermissionCheckerService } from '../permissions/permission-checker.service';
 
@@ -16,8 +17,12 @@ export class TenantAccessGuard implements CanActivate {
     const tenantId = request.tenant?.id;
 
     // Si no hay usuario autenticado o tenant, denegar acceso
-    if (!userId || !tenantId) {
-      throw new ForbiddenException('No autorizado');
+    if (!userId) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+
+    if (!tenantId) {
+      throw new ForbiddenException('No se pudo determinar el tenant');
     }
 
     // Verificar si el usuario tiene acceso al tenant
