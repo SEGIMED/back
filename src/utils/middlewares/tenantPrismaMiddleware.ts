@@ -19,7 +19,6 @@ export function tenantPrismaMiddleware() {
         actions: ['findMany', 'create', 'update'],
         requireTenantId: true,
       },
-      tenant: { actions: ['findUnique'], requireTenantId: false },
       transaction: { actions: ['findMany', 'create'], requireTenantId: true },
       organization: { actions: ['update'], requireTenantId: true },
       patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },

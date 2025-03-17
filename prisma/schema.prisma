@@ -26,6 +26,9 @@ model tenant {
   transaction            transaction[]
   background             background[]
   physical_exploration   physical_exploration[]
+  vital_signs            vital_signs[]
+  self_evaluation_event  self_evaluation_event[]
+  role                   role[]
 }
 
 model user {
@@ -35,6 +38,7 @@ model user {
   email                 String                 @unique
   password              String?
   role                  role_type              @default(physician)
+  is_superadmin         Boolean                @default(false)
   nationality           String?
   gender                String?
   dni                   String?                @unique
@@ -61,8 +65,12 @@ model user {
   pres_mod_history     pres_mod_history[]
   background           background[]
 
-  physical_exploration_patients   physical_exploration[] @relation(name: "patients")
-  physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
+  physical_exploration_patients   physical_exploration[]  @relation(name: "patients")
+  physical_exploration_physicians physical_exploration[]  @relation(name: "physicians")
+  self_evaluation_event           self_evaluation_event[]
+  vital_signs                     vital_signs[]
+
+  roles user_role[]
 }
 
 model organization {
@@ -195,6 +203,8 @@ model medical_event {
   tenant                    tenant?                     @relation(fields: [tenant_id], references: [id])
   pres_mod_history          pres_mod_history[]
   subcategory_medical_event subcategory_medical_event[]
+  self_evaluation_event     self_evaluation_event[]
+  vital_signs               vital_signs[]
 }
 
 model transaction {
@@ -304,26 +314,6 @@ model otp_code {
   code_expires_at DateTime?
 }
 
-model cat_physical_subsystem {
-  id                    Int                    @id @default(autoincrement())
-  name                  String
-  physical_examinations physical_examination[]
-  created_at            DateTime               @default(now())
-  updated_at            DateTime               @updatedAt
-  deleted               Boolean                @default(false)
-  deleted_at            DateTime?
-}
-
-model cat_speciality {
-  id                   Int                    @id @default(autoincrement())
-  name                 String
-  physician_speciality physician_speciality[]
-  created_at           DateTime               @default(now())
-  updated_at           DateTime               @updatedAt
-  deleted              Boolean                @default(false)
-  deleted_at           DateTime?
-}
-
 model background {
   id                        String   @id @default(uuid())
   patient_id                String
@@ -341,22 +331,6 @@ model background {
 
   patient user   @relation(fields: [patient_id], references: [id])
   tenant  tenant @relation(fields: [tenant_id], references: [id])
-}
-
-model category_cie_diez {
-  id                     Int                      @id @default(autoincrement())
-  code                   String
-  description            String
-  subcategories_cie_diez subcategories_cie_diez[]
-}
-
-model subcategories_cie_diez {
-  id                        Int                         @id @default(autoincrement())
-  code                      String
-  description               String
-  categoryId                Int
-  category_cie_diez         category_cie_diez           @relation(fields: [categoryId], references: [id])
-  subcategory_medical_event subcategory_medical_event[]
 }
 
 model subcategory_medical_event {
@@ -402,6 +376,95 @@ model pres_mod_history {
   duration_units   String
 }
 
+model self_evaluation_event {
+  id               String        @id @default(uuid())
+  patient_id       String
+  patient          user          @relation(fields: [patient_id], references: [id])
+  medical_event_id String
+  medical_event    medical_event @relation(fields: [medical_event_id], references: [id])
+  tenant_id        String
+  tenant           tenant        @relation(fields: [tenant_id], references: [id])
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  vital_signs      vital_signs[]
+}
+
+model vital_signs {
+  id                       String                 @id @default(uuid())
+  patient_id               String
+  patient                  user                   @relation(fields: [patient_id], references: [id])
+  medical_event_id         String?
+  medical_event            medical_event?         @relation(fields: [medical_event_id], references: [id])
+  self_evaluation_event_id String?
+  self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id])
+  vital_sign_id            Int
+  vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id])
+  measure                  Int
+  tenant_id                String
+  tenant                   tenant                 @relation(fields: [tenant_id], references: [id])
+  created_at               DateTime               @default(now())
+  updated_at               DateTime               @updatedAt
+  deleted                  Boolean                @default(false)
+  deleted_at               DateTime?
+}
+
+//!Catalogs
+
+model cat_physical_subsystem {
+  id                    Int                    @id @default(autoincrement())
+  name                  String
+  physical_examinations physical_examination[]
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+  deleted               Boolean                @default(false)
+  deleted_at            DateTime?
+}
+
+model cat_speciality {
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  physician_speciality physician_speciality[]
+  created_at           DateTime               @default(now())
+  updated_at           DateTime               @updatedAt
+  deleted              Boolean                @default(false)
+  deleted_at           DateTime?
+  cat_vital_signs      cat_vital_signs[]      @relation("SpecialityVitalSigns")
+}
+
+model category_cie_diez {
+  id                     Int                      @id @default(autoincrement())
+  code                   String
+  description            String
+  subcategories_cie_diez subcategories_cie_diez[]
+}
+
+model subcategories_cie_diez {
+  id                        Int                         @id @default(autoincrement())
+  code                      String
+  description               String
+  categoryId                Int
+  category_cie_diez         category_cie_diez           @relation(fields: [categoryId], references: [id])
+  subcategory_medical_event subcategory_medical_event[]
+}
+
+model cat_vital_signs {
+  id                     Int                @id @default(autoincrement())
+  name                   String
+  category               String
+  vital_signs            vital_signs[]
+  cat_vital_sign_measure cat_measure_unit[]
+
+  specialties cat_speciality[] @relation("SpecialityVitalSigns")
+}
+
+model cat_measure_unit {
+  id                 Int             @id @default(autoincrement())
+  name               String
+  description        String
+  cat_vital_signs_id Int
+  cat_vital_signs    cat_vital_signs @relation(fields: [cat_vital_signs_id], references: [id])
+}
+
 //!Types
 
 enum role_type {
@@ -425,4 +488,56 @@ enum gender {
   masculino
   femenino
   otro
+}
+
+model role {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  is_system   Boolean   @default(false)
+  tenant_id   String?
+  tenant      tenant?   @relation(fields: [tenant_id], references: [id])
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted     Boolean   @default(false)
+  deleted_at  DateTime?
+
+  users       user_role[]
+  permissions role_permission[]
+}
+
+model permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  roles role_permission[]
+}
+
+model role_permission {
+  id            String   @id @default(uuid())
+  role_id       String
+  permission_id String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  role       role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
+}
+
+model user_role {
+  id         String   @id @default(uuid())
+  user_id    String
+  role_id    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, role_id])
 }

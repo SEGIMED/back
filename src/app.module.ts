@@ -27,11 +27,16 @@ import { MedicineModule } from './medical-scheduling/modules/medicine/medicine.m
 import { PrescriptionModule } from './medical-scheduling/modules/prescription/prescription.module';
 import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_history/pres_mod_history.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
+import { TenantExtractorMiddleware } from './auth/middlewares/tenant-extractor.middleware';
+import { CatVitalSignsModule } from './catalogs/cat-vital-signs/cat-vital-signs.module';
+import { CatMeasureUnitModule } from './catalogs/cat-measure-unit/cat-measure-unit.module';
+import { GuardAuthModule } from './auth/guard-auth.module';
 
 config({ path: '.env' });
 
 @Module({
   imports: [
+    GuardAuthModule,
     AppointmentsModule,
     MedicalEventsModule,
     UserModule,
@@ -62,6 +67,8 @@ config({ path: '.env' });
     PhysicalExplorationAreaModule,
     CatCieDiezModule,
     SubcatCieDiezModule,
+    CatVitalSignsModule,
+    CatMeasureUnitModule,
   ],
   controllers: [AppController],
   providers: [
@@ -86,5 +93,9 @@ export class AppModule {
         { path: 'user/onboarding', method: RequestMethod.POST },
       )
       .forRoutes('*');
+
+    consumer
+      .apply(TenantExtractorMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
