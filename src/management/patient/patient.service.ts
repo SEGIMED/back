@@ -9,6 +9,7 @@ import {
   PaginationParams,
   parsePaginationAndSorting,
 } from 'src/utils/pagination.helper';
+import { UserRoleManagerService } from '../../auth/roles/user-role-manager.service';
 /* import { MedicalPatientDto } from './dto/medical-patient.dto';
  */
 @Injectable()
@@ -16,6 +17,7 @@ export class PatientService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly userRoleManager: UserRoleManagerService,
   ) {}
 
   async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
@@ -35,7 +37,11 @@ export class PatientService {
           },
         },
       });
+
       if (
+        existingUserWithSameTenant &&
+        existingUserWithSameTenant.patient &&
+        existingUserWithSameTenant.patient.patient_tenant &&
         existingUserWithSameTenant.patient.patient_tenant.includes(
           global.tenant_id,
         )
@@ -45,7 +51,9 @@ export class PatientService {
         );
       }
 
-      return await this.prisma.$transaction(async (transaction) => {
+      let newUserId: string;
+
+      await this.prisma.$transaction(async (transaction) => {
         const newUser = await transaction.user.create({
           data: {
             ...user,
@@ -53,6 +61,8 @@ export class PatientService {
             password: newPassword,
           },
         });
+
+        newUserId = newUser.id;
 
         const newPatient = await transaction.patient.create({
           data: {
@@ -73,9 +83,16 @@ export class PatientService {
           sendCredentialsHtml(user.email, newPassword),
           'Credenciales Segimed',
         );
-
-        return { message: 'Paciente creado exitosamente' };
       });
+
+      // Asignar rol de paciente al usuario
+      await this.userRoleManager.assignDefaultRoleToUser(
+        newUserId,
+        'patient',
+        global.tenant_id,
+      );
+
+      return { message: 'Paciente creado exitosamente' };
     } catch (error) {
       throw new BadRequestException(
         'Error al crear el paciente: ' + error.message,

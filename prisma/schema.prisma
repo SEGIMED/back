@@ -242,12 +242,6 @@ model patient_study {
   @@map("patient_studies")
 }
 
-model cat_study_type {
-  id              Int             @id @default(autoincrement())
-  name            String
-  patient_studies patient_study[]
-}
-
 model password_reset {
   id         String    @id @default(uuid())
   token      String    @unique
@@ -464,6 +458,12 @@ model cat_measure_unit {
   description        String
   cat_vital_signs_id Int
   cat_vital_signs    cat_vital_signs @relation(fields: [cat_vital_signs_id], references: [id])
+}
+
+model cat_study_type {
+  id              Int             @id @default(autoincrement())
+  name            String
+  patient_studies patient_study[]
 }
 
 //!Types

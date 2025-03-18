@@ -3,10 +3,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { OnboardingDto } from './dto/onboarding-user.dto';
+import { UserRoleManagerService } from '../../auth/roles/user-role-manager.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userRoleManager: UserRoleManagerService,
+  ) {}
 
   async onboarding(onboardingDto: OnboardingDto): Promise<object> {
     try {
@@ -20,12 +24,16 @@ export class UserService {
         throw new BadRequestException('El usuario no existe');
       }
 
+      let tenantId: string;
+
       await this.prisma.$transaction(async (transaction) => {
         const newTenant = await transaction.tenant.create({
           data: {
             type: onboardingDto.type,
           },
         });
+
+        tenantId = newTenant.id;
 
         const existingPhysician = await transaction.physician.findFirst({
           where: { user_id },
@@ -74,6 +82,13 @@ export class UserService {
           },
         });
       });
+
+      // Asignar rol de Admin al médico
+      await this.userRoleManager.assignDefaultRoleToUser(
+        user_id,
+        'physician',
+        tenantId,
+      );
 
       return { message: 'Onboarding completo.' };
     } catch (error) {

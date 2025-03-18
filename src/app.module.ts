@@ -34,6 +34,7 @@ import { CatMeasureUnitModule } from './catalogs/cat-measure-unit/cat-measure-un
 import { GuardAuthModule } from './auth/guard-auth.module';
 import { VitalSignsModule } from './medical-scheduling/modules/vital-signs/vital-signs.module';
 import { MobileFunctionsModule } from './mobile-functions/mobile-functions.module';
+import { CatalogSeedModule } from './catalogs/seed/catalog-seed.module';
 
 config({ path: '.env' });
 
@@ -52,6 +53,11 @@ config({ path: '.env' });
     AuthModule,
     FileUploadModule,
     CatStudyTypeModule,
+    CatCieDiezModule,
+    SubcatCieDiezModule,
+    CatVitalSignsModule,
+    CatMeasureUnitModule,
+    CatalogSeedModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       global: true,
@@ -68,10 +74,6 @@ config({ path: '.env' });
     BackgroundModule,
     PhysicalExplorationModule,
     PhysicalExplorationAreaModule,
-    CatCieDiezModule,
-    SubcatCieDiezModule,
-    CatVitalSignsModule,
-    CatMeasureUnitModule,
     VitalSignsModule,
     MobileFunctionsModule,
   ],
