@@ -23,7 +23,7 @@ export class PatientService {
   async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
     try {
       const { patient, user } = medicalPatientDto;
-
+      console.log(global.tenant_id);
       const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
       const existingUserWithSameTenant = await this.prisma.user.findFirst({
         where: {

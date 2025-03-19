@@ -63,9 +63,6 @@ export class BaseUserDto {
   @IsString({ message: 'El rol debe ser un texto válido.' })
   @IsOptional()
   role: role_type;
-
-  @IsOptional()
-  tenant_id: string;
 }
 
 export class CreateUserDto extends BaseUserDto {

@@ -24,6 +24,7 @@ export class TenantMiddleware implements NestMiddleware {
       try {
         payload = AuthHelper.verifyToken(token);
       } catch (error) {
+        console.log(error);
         throw new UnauthorizedException(`Invalid token: ${error.message}`);
       }
 
