@@ -132,9 +132,8 @@ export class PatientService {
         throw new BadRequestException('No se ha especificado un tenant válido');
       }
 
-      // Construir filtro de búsqueda basado en el searchQuery
       let searchFilter: Prisma.patientWhereInput = {};
-
+      console.log('searchQuery', searchQuery);
       if (searchQuery) {
         searchFilter = {
           OR: [
@@ -155,7 +154,6 @@ export class PatientService {
         };
       }
 
-      // Consultar directamente a la tabla patient con sus relaciones
       const patients = await this.prisma.patient.findMany({
         where: {
           patient_tenant: {
@@ -187,7 +185,6 @@ export class PatientService {
         throw new NotFoundException('No hay pacientes que mostrar.');
       }
 
-      // Mapear los resultados al DTO esperado
       return patients.map((patient) => {
         const user = patient.user;
         return {
