@@ -8,6 +8,8 @@ export class GetPatientsDto {
   email: string;
   phone: string;
   prefix: string;
+  dni: string;
+  health_care_number: string;
 }
 
 export class GetPatientDto {

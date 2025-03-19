@@ -57,6 +57,18 @@ src/app.controller.spec.ts
 src/app.controller.ts
 src/app.module.ts
 src/app.service.ts
+src/auth/controllers/roles.controller.ts
+src/auth/decorators/require-permission.decorator.ts
+src/auth/guard-auth.module.ts
+src/auth/guards/permission.guard.ts
+src/auth/guards/superadmin.guard.ts
+src/auth/guards/tenant-access.guard.ts
+src/auth/guards/tenant-admin.guard.ts
+src/auth/middlewares/tenant-extractor.middleware.ts
+src/auth/permissions/permission-checker.service.ts
+src/auth/permissions/permission.enum.ts
+src/auth/permissions/permissions.service.ts
+src/auth/roles/roles.service.ts
 src/catalogs/cat-cie-diez/cat-cie-diez.controller.spec.ts
 src/catalogs/cat-cie-diez/cat-cie-diez.controller.ts
 src/catalogs/cat-cie-diez/cat-cie-diez.module.ts
@@ -65,10 +77,20 @@ src/catalogs/cat-cie-diez/cat-cie-diez.service.ts
 src/catalogs/cat-cie-diez/dto/create-cat-cie-diez.dto.ts
 src/catalogs/cat-cie-diez/dto/update-cat-cie-diez.dto.ts
 src/catalogs/cat-cie-diez/entities/cat-cie-diez.entity.ts
+src/catalogs/cat-measure-unit/cat-measure-unit.controller.ts
+src/catalogs/cat-measure-unit/cat-measure-unit.interface.ts
+src/catalogs/cat-measure-unit/cat-measure-unit.module.ts
+src/catalogs/cat-measure-unit/cat-measure-unit.service.ts
+src/catalogs/cat-measure-unit/dto/create-cat-measure-unit.dto.ts
 src/catalogs/cat-study-type/cat-study-type.controller.ts
 src/catalogs/cat-study-type/cat-study-type.interface.ts
 src/catalogs/cat-study-type/cat-study-type.module.ts
 src/catalogs/cat-study-type/cat-study-type.service.ts
+src/catalogs/cat-vital-signs/cat-vital-signs.controller.ts
+src/catalogs/cat-vital-signs/cat-vital-signs.interface.ts
+src/catalogs/cat-vital-signs/cat-vital-signs.module.ts
+src/catalogs/cat-vital-signs/cat-vital-signs.service.ts
+src/catalogs/cat-vital-signs/dto/create-cat-vital-signs.dto.ts
 src/catalogs/subcat-cie-diez/dto/create-subcat-cie-diez.dto.ts
 src/catalogs/subcat-cie-diez/dto/update-subcat-cie-diez.dto.ts
 src/catalogs/subcat-cie-diez/entities/subcat-cie-diez.entity.ts
@@ -141,6 +163,7 @@ src/medical-scheduling/modules/physical-exploration-data/physical-exploration-ar
 src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.module.ts
 src/medical-scheduling/modules/physical-exploration-data/physical-exploration-area/physical-exploration-area.service.ts
 src/medical-scheduling/modules/physical-exploration-data/physical-exploration/dto/create-physical-exploration.dto.ts
+src/medical-scheduling/modules/physical-exploration-data/physical-exploration/dto/update-physical-exploration.dto.ts
 src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.controller.ts
 src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.module.ts
 src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.service.ts
@@ -156,6 +179,17 @@ src/medical-scheduling/modules/prescription/entities/prescription.entity.ts
 src/medical-scheduling/modules/prescription/prescription.controller.ts
 src/medical-scheduling/modules/prescription/prescription.module.ts
 src/medical-scheduling/modules/prescription/prescription.service.ts
+src/medical-scheduling/modules/vital-signs/dto/create-vital-sign.dto.ts
+src/medical-scheduling/modules/vital-signs/dto/find-vital-signs.dto.ts
+src/medical-scheduling/modules/vital-signs/dto/update-vital-sign.dto.ts
+src/medical-scheduling/modules/vital-signs/vital-signs.controller.ts
+src/medical-scheduling/modules/vital-signs/vital-signs.module.ts
+src/medical-scheduling/modules/vital-signs/vital-signs.service.ts
+src/mobile-functions/mobile-functions.module.ts
+src/mobile-functions/self-evaluation-event/dto/create-self-evaluation-event.dto.ts
+src/mobile-functions/self-evaluation-event/self-evaluation-event.controller.ts
+src/mobile-functions/self-evaluation-event/self-evaluation-event.module.ts
+src/mobile-functions/self-evaluation-event/self-evaluation-event.service.ts
 src/prisma/prisma.module.ts
 src/prisma/prisma.service.ts
 src/services/email/email.module.ts
@@ -483,6 +517,9 @@ model tenant {
   transaction            transaction[]
   background             background[]
   physical_exploration   physical_exploration[]
+  vital_signs            vital_signs[]
+  self_evaluation_event  self_evaluation_event[]
+  role                   role[]
 }
 
 model user {
@@ -492,6 +529,7 @@ model user {
   email                 String                 @unique
   password              String?
   role                  role_type              @default(physician)
+  is_superadmin         Boolean                @default(false)
   nationality           String?
   gender                String?
   dni                   String?                @unique
@@ -509,7 +547,7 @@ model user {
 
   tenant_id String?
   patient   patient?
-  tenant    tenant?  @relation(fields: [tenant_id], references: [id])
+  tenant    tenant?  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
   physicianAppointment appointment[]      @relation(name: "physician")
   patientAppointments  appointment[]      @relation(name: "patient")
@@ -518,8 +556,13 @@ model user {
   pres_mod_history     pres_mod_history[]
   background           background[]
 
-  physical_exploration_patients   physical_exploration[] @relation(name: "patients")
-  physical_exploration_physicians physical_exploration[] @relation(name: "physicians")
+  self_evaluation_event self_evaluation_event[]
+  vital_signs           vital_signs[]
+
+  roles user_role[]
+
+  physical_exploration_physician physical_exploration[] @relation("physician")
+  physical_exploration_patient   physical_exploration[] @relation("patient")
 }
 
 model organization {
@@ -535,7 +578,7 @@ model organization {
   deleted_at          DateTime?
 
   tenant_id              String?
-  tenant                 tenant?                  @relation(fields: [tenant_id], references: [id])
+  tenant                 tenant?                  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   organization_physician organization_physician[]
 }
 
@@ -547,10 +590,10 @@ model organization_physician {
   updated_at      DateTime     @updatedAt
   deleted         Boolean      @default(false)
   deleted_at      DateTime?
-  organization    organization @relation(fields: [organization_id], references: [id])
-  physician       physician    @relation(fields: [physician_id], references: [id])
+  organization    organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  physician       physician    @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   tenant_id       String
-  tenant          tenant?      @relation(fields: [tenant_id], references: [id])
+  tenant          tenant?      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model patient {
@@ -569,7 +612,7 @@ model patient {
   deleted            Boolean   @default(false)
   deleted_at         DateTime?
   user_id            String    @unique
-  user               user      @relation(fields: [user_id], references: [id])
+  user               user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   medical_event  medical_event[]
   patient_tenant patient_tenant[]
@@ -578,11 +621,11 @@ model patient {
 model patient_tenant {
   id         String    @id @default(uuid())
   patient_id String
-  patient    patient   @relation(fields: [patient_id], references: [id])
+  patient    patient   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   tenant_id  String
-  tenant     tenant    @relation(fields: [tenant_id], references: [id])
+  tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  updated_at DateTime  @default(now())
   deleted    Boolean   @default(false)
   deleted_at DateTime?
 
@@ -592,9 +635,9 @@ model patient_tenant {
 model physician {
   id               String    @id @default(uuid())
   user_id          String
-  user             user      @relation(fields: [user_id], references: [id])
+  user             user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   tenant_id        String?
-  tenant           tenant?   @relation(fields: [tenant_id], references: [id])
+  tenant           tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   medical_registry String?
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
@@ -625,8 +668,7 @@ model appointment {
   medical_events      medical_event[]
 
   tenant_id String
-  tenant    tenant? @relation(fields: [tenantId], references: [id])
-  tenantId  String?
+  tenant    tenant? @relation(fields: [tenant_id], references: [id])
 }
 
 model medical_event {
@@ -643,17 +685,18 @@ model medical_event {
   updated_at           DateTime               @updatedAt
   deleted              Boolean                @default(false)
   deleted_at           DateTime?
-  appointment          appointment            @relation(fields: [appointment_id], references: [id])
+  appointment          appointment            @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
   patient              patient                @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physician            physician              @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   physical_examination physical_examination[]
   physical_exploration physical_exploration[]
 
   tenant_id                 String
-  tenant                    tenant?                     @relation(fields: [tenantId], references: [id])
-  tenantId                  String?
+  tenant                    tenant?                     @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   pres_mod_history          pres_mod_history[]
   subcategory_medical_event subcategory_medical_event[]
+  self_evaluation_event     self_evaluation_event[]
+  vital_signs               vital_signs[]
 }
 
 model transaction {
@@ -667,10 +710,10 @@ model transaction {
   updated_at DateTime  @updatedAt
   deleted    Boolean   @default(false)
   deleted_at DateTime?
-  user       user      @relation(fields: [userId], references: [id])
+  user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   tenant_id String
-  tenant    tenant? @relation(fields: [tenant_id], references: [id])
+  tenant    tenant? @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model patient_study {
@@ -685,7 +728,7 @@ model patient_study {
   is_deleted        Boolean        @default(false)
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id])
+  cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id], onDelete: Cascade)
 
   @@map("patient_studies")
 }
@@ -716,8 +759,8 @@ model physical_examination {
   updated_at            DateTime                @updatedAt
   deleted               Boolean                 @default(false)
   deleted_at            DateTime?
-  medical_event         medical_event           @relation(fields: [medical_event_id], references: [id])
-  user                  user                    @relation(fields: [patient_id], references: [id])
+  medical_event         medical_event           @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  user                  user                    @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   physical_subsystem    cat_physical_subsystem? @relation(fields: [physical_subsystem_id], references: [id])
 }
 
@@ -730,11 +773,11 @@ model physical_exploration {
   physical_exploration_area_id Int
   tenant_id                    String
 
-  patient                   user                      @relation(fields: [patient_id], references: [id], name: "patients")
-  physician                 user                      @relation(fields: [physician_id], references: [id], name: "physicians")
-  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id])
+  patient                   user                      @relation("patient", fields: [patient_id], references: [id], onDelete: Cascade)
+  physician                 user                      @relation("physician", fields: [physician_id], references: [id], onDelete: Cascade)
+  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
-  tenant                    tenant                    @relation(fields: [tenant_id], references: [id])
+  tenant                    tenant                    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model physical_exploration_area {
@@ -753,8 +796,8 @@ model physician_speciality {
   updated_at    DateTime       @updatedAt
   deleted       Boolean        @default(false)
   deleted_at    DateTime?
-  physician     physician      @relation(fields: [physician_id], references: [id])
-  speciality    cat_speciality @relation(fields: [speciality_id], references: [id])
+  physician     physician      @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  speciality    cat_speciality @relation(fields: [speciality_id], references: [id], onDelete: Cascade)
 }
 
 model otp_code {
@@ -762,6 +805,102 @@ model otp_code {
   code            String
   code_expires_at DateTime?
 }
+
+model background {
+  id                        String   @id @default(uuid())
+  patient_id                String
+  vaccinations              String
+  allergies                 String
+  pathological_history      String
+  family_medical_history    String
+  non_pathological_history  String
+  surgical_history          String
+  childhood_medical_history String
+  current_medication        String
+  tenant_id                 String
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+
+  patient user   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  tenant  tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+}
+
+model subcategory_medical_event {
+  id                     String                 @id @default(uuid())
+  subCategoryId          Int
+  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
+  medical_eventId        String
+  medical_event          medical_event          @relation(fields: [medical_eventId], references: [id], onDelete: Cascade)
+
+  @@unique([subCategoryId, medical_eventId])
+}
+
+model prescription {
+  id               String             @id @default(uuid())
+  start_timestamp  DateTime           @default(now())
+  end_timestamp    DateTime?
+  description      String?
+  active           Boolean            @default(true)
+  patient_id       String?
+  user             user?              @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  monodrug         String
+  tenant_id        String?
+  tenant           tenant?            @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  pres_mod_history pres_mod_history[]
+}
+
+model pres_mod_history {
+  id               String         @id @default(uuid())
+  prescription_id  String
+  prescription     prescription?  @relation(fields: [prescription_id], references: [id], onDelete: Cascade)
+  physician_id     String?
+  physician        user?          @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  mod_timestamp    DateTime       @default(now())
+  medical_event_id String?
+  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  // medical_order_id      String?
+  // medical_order         medical_order         @relation(fields: [medical_order_id], references: [id])
+  observations     String?
+  dose             String
+  dose_units       String
+  frecuency        String
+  duration         String
+  duration_units   String
+}
+
+model self_evaluation_event {
+  id               String        @id @default(uuid())
+  patient_id       String
+  patient          user          @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  medical_event_id String
+  medical_event    medical_event @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  tenant_id        String
+  tenant           tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  vital_signs      vital_signs[]
+}
+
+model vital_signs {
+  id                       String                 @id @default(uuid())
+  patient_id               String
+  patient                  user                   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  medical_event_id         String?
+  medical_event            medical_event?         @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  self_evaluation_event_id String?
+  self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id], onDelete: Cascade)
+  vital_sign_id            Int
+  vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id], onDelete: Cascade)
+  measure                  Int
+  tenant_id                String
+  tenant                   tenant?                @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  created_at               DateTime               @default(now())
+  updated_at               DateTime               @updatedAt
+  deleted                  Boolean                @default(false)
+  deleted_at               DateTime?
+}
+
+//!Catalogs
 
 model cat_physical_subsystem {
   id                    Int                    @id @default(autoincrement())
@@ -781,25 +920,7 @@ model cat_speciality {
   updated_at           DateTime               @updatedAt
   deleted              Boolean                @default(false)
   deleted_at           DateTime?
-}
-
-model background {
-  id                        String   @id @default(uuid())
-  patient_id                String
-  vaccinations              String
-  allergies                 String
-  pathological_history      String
-  family_medical_history    String
-  non_pathological_history  String
-  surgical_history          String
-  childhood_medical_history String
-  current_medication        String
-  tenant_id                 String
-  created_at                DateTime @default(now())
-  updated_at                DateTime @updatedAt
-
-  patient user   @relation(fields: [patient_id], references: [id])
-  tenant  tenant @relation(fields: [tenant_id], references: [id])
+  cat_vital_signs      cat_vital_signs[]      @relation("SpecialityVitalSigns")
 }
 
 model category_cie_diez {
@@ -818,47 +939,22 @@ model subcategories_cie_diez {
   subcategory_medical_event subcategory_medical_event[]
 }
 
-model subcategory_medical_event {
-  id                     String                 @id @default(uuid())
-  subCategoryId          Int
-  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id])
-  medical_eventId        String
-  medical_event          medical_event          @relation(fields: [medical_eventId], references: [id])
+model cat_vital_signs {
+  id                     Int                @id @default(autoincrement())
+  name                   String
+  category               String
+  vital_signs            vital_signs[]
+  cat_vital_sign_measure cat_measure_unit[]
 
-  @@unique([subCategoryId, medical_eventId])
+  specialties cat_speciality[] @relation("SpecialityVitalSigns")
 }
 
-model prescription {
-  id               String             @id @default(uuid())
-  start_timestamp  DateTime           @default(now())
-  end_timestamp    DateTime?
-  description      String?
-  active           Boolean            @default(true)
-  patient_id       String?
-  user             user?              @relation(fields: [patient_id], references: [id])
-  monodrug         String
-  tenat_id         String?
-  tenant           tenant?            @relation(fields: [tenat_id], references: [id])
-  pres_mod_history pres_mod_history[]
-}
-
-model pres_mod_history {
-  id               String         @id @default(uuid())
-  prescription_id  String
-  prescription     prescription?  @relation(fields: [prescription_id], references: [id])
-  physician_id     String?
-  physician        user?          @relation(fields: [physician_id], references: [id])
-  mod_timestamp    DateTime       @default(now())
-  medical_event_id String?
-  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id])
-  // medical_order_id      String?
-  // medical_order         medical_order         @relation(fields: [medical_order_id], references: [id])
-  observations     String?
-  dose             String
-  dose_units       String
-  frecuency        String
-  duration         String
-  duration_units   String
+model cat_measure_unit {
+  id                 Int             @id @default(autoincrement())
+  name               String
+  description        String
+  cat_vital_signs_id Int
+  cat_vital_signs    cat_vital_signs @relation(fields: [cat_vital_signs_id], references: [id])
 }
 
 //!Types
@@ -884,6 +980,58 @@ enum gender {
   masculino
   femenino
   otro
+}
+
+model role {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  is_system   Boolean   @default(false)
+  tenant_id   String?
+  tenant      tenant?   @relation(fields: [tenant_id], references: [id])
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted     Boolean   @default(false)
+  deleted_at  DateTime?
+
+  users       user_role[]
+  permissions role_permission[]
+}
+
+model permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  roles role_permission[]
+}
+
+model role_permission {
+  id            String   @id @default(uuid())
+  role_id       String
+  permission_id String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  role       role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
+}
+
+model user_role {
+  id         String   @id @default(uuid())
+  user_id    String
+  role_id    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role role @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, role_id])
 }
 
 ================
@@ -955,11 +1103,18 @@ import { MedicineModule } from './medical-scheduling/modules/medicine/medicine.m
 import { PrescriptionModule } from './medical-scheduling/modules/prescription/prescription.module';
 import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_history/pres_mod_history.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
+import { TenantExtractorMiddleware } from './auth/middlewares/tenant-extractor.middleware';
+import { CatVitalSignsModule } from './catalogs/cat-vital-signs/cat-vital-signs.module';
+import { CatMeasureUnitModule } from './catalogs/cat-measure-unit/cat-measure-unit.module';
+import { GuardAuthModule } from './auth/guard-auth.module';
+import { VitalSignsModule } from './medical-scheduling/modules/vital-signs/vital-signs.module';
+import { MobileFunctionsModule } from './mobile-functions/mobile-functions.module';
 
 config({ path: '.env' });
 
 @Module({
   imports: [
+    GuardAuthModule,
     AppointmentsModule,
     MedicalEventsModule,
     UserModule,
@@ -976,7 +1131,7 @@ config({ path: '.env' });
       secret: process.env.JWT_SECRET,
       global: true,
       signOptions: {
-        expiresIn: '1h',
+        expiresIn: '7h',
       },
     }),
     PatientModule,
@@ -990,6 +1145,10 @@ config({ path: '.env' });
     PhysicalExplorationAreaModule,
     CatCieDiezModule,
     SubcatCieDiezModule,
+    CatVitalSignsModule,
+    CatMeasureUnitModule,
+    VitalSignsModule,
+    MobileFunctionsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -1000,7 +1159,7 @@ config({ path: '.env' });
   ],
 })
 export class AppModule {
-  /*   configure(consumer: MiddlewareConsumer) {
+  configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(TenantMiddleware)
       .exclude(
@@ -1014,7 +1173,11 @@ export class AppModule {
         { path: 'user/onboarding', method: RequestMethod.POST },
       )
       .forRoutes('*');
-  } */
+
+    consumer
+      .apply(TenantExtractorMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
 }
 
 ================
@@ -1026,6 +1189,1270 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getHello(): string {
     return 'Hello World!';
+  }
+}
+
+================
+File: src/auth/controllers/roles.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  UseGuards,
+  BadRequestException,
+  NotFoundException,
+  Query,
+} from '@nestjs/common';
+import { RolesService } from '../roles/roles.service';
+import { PermissionsService } from '../permissions/permissions.service';
+import { RequirePermission } from '../decorators/require-permission.decorator';
+import { Permission } from '../permissions/permission.enum';
+import { PermissionGuard } from '../guards/permission.guard';
+import { TenantAccessGuard } from '../guards/tenant-access.guard';
+import { TenantAdminGuard } from '../guards/tenant-admin.guard';
+import { SuperAdminGuard } from '../guards/superadmin.guard';
+
+interface CreateRoleDto {
+  name: string;
+  description?: string;
+  permissions: string[];
+  tenantId?: string;
+}
+
+interface UpdateRoleDto {
+  name?: string;
+  description?: string;
+  permissions?: string[];
+}
+
+interface AssignRoleDto {
+  userId: string;
+  roleId: string;
+}
+
+@Controller('roles')
+@UseGuards(PermissionGuard)
+export class RolesController {
+  constructor(
+    private readonly rolesService: RolesService,
+    private readonly permissionsService: PermissionsService,
+  ) {}
+
+  @Get('permissions')
+  @UseGuards(TenantAccessGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async getAllPermissions() {
+    return this.permissionsService.getAllPermissions();
+  }
+
+  @Get()
+  @UseGuards(TenantAccessGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async getRoles(@Query('tenantId') tenantId?: string) {
+    return this.rolesService.getRoles(tenantId);
+  }
+
+  @Get(':id')
+  @UseGuards(TenantAccessGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async getRoleById(@Param('id') id: string) {
+    try {
+      return await this.rolesService.getRoleById(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener el rol: ${error.message}`,
+      );
+    }
+  }
+
+  @Post()
+  @UseGuards(TenantAdminGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async createRole(@Body() createRoleDto: CreateRoleDto) {
+    try {
+      return await this.rolesService.createRole(createRoleDto);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al crear el rol: ${error.message}`);
+    }
+  }
+
+  @Put(':id')
+  @UseGuards(TenantAdminGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async updateRole(
+    @Param('id') id: string,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
+    try {
+      return await this.rolesService.updateRole(id, updateRoleDto);
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al actualizar el rol: ${error.message}`,
+      );
+    }
+  }
+
+  @Delete(':id')
+  @UseGuards(TenantAdminGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async deleteRole(@Param('id') id: string) {
+    try {
+      return await this.rolesService.deleteRole(id);
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al eliminar el rol: ${error.message}`,
+      );
+    }
+  }
+
+  @Post('assign')
+  @UseGuards(TenantAdminGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async assignRoleToUser(@Body() assignRoleDto: AssignRoleDto) {
+    try {
+      return await this.rolesService.assignRoleToUser(
+        assignRoleDto.userId,
+        assignRoleDto.roleId,
+      );
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al asignar rol al usuario: ${error.message}`,
+      );
+    }
+  }
+
+  @Delete('assign')
+  @UseGuards(TenantAdminGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async removeRoleFromUser(@Body() assignRoleDto: AssignRoleDto) {
+    try {
+      return await this.rolesService.removeRoleFromUser(
+        assignRoleDto.userId,
+        assignRoleDto.roleId,
+      );
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al eliminar rol del usuario: ${error.message}`,
+      );
+    }
+  }
+
+  @Get('user/:userId')
+  @UseGuards(TenantAccessGuard)
+  @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
+  async getUserRoles(@Param('userId') userId: string) {
+    try {
+      return await this.rolesService.getUserRoles(userId);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener roles del usuario: ${error.message}`,
+      );
+    }
+  }
+
+  @Post('seed')
+  @UseGuards(SuperAdminGuard)
+  async seedRolesAndPermissions() {
+    try {
+      // Primero crear los permisos
+      await this.permissionsService.seedPermissions();
+
+      // Luego crear los roles por defecto
+      return await this.rolesService.seedDefaultRoles();
+    } catch (error) {
+      throw new BadRequestException(
+        `Error al crear roles y permisos por defecto: ${error.message}`,
+      );
+    }
+  }
+}
+
+================
+File: src/auth/decorators/require-permission.decorator.ts
+================
+import { SetMetadata } from '@nestjs/common';
+import { Permission } from '../permissions/permission.enum';
+
+export const PERMISSION_KEY = 'permission';
+
+export const RequirePermission = (permission: Permission) =>
+  SetMetadata(PERMISSION_KEY, permission);
+
+================
+File: src/auth/guard-auth.module.ts
+================
+import { Module } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { PermissionsService } from './permissions/permissions.service';
+import { RolesService } from './roles/roles.service';
+import { PermissionCheckerService } from './permissions/permission-checker.service';
+import { PermissionGuard } from './guards/permission.guard';
+import { TenantAccessGuard } from './guards/tenant-access.guard';
+import { TenantAdminGuard } from './guards/tenant-admin.guard';
+import { SuperAdminGuard } from './guards/superadmin.guard';
+import { RolesController } from './controllers/roles.controller';
+
+@Module({
+  controllers: [RolesController],
+  providers: [
+    PrismaService,
+    PermissionsService,
+    RolesService,
+    PermissionCheckerService,
+    PermissionGuard,
+    TenantAccessGuard,
+    TenantAdminGuard,
+    SuperAdminGuard,
+  ],
+  exports: [
+    PermissionsService,
+    RolesService,
+    PermissionCheckerService,
+    PermissionGuard,
+    TenantAccessGuard,
+    TenantAdminGuard,
+    SuperAdminGuard,
+  ],
+})
+export class GuardAuthModule {}
+
+================
+File: src/auth/guards/permission.guard.ts
+================
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { PermissionCheckerService } from '../permissions/permission-checker.service';
+import { PERMISSION_KEY } from '../decorators/require-permission.decorator';
+
+@Injectable()
+export class PermissionGuard implements CanActivate {
+  constructor(
+    private reflector: Reflector,
+    private permissionChecker: PermissionCheckerService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const requiredPermission = this.reflector.getAllAndOverride<string>(
+      PERMISSION_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    // Si no se requiere permiso específico, permitir acceso
+    if (!requiredPermission) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest();
+    const userId = request.user?.id;
+    const tenantId = request.tenant?.id;
+
+    // Si no hay usuario autenticado, denegar acceso
+    if (!userId) {
+      throw new ForbiddenException('No autorizado');
+    }
+
+    // Verificar si el usuario tiene el permiso requerido
+    const hasPermission = await this.permissionChecker.hasPermission(
+      userId,
+      requiredPermission,
+      tenantId,
+    );
+
+    if (!hasPermission) {
+      throw new ForbiddenException(`No tiene permiso: ${requiredPermission}`);
+    }
+
+    return true;
+  }
+}
+
+================
+File: src/auth/guards/superadmin.guard.ts
+================
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Injectable()
+export class SuperAdminGuard implements CanActivate {
+  constructor(private prisma: PrismaService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const userId = request.user?.id;
+
+    // Si no hay usuario autenticado, denegar acceso
+    if (!userId) {
+      throw new ForbiddenException('No autorizado');
+    }
+
+    // Verificar si el usuario es superadmin
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { is_superadmin: true },
+    });
+
+    if (!user || !user.is_superadmin) {
+      throw new ForbiddenException(
+        'Se requieren permisos de superadministrador',
+      );
+    }
+
+    return true;
+  }
+}
+
+================
+File: src/auth/guards/tenant-access.guard.ts
+================
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
+import { PermissionCheckerService } from '../permissions/permission-checker.service';
+
+@Injectable()
+export class TenantAccessGuard implements CanActivate {
+  constructor(private permissionChecker: PermissionCheckerService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const userId = request.user?.id;
+    const tenantId = request.tenant?.id;
+
+    // Si no hay usuario autenticado o tenant, denegar acceso
+    if (!userId || !tenantId) {
+      throw new ForbiddenException('No autorizado');
+    }
+
+    // Verificar si el usuario tiene acceso al tenant
+    const hasAccess = await this.permissionChecker.hasAccessToTenant(
+      userId,
+      tenantId,
+    );
+
+    if (!hasAccess) {
+      throw new ForbiddenException('No tiene acceso a esta organización');
+    }
+
+    return true;
+  }
+}
+
+================
+File: src/auth/guards/tenant-admin.guard.ts
+================
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
+import { PermissionCheckerService } from '../permissions/permission-checker.service';
+
+@Injectable()
+export class TenantAdminGuard implements CanActivate {
+  constructor(private permissionChecker: PermissionCheckerService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const userId = request.user?.id;
+    const tenantId = request.tenant?.id;
+
+    // Si no hay usuario autenticado o tenant, denegar acceso
+    if (!userId || !tenantId) {
+      throw new ForbiddenException('No autorizado');
+    }
+
+    // Verificar si el usuario es admin del tenant
+    const isAdmin = await this.permissionChecker.isAdminOfTenant(
+      userId,
+      tenantId,
+    );
+
+    if (!isAdmin) {
+      throw new ForbiddenException('Se requieren permisos de administrador');
+    }
+
+    return true;
+  }
+}
+
+================
+File: src/auth/middlewares/tenant-extractor.middleware.ts
+================
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+import { PrismaService } from '../../prisma/prisma.service';
+
+@Injectable()
+export class TenantExtractorMiddleware implements NestMiddleware {
+  constructor(private prisma: PrismaService) {}
+
+  async use(req: Request, res: Response, next: NextFunction) {
+    // Obtener el tenant ID de los headers, query params o body
+    const tenantId =
+      (req.headers['x-tenant-id'] as string) ||
+      (req.query.tenantId as string) ||
+      (req.body && req.body.tenantId);
+
+    if (tenantId) {
+      try {
+        // Verificar si el tenant existe
+        const tenant = await this.prisma.tenant.findUnique({
+          where: { id: tenantId },
+          select: { id: true, type: true, db_name: true },
+        });
+
+        if (tenant) {
+          // Agregar el tenant al request para que esté disponible en los controladores
+          req['tenant'] = tenant;
+        }
+      } catch (error) {
+        // Si hay un error, simplemente continuar sin tenant
+        console.error('Error al obtener tenant:', error);
+      }
+    }
+
+    next();
+  }
+}
+
+================
+File: src/auth/permissions/permission-checker.service.ts
+================
+import { Injectable, ForbiddenException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { Permission } from './permission.enum';
+
+@Injectable()
+export class PermissionCheckerService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Verifica si un usuario tiene un permiso específico
+   */
+  async hasPermission(
+    userId: string,
+    permissionName: string,
+    tenantId?: string,
+  ): Promise<boolean> {
+    try {
+      // Verificar si el usuario existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new ForbiddenException('Usuario no encontrado');
+      }
+
+      // Si el usuario es superadmin, tiene todos los permisos
+      if (user.is_superadmin) {
+        return true;
+      }
+
+      // Verificar si el usuario tiene el permiso a través de sus roles
+      const userRoles = await this.prisma.user_role.findMany({
+        where: { user_id: userId },
+        include: {
+          role: {
+            include: {
+              permissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Si el usuario no tiene roles, no tiene permisos
+      if (userRoles.length === 0) {
+        return false;
+      }
+
+      // Verificar si alguno de los roles del usuario tiene el permiso solicitado
+      for (const userRole of userRoles) {
+        const role = userRole.role;
+
+        // Si es un rol de sistema, aplica para todos los tenants
+        // Si no es un rol de sistema, verificar que coincida el tenant
+        if (role.is_system || !tenantId || role.tenant_id === tenantId) {
+          // Verificar si el rol tiene el permiso
+          const hasPermission = role.permissions.some(
+            (rp) => rp.permission.name === permissionName,
+          );
+
+          if (hasPermission) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new ForbiddenException('Error al verificar permisos');
+    }
+  }
+
+  /**
+   * Verifica si un usuario tiene acceso a un tenant específico
+   */
+  async hasAccessToTenant(userId: string, tenantId: string): Promise<boolean> {
+    try {
+      // Verificar si el usuario existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new ForbiddenException('Usuario no encontrado');
+      }
+
+      // Si el usuario es superadmin, tiene acceso a todos los tenants
+      if (user.is_superadmin) {
+        return true;
+      }
+
+      // Si el usuario pertenece al tenant, tiene acceso
+      if (user.tenant_id === tenantId) {
+        return true;
+      }
+
+      // Verificar si el usuario tiene roles asociados al tenant
+      const userRoles = await this.prisma.user_role.findMany({
+        where: { user_id: userId },
+        include: {
+          role: true,
+        },
+      });
+
+      // Verificar si alguno de los roles del usuario está asociado al tenant
+      return userRoles.some(
+        (userRole) =>
+          userRole.role.tenant_id === tenantId || userRole.role.is_system,
+      );
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new ForbiddenException('Error al verificar acceso al tenant');
+    }
+  }
+
+  /**
+   * Verifica si un usuario es admin de un tenant específico
+   */
+  async isAdminOfTenant(userId: string, tenantId: string): Promise<boolean> {
+    try {
+      // Verificar si el usuario existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new ForbiddenException('Usuario no encontrado');
+      }
+
+      // Si el usuario es superadmin, es admin de todos los tenants
+      if (user.is_superadmin) {
+        return true;
+      }
+
+      // Verificar si el usuario tiene el rol de Admin en el tenant
+      const userRoles = await this.prisma.user_role.findMany({
+        where: { user_id: userId },
+        include: {
+          role: true,
+        },
+      });
+
+      // Verificar si el usuario tiene el rol de Admin en el tenant
+      return userRoles.some(
+        (userRole) =>
+          userRole.role.name === 'Admin' &&
+          (userRole.role.tenant_id === tenantId || userRole.role.is_system),
+      );
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new ForbiddenException('Error al verificar si es admin del tenant');
+    }
+  }
+
+  /**
+   * Obtiene todos los permisos de un usuario
+   */
+  async getUserPermissions(
+    userId: string,
+    tenantId?: string,
+  ): Promise<string[]> {
+    try {
+      // Verificar si el usuario existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new ForbiddenException('Usuario no encontrado');
+      }
+
+      // Si el usuario es superadmin, tiene todos los permisos
+      if (user.is_superadmin) {
+        return Object.values(Permission);
+      }
+
+      // Obtener roles del usuario
+      const userRoles = await this.prisma.user_role.findMany({
+        where: { user_id: userId },
+        include: {
+          role: {
+            include: {
+              permissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Recopilar permisos únicos de todos los roles aplicables
+      const permissions = new Set<string>();
+
+      for (const userRole of userRoles) {
+        const role = userRole.role;
+
+        // Si es un rol de sistema, aplica para todos los tenants
+        // Si no es un rol de sistema, verificar que coincida el tenant
+        if (role.is_system || !tenantId || role.tenant_id === tenantId) {
+          // Agregar permisos del rol
+          for (const rolePermission of role.permissions) {
+            permissions.add(rolePermission.permission.name);
+          }
+        }
+      }
+
+      return Array.from(permissions);
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new ForbiddenException('Error al obtener permisos del usuario');
+    }
+  }
+}
+
+================
+File: src/auth/permissions/permission.enum.ts
+================
+export enum Permission {
+  // Gestión de Médicos
+  VIEW_DOCTORS_LIST = 'ver_listado_de_medicos',
+  VIEW_DOCTOR_DETAILS = 'ver_detalles_de_medico',
+  EDIT_DOCTOR_INFO = 'editar_informacion_de_medico',
+  DELETE_DOCTORS = 'eliminar_medicos',
+  ACCESS_DOCTOR_INDICATORS = 'acceder_a_indicadores_de_medicos',
+
+  // Gestión de Pacientes
+  VIEW_PATIENTS_LIST = 'ver_listado_de_pacientes',
+  VIEW_PATIENT_DETAILS = 'ver_detalles_de_paciente',
+  EDIT_PATIENT_INFO = 'editar_informacion_de_paciente',
+  DELETE_PATIENTS = 'eliminar_pacientes',
+  ACCESS_PATIENT_INDICATORS = 'acceder_a_indicadores_del_paciente',
+
+  // Tratamientos y Diagnósticos
+  ASSIGN_TREATMENTS = 'asignar_tratamientos_a_pacientes',
+  MODIFY_TREATMENTS = 'modificar_tratamientos_asignados',
+  VIEW_TREATMENT_HISTORY = 'ver_historial_de_tratamientos',
+  ADD_DIAGNOSES = 'agregar_diagnosticos_medicos',
+  EDIT_DIAGNOSES = 'editar_diagnosticos',
+
+  // Reportes de Gestión
+  VIEW_ACTIVITY_REPORTS = 'ver_reportes_de_actividad',
+  GENERATE_CONSULTATION_REPORTS = 'generar_reportes_de_consultas_atendidas',
+  GENERATE_ADHERENCE_REPORTS = 'generar_reportes_de_adherencia_al_tratamiento',
+  DOWNLOAD_REPORTS = 'descargar_reportes_en_pdf_o_excel',
+
+  // Administración y Configuración
+  MANAGE_USERS = 'gestion_de_usuarios',
+  CONFIGURE_USER_PERMISSIONS = 'configuracion_de_permisos_de_usuarios',
+  DEFINE_STATISTICS_ACCESS = 'definir_acceso_a_estadisticas_y_reportes',
+  CONFIGURE_ALERTS = 'configuracion_de_alertas_y_notificaciones',
+  MANAGE_SPECIALTIES = 'gestion_de_especialidades_medicas',
+
+  // Agenda y Turnos
+  SCHEDULE_APPOINTMENTS = 'agendar_consultas_para_pacientes',
+  EDIT_CANCEL_APPOINTMENTS = 'editar_y_cancelar_citas',
+  CONFIRM_PATIENT_ATTENDANCE = 'confirmar_asistencia_del_paciente',
+  BLOCK_SCHEDULE = 'bloquear_horarios_en_la_agenda',
+  AUTOMATIC_REMINDERS = 'recordatorios_automaticos_de_citas',
+
+  // Catálogos
+  MANAGE_CATALOGS = 'gestionar_catalogos',
+}
+
+================
+File: src/auth/permissions/permissions.service.ts
+================
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { Permission } from './permission.enum';
+
+@Injectable()
+export class PermissionsService {
+  constructor(private prisma: PrismaService) {}
+
+  async seedPermissions() {
+    // Obtener todos los permisos existentes
+    const existingPermissions = await this.prisma.permission.findMany();
+    const existingPermissionNames = existingPermissions.map((p) => p.name);
+
+    // Crear permisos que no existen
+    const permissionsToCreate = Object.values(Permission)
+      .filter((permission) => !existingPermissionNames.includes(permission))
+      .map((permission) => ({
+        name: permission,
+        description: this.getPermissionDescription(permission),
+      }));
+
+    if (permissionsToCreate.length > 0) {
+      await this.prisma.permission.createMany({
+        data: permissionsToCreate,
+        skipDuplicates: true,
+      });
+    }
+
+    return this.prisma.permission.findMany();
+  }
+
+  async getAllPermissions() {
+    return this.prisma.permission.findMany({
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async getPermissionById(id: string) {
+    const permission = await this.prisma.permission.findUnique({
+      where: { id },
+    });
+
+    if (!permission) {
+      throw new NotFoundException(`Permiso con ID ${id} no encontrado`);
+    }
+
+    return permission;
+  }
+
+  async getPermissionByName(name: string) {
+    const permission = await this.prisma.permission.findUnique({
+      where: { name },
+    });
+
+    if (!permission) {
+      throw new NotFoundException(`Permiso con nombre ${name} no encontrado`);
+    }
+
+    return permission;
+  }
+
+  private getPermissionDescription(permissionName: string): string {
+    const descriptions = {
+      [Permission.VIEW_DOCTORS_LIST]: 'Ver listado de médicos',
+      [Permission.VIEW_DOCTOR_DETAILS]: 'Ver detalles de médico',
+      [Permission.EDIT_DOCTOR_INFO]: 'Editar información de médico',
+      [Permission.DELETE_DOCTORS]: 'Eliminar médicos',
+      [Permission.ACCESS_DOCTOR_INDICATORS]:
+        'Acceder a indicadores de médicos (consultas atendidas, rendimiento, calificación, etc.)',
+
+      [Permission.VIEW_PATIENTS_LIST]: 'Ver listado de pacientes',
+      [Permission.VIEW_PATIENT_DETAILS]: 'Ver detalles de paciente',
+      [Permission.EDIT_PATIENT_INFO]: 'Editar información de paciente',
+      [Permission.DELETE_PATIENTS]: 'Eliminar pacientes',
+      [Permission.ACCESS_PATIENT_INDICATORS]:
+        'Acceder a indicadores del paciente (estadísticas, adherencia, alarmas, etc.)',
+
+      [Permission.ASSIGN_TREATMENTS]: 'Asignar tratamientos a pacientes',
+      [Permission.MODIFY_TREATMENTS]: 'Modificar tratamientos asignados',
+      [Permission.VIEW_TREATMENT_HISTORY]: 'Ver historial de tratamientos',
+      [Permission.ADD_DIAGNOSES]: 'Agregar diagnósticos médicos',
+      [Permission.EDIT_DIAGNOSES]: 'Editar diagnósticos',
+
+      [Permission.VIEW_ACTIVITY_REPORTS]:
+        'Ver reportes de actividad (médicos y pacientes)',
+      [Permission.GENERATE_CONSULTATION_REPORTS]:
+        'Generar reportes de consultas atendidas',
+      [Permission.GENERATE_ADHERENCE_REPORTS]:
+        'Generar reportes de adherencia al tratamiento',
+      [Permission.DOWNLOAD_REPORTS]: 'Descargar reportes en PDF o Excel',
+
+      [Permission.MANAGE_USERS]:
+        'Gestión de usuarios (crear, editar, eliminar roles)',
+      [Permission.CONFIGURE_USER_PERMISSIONS]:
+        'Configuración de permisos de usuarios',
+      [Permission.DEFINE_STATISTICS_ACCESS]:
+        'Definir acceso a estadísticas y reportes',
+      [Permission.CONFIGURE_ALERTS]:
+        'Configuración de alertas y notificaciones',
+      [Permission.MANAGE_SPECIALTIES]: 'Gestión de especialidades médicas',
+
+      [Permission.SCHEDULE_APPOINTMENTS]: 'Agendar consultas para pacientes',
+      [Permission.EDIT_CANCEL_APPOINTMENTS]: 'Editar y cancelar citas',
+      [Permission.CONFIRM_PATIENT_ATTENDANCE]:
+        'Confirmar asistencia del paciente',
+      [Permission.BLOCK_SCHEDULE]: 'Bloquear horarios en la agenda',
+      [Permission.AUTOMATIC_REMINDERS]: 'Recordatorios automáticos de citas',
+
+      [Permission.MANAGE_CATALOGS]: 'Gestionar catálogos del sistema',
+    };
+
+    return descriptions[permissionName] || permissionName;
+  }
+}
+
+================
+File: src/auth/roles/roles.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { Permission } from '../permissions/permission.enum';
+
+interface CreateRoleDto {
+  name: string;
+  description?: string;
+  permissions: string[];
+  tenantId?: string;
+  isSystem?: boolean;
+}
+
+interface UpdateRoleDto {
+  name?: string;
+  description?: string;
+  permissions?: string[];
+}
+
+@Injectable()
+export class RolesService {
+  constructor(private prisma: PrismaService) {}
+
+  async seedDefaultRoles() {
+    // Crear roles por defecto si no existen
+    const defaultRoles = [
+      {
+        name: 'SuperAdmin',
+        description: 'Administrador con acceso completo al sistema',
+        isSystem: true,
+        permissions: Object.values(Permission),
+      },
+      {
+        name: 'Admin',
+        description: 'Administrador de organización',
+        isSystem: true,
+        permissions: Object.values(Permission),
+      },
+      {
+        name: 'Secretario',
+        description: 'Secretario con permisos limitados',
+        isSystem: true,
+        permissions: [
+          Permission.VIEW_DOCTORS_LIST,
+          Permission.VIEW_DOCTOR_DETAILS,
+          Permission.VIEW_PATIENTS_LIST,
+          Permission.VIEW_PATIENT_DETAILS,
+          Permission.SCHEDULE_APPOINTMENTS,
+          Permission.EDIT_CANCEL_APPOINTMENTS,
+          Permission.CONFIRM_PATIENT_ATTENDANCE,
+        ],
+      },
+    ];
+
+    for (const roleData of defaultRoles) {
+      const existingRole = await this.prisma.role.findFirst({
+        where: { name: roleData.name, is_system: true },
+      });
+
+      if (!existingRole) {
+        await this.createRole({
+          name: roleData.name,
+          description: roleData.description,
+          permissions: roleData.permissions,
+          isSystem: roleData.isSystem,
+        });
+      }
+    }
+
+    return this.prisma.role.findMany({
+      where: { is_system: true },
+      include: { permissions: { include: { permission: true } } },
+    });
+  }
+
+  async createRole(data: CreateRoleDto) {
+    try {
+      // Verificar si ya existe un rol con el mismo nombre en el mismo tenant
+      const existingRole = await this.prisma.role.findFirst({
+        where: {
+          name: data.name,
+          tenant_id: data.tenantId || null,
+        },
+      });
+
+      if (existingRole) {
+        throw new BadRequestException(
+          `Ya existe un rol con el nombre ${data.name}`,
+        );
+      }
+
+      // Verificar que los permisos existan
+      const permissions = await this.prisma.permission.findMany({
+        where: {
+          name: {
+            in: data.permissions,
+          },
+        },
+      });
+
+      if (permissions.length !== data.permissions.length) {
+        throw new BadRequestException('Algunos permisos no existen');
+      }
+
+      // Crear el rol con sus permisos
+      return this.prisma.$transaction(async (tx) => {
+        const role = await tx.role.create({
+          data: {
+            name: data.name,
+            description: data.description,
+            is_system: data.isSystem || false,
+            tenant_id: data.tenantId,
+          },
+        });
+
+        // Asociar permisos al rol
+        for (const permission of permissions) {
+          await tx.role_permission.create({
+            data: {
+              role_id: role.id,
+              permission_id: permission.id,
+            },
+          });
+        }
+
+        return role;
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Error al crear el rol: ${error.message}`);
+    }
+  }
+
+  async getRoles(tenantId?: string) {
+    return this.prisma.role.findMany({
+      where: {
+        OR: [{ tenant_id: tenantId }, { is_system: true }],
+        deleted: false,
+      },
+      include: {
+        permissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getRoleById(id: string) {
+    const role = await this.prisma.role.findUnique({
+      where: { id },
+      include: {
+        permissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    });
+
+    if (!role) {
+      throw new NotFoundException(`Rol con ID ${id} no encontrado`);
+    }
+
+    return role;
+  }
+
+  async updateRole(id: string, data: UpdateRoleDto) {
+    try {
+      const role = await this.getRoleById(id);
+
+      if (role.is_system) {
+        throw new BadRequestException(
+          'No se pueden modificar roles del sistema',
+        );
+      }
+
+      return this.prisma.$transaction(async (tx) => {
+        // Actualizar datos básicos del rol
+        const updatedRole = await tx.role.update({
+          where: { id },
+          data: {
+            name: data.name,
+            description: data.description,
+          },
+        });
+
+        // Si se proporcionan permisos, actualizar los permisos del rol
+        if (data.permissions) {
+          // Verificar que los permisos existan
+          const permissions = await tx.permission.findMany({
+            where: {
+              name: {
+                in: data.permissions,
+              },
+            },
+          });
+
+          if (permissions.length !== data.permissions.length) {
+            throw new BadRequestException('Algunos permisos no existen');
+          }
+
+          // Eliminar permisos actuales
+          await tx.role_permission.deleteMany({
+            where: { role_id: id },
+          });
+
+          // Asociar nuevos permisos
+          for (const permission of permissions) {
+            await tx.role_permission.create({
+              data: {
+                role_id: id,
+                permission_id: permission.id,
+              },
+            });
+          }
+        }
+
+        return updatedRole;
+      });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al actualizar el rol: ${error.message}`,
+      );
+    }
+  }
+
+  async deleteRole(id: string) {
+    try {
+      const role = await this.getRoleById(id);
+
+      if (role.is_system) {
+        throw new BadRequestException(
+          'No se pueden eliminar roles del sistema',
+        );
+      }
+
+      // Verificar si hay usuarios con este rol
+      const usersWithRole = await this.prisma.user_role.findMany({
+        where: { role_id: id },
+      });
+
+      if (usersWithRole.length > 0) {
+        throw new BadRequestException(
+          'No se puede eliminar un rol asignado a usuarios',
+        );
+      }
+
+      // Eliminar el rol y sus permisos asociados
+      return this.prisma.$transaction(async (tx) => {
+        // Eliminar permisos del rol
+        await tx.role_permission.deleteMany({
+          where: { role_id: id },
+        });
+
+        // Eliminar el rol
+        return tx.role.delete({
+          where: { id },
+        });
+      });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al eliminar el rol: ${error.message}`,
+      );
+    }
+  }
+
+  async assignRoleToUser(userId: string, roleId: string) {
+    try {
+      // Verificar si el usuario existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+      }
+
+      // Verificar si el rol existe
+      const role = await this.getRoleById(roleId);
+
+      // Verificar si el usuario ya tiene este rol
+      const existingUserRole = await this.prisma.user_role.findFirst({
+        where: {
+          user_id: userId,
+          role_id: roleId,
+        },
+      });
+
+      if (existingUserRole) {
+        throw new BadRequestException('El usuario ya tiene asignado este rol');
+      }
+
+      // Asignar rol al usuario
+      return this.prisma.user_role.create({
+        data: {
+          user_id: userId,
+          role_id: roleId,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al asignar rol al usuario: ${error.message}`,
+      );
+    }
+  }
+
+  async removeRoleFromUser(userId: string, roleId: string) {
+    try {
+      // Verificar si la relación existe
+      const userRole = await this.prisma.user_role.findFirst({
+        where: {
+          user_id: userId,
+          role_id: roleId,
+        },
+      });
+
+      if (!userRole) {
+        throw new NotFoundException('El usuario no tiene asignado este rol');
+      }
+
+      // Eliminar la relación
+      return this.prisma.user_role.delete({
+        where: { id: userRole.id },
+      });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al eliminar rol del usuario: ${error.message}`,
+      );
+    }
+  }
+
+  async getUserRoles(userId: string) {
+    // Verificar si el usuario existe
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    // Obtener roles del usuario
+    return this.prisma.user_role.findMany({
+      where: { user_id: userId },
+      include: {
+        role: {
+          include: {
+            permissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 }
 
@@ -1261,6 +2688,239 @@ export class CatCieDiez {
 }
 
 ================
+File: src/catalogs/cat-measure-unit/cat-measure-unit.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+  BadRequestException,
+  UseGuards,
+} from '@nestjs/common';
+import { CatMeasureUnitService } from './cat-measure-unit.service';
+import { CreateCatMeasureUnitDto } from './dto/create-cat-measure-unit.dto';
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
+import { Permission } from '../../auth/permissions/permission.enum';
+import { PermissionGuard } from '../../auth/guards/permission.guard';
+import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import { SuperAdminGuard } from '../../auth/guards/superadmin.guard';
+
+@Controller('cat-measure-unit')
+@UseGuards(TenantAccessGuard, PermissionGuard)
+export class CatMeasureUnitController {
+  constructor(private readonly catMeasureUnitService: CatMeasureUnitService) {}
+
+  @Post()
+  @UseGuards(SuperAdminGuard)
+  @RequirePermission(Permission.MANAGE_CATALOGS)
+  async create(@Body() createCatMeasureUnitDto: CreateCatMeasureUnitDto) {
+    return this.catMeasureUnitService.create(createCatMeasureUnitDto);
+  }
+
+  @Get()
+  @RequirePermission(Permission.VIEW_DOCTORS_LIST)
+  async findAll(@Query('vitalSignId') vitalSignIdString?: string) {
+    try {
+      let vitalSignId: number | undefined;
+
+      if (vitalSignIdString) {
+        vitalSignId = parseInt(vitalSignIdString, 10);
+        if (isNaN(vitalSignId)) {
+          throw new BadRequestException(
+            `ID de signo vital inválido: ${vitalSignIdString}`,
+          );
+        }
+      }
+
+      return this.catMeasureUnitService.findAll(vitalSignId);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener las unidades de medida');
+    }
+  }
+
+  @Delete(':id')
+  @UseGuards(SuperAdminGuard)
+  @RequirePermission(Permission.MANAGE_CATALOGS)
+  async remove(@Param('id') id: string) {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      throw new BadRequestException('ID inválido');
+    }
+
+    return this.catMeasureUnitService.remove(parsedId);
+  }
+}
+
+================
+File: src/catalogs/cat-measure-unit/cat-measure-unit.interface.ts
+================
+export interface CatMeasureUnit {
+  id?: number;
+  name: string;
+  description: string;
+  cat_vital_signs_id?: number;
+}
+
+================
+File: src/catalogs/cat-measure-unit/cat-measure-unit.module.ts
+================
+import { Module } from '@nestjs/common';
+import { CatMeasureUnitService } from './cat-measure-unit.service';
+import { CatMeasureUnitController } from './cat-measure-unit.controller';
+import { PrismaService } from '../../prisma/prisma.service';
+import { GuardAuthModule } from 'src/auth/guard-auth.module';
+
+@Module({
+  imports: [GuardAuthModule],
+  controllers: [CatMeasureUnitController],
+  providers: [CatMeasureUnitService, PrismaService],
+})
+export class CatMeasureUnitModule {}
+
+================
+File: src/catalogs/cat-measure-unit/cat-measure-unit.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateCatMeasureUnitDto } from './dto/create-cat-measure-unit.dto';
+
+@Injectable()
+export class CatMeasureUnitService {
+  constructor(private prisma: PrismaService) {}
+
+  async create(data: CreateCatMeasureUnitDto) {
+    try {
+      // Check if vital sign exists
+      const vitalSign = await this.prisma.cat_vital_signs.findUnique({
+        where: { id: data.cat_vital_signs_id },
+      });
+
+      if (!vitalSign) {
+        throw new BadRequestException('El signo vital asociado no existe');
+      }
+
+      // Check if measure unit with the same name already exists for this vital sign
+      const existingMeasureUnit = await this.prisma.cat_measure_unit.findFirst({
+        where: {
+          name: data.name,
+          cat_vital_signs_id: data.cat_vital_signs_id,
+        },
+      });
+
+      if (existingMeasureUnit) {
+        throw new BadRequestException(
+          'Ya existe una unidad de medida con este nombre para este signo vital',
+        );
+      }
+
+      // Create the measure unit
+      return await this.prisma.cat_measure_unit.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          cat_vital_signs_id: data.cat_vital_signs_id,
+        },
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al crear la unidad de medida');
+    }
+  }
+
+  async findAll(vitalSignId?: number) {
+    try {
+      if (vitalSignId) {
+        // Filter by vital sign ID
+        return await this.prisma.cat_measure_unit.findMany({
+          where: {
+            cat_vital_signs_id: vitalSignId,
+          },
+          include: {
+            cat_vital_signs: true,
+          },
+        });
+      } else {
+        // Return all measure units
+        return await this.prisma.cat_measure_unit.findMany({
+          include: {
+            cat_vital_signs: true,
+          },
+        });
+      }
+    } catch {
+      throw new BadRequestException('Error al obtener las unidades de medida');
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      // Check if measure unit exists
+      const measureUnit = await this.prisma.cat_measure_unit.findUnique({
+        where: { id },
+      });
+
+      if (!measureUnit) {
+        throw new NotFoundException('Unidad de medida no encontrada');
+      }
+
+      // Delete the measure unit
+      return await this.prisma.cat_measure_unit.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('Error al eliminar la unidad de medida');
+    }
+  }
+}
+
+================
+File: src/catalogs/cat-measure-unit/dto/create-cat-measure-unit.dto.ts
+================
+import { IsString, IsNumber, IsOptional } from 'class-validator';
+
+export class CreateCatMeasureUnitDto {
+  /**
+   * Measure unit name
+   * @example "mmHg"
+   */
+  @IsString()
+  name: string;
+
+  /**
+   * Measure unit description
+   * @example "Milímetros de mercurio"
+   */
+  @IsString()
+  description: string;
+
+  /**
+   * ID of the related vital sign
+   * @example 1
+   */
+  @IsNumber()
+  cat_vital_signs_id: number;
+}
+
+================
 File: src/catalogs/cat-study-type/cat-study-type.controller.ts
 ================
 import {
@@ -1370,6 +3030,230 @@ export class CatStudyTypeService {
       where: { id },
     });
   }
+}
+
+================
+File: src/catalogs/cat-vital-signs/cat-vital-signs.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+  BadRequestException,
+  UseGuards,
+} from '@nestjs/common';
+import { CatVitalSignsService } from './cat-vital-signs.service';
+import { CreateCatVitalSignsDto } from './dto/create-cat-vital-signs.dto';
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
+import { Permission } from '../../auth/permissions/permission.enum';
+import { PermissionGuard } from '../../auth/guards/permission.guard';
+import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import { SuperAdminGuard } from '../../auth/guards/superadmin.guard';
+
+@Controller('cat-vital-signs')
+@UseGuards(TenantAccessGuard, PermissionGuard)
+export class CatVitalSignsController {
+  constructor(private readonly catVitalSignsService: CatVitalSignsService) {}
+
+  @Post()
+  @UseGuards(SuperAdminGuard)
+  @RequirePermission(Permission.MANAGE_CATALOGS)
+  async create(@Body() createCatVitalSignsDto: CreateCatVitalSignsDto) {
+    return this.catVitalSignsService.create(createCatVitalSignsDto);
+  }
+
+  @Get()
+  @RequirePermission(Permission.VIEW_DOCTORS_LIST)
+  async findAll(@Query('specialtyIds') specialtyIdsString?: string) {
+    try {
+      let specialtyIds: number[] | undefined;
+
+      if (specialtyIdsString) {
+        specialtyIds = specialtyIdsString.split(',').map((id) => {
+          const parsedId = parseInt(id.trim(), 10);
+          if (isNaN(parsedId)) {
+            throw new BadRequestException(`ID de especialidad inválido: ${id}`);
+          }
+          return parsedId;
+        });
+      }
+
+      return this.catVitalSignsService.findAll(specialtyIds);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener los signos vitales');
+    }
+  }
+
+  @Delete(':id')
+  @UseGuards(SuperAdminGuard)
+  @RequirePermission(Permission.MANAGE_CATALOGS)
+  async remove(@Param('id') id: string) {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      throw new BadRequestException('ID inválido');
+    }
+
+    return this.catVitalSignsService.remove(parsedId);
+  }
+}
+
+================
+File: src/catalogs/cat-vital-signs/cat-vital-signs.interface.ts
+================
+export interface CatVitalSigns {
+  id?: number;
+  name: string;
+  category: string;
+  specialties?: number[];
+}
+
+================
+File: src/catalogs/cat-vital-signs/cat-vital-signs.module.ts
+================
+import { Module } from '@nestjs/common';
+import { CatVitalSignsService } from './cat-vital-signs.service';
+import { CatVitalSignsController } from './cat-vital-signs.controller';
+import { PrismaService } from '../../prisma/prisma.service';
+import { GuardAuthModule } from 'src/auth/guard-auth.module';
+
+@Module({
+  imports: [GuardAuthModule],
+  controllers: [CatVitalSignsController],
+  providers: [CatVitalSignsService, PrismaService],
+})
+export class CatVitalSignsModule {}
+
+================
+File: src/catalogs/cat-vital-signs/cat-vital-signs.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateCatVitalSignsDto } from './dto/create-cat-vital-signs.dto';
+
+@Injectable()
+export class CatVitalSignsService {
+  constructor(private prisma: PrismaService) {}
+
+  async create(data: CreateCatVitalSignsDto) {
+    try {
+      const existingVitalSign = await this.prisma.cat_vital_signs.findFirst({
+        where: { name: data.name },
+      });
+
+      if (existingVitalSign) {
+        throw new BadRequestException(
+          'Ya existe un signo vital con este nombre',
+        );
+      }
+
+      return await this.prisma.cat_vital_signs.create({
+        data: {
+          name: data.name,
+          category: data.category,
+          specialties: {
+            connect: data.specialties.map((id) => ({ id })),
+          },
+        },
+        include: {
+          specialties: true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al crear el signo vital');
+    }
+  }
+
+  async findAll(specialtyIds?: number[]) {
+    try {
+      const filterSpecialtyIds = specialtyIds?.length ? specialtyIds : [1];
+
+      return await this.prisma.cat_vital_signs.findMany({
+        where: {
+          specialties: {
+            some: {
+              id: {
+                in: filterSpecialtyIds,
+              },
+            },
+          },
+        },
+        include: {
+          specialties: true,
+          cat_vital_sign_measure: true,
+        },
+      });
+    } catch {
+      throw new BadRequestException('Error al obtener los signos vitales');
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      const vitalSign = await this.prisma.cat_vital_signs.findUnique({
+        where: { id },
+        include: {
+          vital_signs: true,
+        },
+      });
+
+      if (!vitalSign) {
+        throw new NotFoundException('Signo vital no encontrado');
+      }
+
+      if (vitalSign.vital_signs.length > 0) {
+        throw new BadRequestException(
+          'No se puede eliminar un signo vital que está en uso',
+        );
+      }
+
+      return await this.prisma.cat_vital_signs.delete({
+        where: { id },
+        include: {
+          specialties: true,
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('Error al eliminar el signo vital');
+    }
+  }
+}
+
+================
+File: src/catalogs/cat-vital-signs/dto/create-cat-vital-signs.dto.ts
+================
+import { IsString, IsArray, IsNumber, ArrayMinSize } from 'class-validator';
+
+export class CreateCatVitalSignsDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  category: string;
+
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @ArrayMinSize(1)
+  specialties: number[];
 }
 
 ================
@@ -1903,7 +3787,7 @@ export class AuthService {
       );
       data.password = await AuthHelper.hashPassword(data.password, saltRounds);
 
-      await this.prisma.user.create({
+      const user = await this.prisma.user.create({
         data: data,
       });
 
@@ -1913,6 +3797,11 @@ export class AuthService {
         htmlContent,
         'Bienvenido a Segimed',
       );
+      return {
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name,
+      };
     } catch (error) {
       if (error.code === 'P2002') {
         throw new BadRequestException(
@@ -1922,8 +3811,6 @@ export class AuthService {
       console.log(error);
       throw new BadRequestException('No se pudo crear el usuario.');
     }
-
-    return { message: 'El usuario se ha creado con éxito' };
   }
   async login(createAuthDto: CreateAuthDto): Promise<object> {
     try {
@@ -2417,7 +4304,6 @@ export class PatientController {
 
   @Post()
   create(@Body() medicalPatientDto: MedicalPatientDto): Promise<object> {
-    console.log(medicalPatientDto);
     return this.patientService.create(medicalPatientDto);
   }
 
@@ -2507,67 +4393,65 @@ export class PatientService {
   async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
     try {
       const { patient, user } = medicalPatientDto;
-      const validTenant = await this.prisma.tenant.findUnique({
-        where: { id: user.tenant_id },
-      });
 
-      if (!validTenant) {
-        throw new BadRequestException('El tenant no existe');
+      const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
+      const existingUserWithSameTenant = await this.prisma.user.findFirst({
+        where: {
+          email: user.email,
+        },
+        include: {
+          patient: {
+            include: {
+              patient_tenant: true,
+            },
+          },
+        },
+      });
+      if (
+        existingUserWithSameTenant.patient.patient_tenant.includes(
+          global.tenant_id,
+        )
+      ) {
+        throw new BadRequestException(
+          'El usuario ya existe para esta organización',
+        );
       }
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: user.email },
-      });
 
-      if (existingUser) {
-        const patient = await this.prisma.patient.findFirst({
-          where: { user_id: existingUser.id },
-        });
-        if (!patient) {
-          throw new BadRequestException(
-            'El usuario ya existe pero no es un paciente. Contactar a soporte.',
-          );
-        }
-        await this.prisma.patient_tenant.create({
+      return await this.prisma.$transaction(async (transaction) => {
+        const newUser = await transaction.user.create({
           data: {
-            patient_id: patient.id,
-            tenant_id: user.tenant_id,
+            ...user,
+            role: 'patient',
+            password: newPassword,
           },
         });
-        return { message: 'Paciente asociado exitosamente' };
-      } else {
-        const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
-        return await this.prisma.$transaction(async (transaction) => {
-          const newUser = await transaction.user.create({
-            data: {
-              ...user,
-              role: 'patient',
-              password: newPassword,
-            },
-          });
-          const newPatient = await transaction.patient.create({
-            data: {
-              ...patient,
-              user_id: newUser.id,
-            },
-          });
-          await transaction.patient_tenant.create({
-            data: {
-              patient_id: newPatient.id,
-              tenant_id: user.tenant_id,
-            },
-          });
 
-          this.emailService.sendMail(
-            user.email,
-            sendCredentialsHtml(user.email, newPassword),
-            'Credenciales Segimed',
-          );
-          return { message: 'Paciente creado exitosamente' };
+        const newPatient = await transaction.patient.create({
+          data: {
+            ...patient,
+            user_id: newUser.id,
+          },
         });
-      }
+
+        await transaction.patient_tenant.create({
+          data: {
+            patient_id: newPatient.id,
+            tenant_id: global.tenant_id,
+          },
+        });
+
+        await this.emailService.sendMail(
+          user.email,
+          sendCredentialsHtml(user.email, newPassword),
+          'Credenciales Segimed',
+        );
+
+        return { message: 'Paciente creado exitosamente' };
+      });
     } catch (error) {
-      console.log(error);
-      throw new BadRequestException('Error al crear el paciente');
+      throw new BadRequestException(
+        'Error al crear el paciente: ' + error.message,
+      );
     }
   }
 
@@ -2575,62 +4459,99 @@ export class PatientService {
     tenant_id: string,
     pagination: PaginationParams,
   ): Promise<GetPatientsDto[]> {
-    const { skip, take, orderBy, orderDirection } =
-      parsePaginationAndSorting(pagination);
-    const users = await this.prisma.user.findMany({
-      where: {
-        role: 'patient',
-        tenant_id,
-      },
-      skip,
-      take,
-      orderBy: { [orderBy]: orderDirection },
-    });
-    if (users.length === 0) {
-      throw new BadRequestException('No hay pacientes que mostrar.');
+    try {
+      const { skip, take, orderBy, orderDirection } =
+        parsePaginationAndSorting(pagination);
+      const users = await this.prisma.user.findMany({
+        where: {
+          role: 'patient',
+          tenant_id,
+        },
+        skip,
+        take,
+        orderBy: { [orderBy]: orderDirection },
+      });
+      if (users.length === 0) {
+        throw new BadRequestException('No hay pacientes que mostrar.');
+      }
+      return users.map((user) => {
+        return {
+          id: user.id,
+          name: user.name,
+          last_name: user.last_name,
+          image: user.image,
+          birth_date: user.birth_date,
+          gender: user.gender,
+          email: user.email,
+          phone: user.phone,
+          prefix: user.phone_prefix,
+        };
+      });
+    } catch (error) {
+      console.error('Error en findAll:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener los pacientes');
     }
-    return users.map((user) => {
+  }
+
+  async findOne(id: string, tenant_id: string): Promise<GetPatientDto> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id, tenant_id },
+        include: { patient: true },
+      });
+
+      if (!user) {
+        throw new BadRequestException('Paciente no encontrado');
+      }
+
       return {
         id: user.id,
         name: user.name,
         last_name: user.last_name,
         image: user.image,
         birth_date: user.birth_date,
-        gender: user.gender,
         email: user.email,
-        phone: user.phone,
-        prefix: user.phone_prefix,
+        notes: user.patient.notes,
       };
-    });
-  }
-
-  async findOne(id: string, tenant_id: string): Promise<GetPatientDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { id, tenant_id },
-      include: { patient: true },
-    });
-    return {
-      id: user.id,
-      name: user.name,
-      last_name: user.last_name,
-      image: user.image,
-      birth_date: user.birth_date,
-      email: user.email,
-      notes: user.patient.notes,
-    };
+    } catch (error) {
+      console.error('Error en findOne:', error);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener el paciente');
+    }
   }
 
   async update(id: string, updatePatientDto: UpdatePatientDto) {
-    const { ...filteredDto } = updatePatientDto;
-    const newPatient = await this.prisma.patient.update({
-      where: { id: id },
-      data: filteredDto as any,
-    });
-    return newPatient;
+    try {
+      const { ...filteredDto } = updatePatientDto;
+      const newPatient = await this.prisma.patient.update({
+        where: { id: id },
+        data: filteredDto as any,
+      });
+      return newPatient;
+    } catch (error) {
+      console.error('Error en update:', error);
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('Paciente no encontrado');
+      }
+      throw new BadRequestException('Error al actualizar el paciente');
+    }
   }
 
-  remove(id: string) {
-    return this.prisma.patient.delete({ where: { id: id } });
+  async remove(id: string) {
+    try {
+      return await this.prisma.patient.delete({ where: { id: id } });
+    } catch (error) {
+      console.error('Error en remove:', error);
+      if (error?.code === 'P2025') {
+        throw new BadRequestException('Paciente no encontrado');
+      }
+      throw new BadRequestException('Error al eliminar el paciente');
+    }
   }
 }
 
@@ -2826,13 +4747,15 @@ export class BaseUserDto {
   @Length(1, 4, {
     message: 'El prefijo del teléfono debe tener entre 1 y 4 caracteres.',
   })
-  phone_prefix: string;
+  @IsOptional()
+  phone_prefix?: string;
 
   @IsString({ message: 'El número de teléfono debe ser un texto válido.' })
   @Length(4, 20, {
     message: 'El número de teléfono debe tener entre 4 y 20 caracteres.',
   })
-  phone: string;
+  @IsOptional()
+  phone?: string;
 
   @IsUrl({}, { message: 'La URL de la imagen no tiene un formato válido.' })
   @IsOptional()
@@ -4608,6 +6531,7 @@ export class CreatePhysicalExplorationDto {
   description: string;
 
   @IsInt()
+  @IsNotEmpty()
   @Min(1)
   physical_exploration_area_id: number;
 
@@ -4617,11 +6541,27 @@ export class CreatePhysicalExplorationDto {
 }
 
 ================
+File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration/dto/update-physical-exploration.dto.ts
+================
+import { OmitType, PartialType } from '@nestjs/mapped-types';
+import { CreatePhysicalExplorationDto } from './create-physical-exploration.dto';
+import { IsUUID, IsNotEmpty } from 'class-validator';
+
+export class UpdatePhysicalExplorationDto extends PartialType(
+  OmitType(CreatePhysicalExplorationDto, ['medical_event_id'] as const),
+) {
+  @IsUUID()
+  @IsNotEmpty()
+  medical_event_id: string;
+}
+
+================
 File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.controller.ts
 ================
 import { Body, Controller, HttpException, Post } from '@nestjs/common';
 import { PhysicalExplorationService } from './physical-exploration.service';
 import { CreatePhysicalExplorationDto } from './dto/create-physical-exploration.dto';
+import { UpdatePhysicalExplorationDto } from './dto/update-physical-exploration.dto';
 
 @Controller('physical-explorations')
 export class PhysicalExplorationController {
@@ -4630,7 +6570,9 @@ export class PhysicalExplorationController {
   ) {}
 
   @Post()
-  async createPhysicalExploration(@Body() data: CreatePhysicalExplorationDto) {
+  async createPhysicalExploration(
+    @Body() data: CreatePhysicalExplorationDto | UpdatePhysicalExplorationDto,
+  ) {
     try {
       return this.physicalExplorationService.createPhysicalExploration(data);
     } catch (error) {
@@ -4659,16 +6601,17 @@ export class PhysicalExplorationModule {}
 ================
 File: src/medical-scheduling/modules/physical-exploration-data/physical-exploration/physical-exploration.service.ts
 ================
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePhysicalExplorationDto } from './dto/create-physical-exploration.dto';
+import { UpdatePhysicalExplorationDto } from './dto/update-physical-exploration.dto';
 
 @Injectable()
 export class PhysicalExplorationService {
   constructor(private prisma: PrismaService) {}
 
   async createPhysicalExploration(
-    data: CreatePhysicalExplorationDto,
+    data: CreatePhysicalExplorationDto | UpdatePhysicalExplorationDto,
   ): Promise<{ message: string }> {
     try {
       const existingExploration =
@@ -4679,22 +6622,35 @@ export class PhysicalExplorationService {
         });
 
       if (existingExploration) {
-        throw new HttpException(
-          'Physical exploration already exists for this medical event',
-          HttpStatus.CONFLICT,
+        const hasChanges = Object.keys(data).some(
+          (key) =>
+            data[key] !== undefined && data[key] !== existingExploration[key],
         );
+
+        if (!hasChanges) {
+          return {
+            message:
+              'No changes detected. Existing physical exploration remains unchanged',
+          };
+        }
+
+        await this.prisma.physical_exploration.update({
+          where: {
+            id: existingExploration.id,
+          },
+          data: {
+            ...existingExploration,
+            ...Object.fromEntries(
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              Object.entries(data).filter(([_, value]) => value !== undefined),
+            ),
+          },
+        });
+        return { message: 'Physical exploration updated successfully' };
       }
 
-      await this.prisma.physical_exploration.create({
-        data: {
-          patient_id: data.patient_id,
-          physician_id: data.physician_id,
-          medical_event_id: data.medical_event_id,
-          description: data.description,
-          physical_exploration_area_id: data.physical_exploration_area_id,
-          tenant_id: data.tenant_id,
-        },
-      });
+      const createData = data as CreatePhysicalExplorationDto;
+      await this.prisma.physical_exploration.create({ data: createData });
 
       return { message: 'Physical exploration created successfully' };
     } catch (error) {
@@ -5112,6 +7068,806 @@ export class PrescriptionService {
 }
 
 ================
+File: src/medical-scheduling/modules/vital-signs/dto/create-vital-sign.dto.ts
+================
+import {
+  IsNotEmpty,
+  IsUUID,
+  IsNumber,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  ArrayNotEmpty,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class VitalSignDto {
+  @IsNumber()
+  @IsNotEmpty({ message: 'El ID del signo vital es obligatorio' })
+  vital_sign_id: number;
+
+  @IsNumber()
+  @IsNotEmpty({ message: 'La medida es obligatoria' })
+  measure: number;
+}
+
+export class CreateVitalSignDto {
+  @IsUUID('4', { message: 'El ID del paciente debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del paciente es obligatorio' })
+  patient_id: string;
+
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
+  tenant_id: string;
+
+  @IsOptional()
+  @IsUUID('4', { message: 'El ID del evento médico debe ser un UUID válido' })
+  medical_event_id?: string;
+
+  @IsOptional()
+  @IsUUID('4', {
+    message: 'El ID del evento de autoevaluación debe ser un UUID válido',
+  })
+  self_evaluation_event_id?: string;
+
+  @IsArray()
+  @ArrayNotEmpty({ message: 'Debe proporcionar al menos un signo vital' })
+  @ValidateNested({ each: true })
+  @Type(() => VitalSignDto)
+  vital_signs: VitalSignDto[];
+}
+
+export class CreateMultipleVitalSignsDto {
+  @IsArray()
+  @ArrayNotEmpty({ message: 'Debe proporcionar al menos un signo vital' })
+  @ValidateNested({ each: true })
+  @Type(() => CreateVitalSignDto)
+  vital_signs: CreateVitalSignDto[];
+}
+
+================
+File: src/medical-scheduling/modules/vital-signs/dto/find-vital-signs.dto.ts
+================
+import { IsUUID, IsNotEmpty, IsOptional } from 'class-validator';
+
+export class FindVitalSignsByPatientDto {
+  @IsUUID('4', { message: 'El ID del paciente debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del paciente es obligatorio' })
+  patient_id: string;
+
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
+  tenant_id: string;
+}
+
+export class FindVitalSignsByEventDto {
+  @IsUUID('4', { message: 'El ID del evento médico debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del evento médico es obligatorio' })
+  medical_event_id: string;
+
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
+  tenant_id: string;
+}
+
+export class FindVitalSignsBySelfEvaluationDto {
+  @IsUUID('4', {
+    message: 'El ID del evento de autoevaluación debe ser un UUID válido',
+  })
+  @IsNotEmpty({ message: 'El ID del evento de autoevaluación es obligatorio' })
+  self_evaluation_event_id: string;
+
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
+  tenant_id: string;
+}
+
+================
+File: src/medical-scheduling/modules/vital-signs/dto/update-vital-sign.dto.ts
+================
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateVitalSignDto } from './create-vital-sign.dto';
+
+export class UpdateVitalSignDto extends PartialType(CreateVitalSignDto) {}
+
+================
+File: src/medical-scheduling/modules/vital-signs/vital-signs.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Request,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
+import { VitalSignsService } from './vital-signs.service';
+import { CreateVitalSignDto } from './dto/create-vital-sign.dto';
+import { FindVitalSignsByPatientDto } from './dto/find-vital-signs.dto';
+import { RequirePermission } from '../../../auth/decorators/require-permission.decorator';
+import { Permission } from '../../../auth/permissions/permission.enum';
+import { PermissionGuard } from '../../../auth/guards/permission.guard';
+import { TenantAccessGuard } from '../../../auth/guards/tenant-access.guard';
+
+@Controller('vital-signs')
+@UseGuards(TenantAccessGuard, PermissionGuard)
+export class VitalSignsController {
+  constructor(private readonly vitalSignsService: VitalSignsService) {}
+
+  @Post()
+  @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
+  async create(@Body() createVitalSignDto: CreateVitalSignDto, @Request() req) {
+    // Asegurarse de que el tenant_id en el DTO coincide con el del request
+    if (createVitalSignDto.tenant_id !== req.tenant?.id) {
+      throw new BadRequestException(
+        'El tenant_id no coincide con el tenant del usuario',
+      );
+    }
+
+    return this.vitalSignsService.create(createVitalSignDto);
+  }
+
+  @Get('patient/:patientId')
+  @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
+  async findAllByPatient(
+    @Param('patientId') patientId: string,
+    @Request() req,
+  ) {
+    const findDto: FindVitalSignsByPatientDto = {
+      patient_id: patientId,
+      tenant_id: req.tenant?.id,
+    };
+
+    return this.vitalSignsService.findAllByPatient(findDto);
+  }
+
+  @Delete(':id')
+  @RequirePermission(Permission.EDIT_PATIENT_INFO)
+  async remove(@Param('id') id: string, @Request() req) {
+    return this.vitalSignsService.remove(id, req.user?.id, req.tenant?.id);
+  }
+}
+
+================
+File: src/medical-scheduling/modules/vital-signs/vital-signs.module.ts
+================
+import { Module } from '@nestjs/common';
+import { VitalSignsService } from './vital-signs.service';
+import { VitalSignsController } from './vital-signs.controller';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { GuardAuthModule } from '../../../auth/guard-auth.module';
+
+@Module({
+  imports: [GuardAuthModule],
+  controllers: [VitalSignsController],
+  providers: [VitalSignsService, PrismaService],
+  exports: [VitalSignsService],
+})
+export class VitalSignsModule {}
+
+================
+File: src/medical-scheduling/modules/vital-signs/vital-signs.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { CreateVitalSignDto, VitalSignDto } from './dto/create-vital-sign.dto';
+import { FindVitalSignsByPatientDto } from './dto/find-vital-signs.dto';
+
+@Injectable()
+export class VitalSignsService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Crea o actualiza un conjunto de signos vitales
+   * Valida que no existan signos vitales duplicados para un mismo evento
+   * @param createVitalSignDto Datos para crear o actualizar signos vitales
+   */
+  async create(createVitalSignDto: CreateVitalSignDto) {
+    const {
+      patient_id,
+      tenant_id,
+      medical_event_id,
+      self_evaluation_event_id,
+      vital_signs,
+    } = createVitalSignDto;
+
+    // Validar que se proporciona solo un tipo de evento (medical_event o self_evaluation_event)
+    if (medical_event_id && self_evaluation_event_id) {
+      throw new BadRequestException(
+        'No puede proporcionar ID de evento médico y de autoevaluación simultáneamente',
+      );
+    }
+
+    if (!medical_event_id && !self_evaluation_event_id) {
+      throw new BadRequestException(
+        'Debe proporcionar un ID de evento médico o de autoevaluación',
+      );
+    }
+
+    try {
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patient_id },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Si es un evento médico, verificar que el paciente y el tenant coincidan
+      if (medical_event_id) {
+        const medicalEvent = await this.prisma.medical_event.findUnique({
+          where: { id: medical_event_id },
+          include: {
+            patient: true,
+            physician: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        });
+
+        if (!medicalEvent) {
+          throw new NotFoundException('Evento médico no encontrado');
+        }
+
+        // Verificar que el paciente del evento médico coincide con el paciente proporcionado
+        if (medicalEvent.patient_id !== patient.patient.id) {
+          throw new BadRequestException(
+            'El paciente no coincide con el evento médico',
+          );
+        }
+
+        // Verificar que el tenant del evento médico coincide con el tenant proporcionado
+        if (medicalEvent.tenant_id !== tenant_id) {
+          throw new BadRequestException(
+            'El tenant no coincide con el evento médico',
+          );
+        }
+      }
+
+      // Si es un evento de autoevaluación, verificar que el paciente y el tenant coincidan
+      if (self_evaluation_event_id) {
+        const selfEvaluationEvent =
+          await this.prisma.self_evaluation_event.findUnique({
+            where: { id: self_evaluation_event_id },
+          });
+
+        if (!selfEvaluationEvent) {
+          throw new NotFoundException('Evento de autoevaluación no encontrado');
+        }
+
+        // Verificar que el paciente del evento de autoevaluación coincide con el paciente proporcionado
+        if (selfEvaluationEvent.patient_id !== patient_id) {
+          throw new BadRequestException(
+            'El paciente no coincide con el evento de autoevaluación',
+          );
+        }
+
+        // Verificar que el tenant del evento de autoevaluación coincide con el tenant proporcionado
+        if (selfEvaluationEvent.tenant_id !== tenant_id) {
+          throw new BadRequestException(
+            'El tenant no coincide con el evento de autoevaluación',
+          );
+        }
+      }
+
+      // Obtener los signos vitales existentes para este evento
+      const existingVitalSigns = await this.prisma.vital_signs.findMany({
+        where: {
+          ...(medical_event_id && { medical_event_id }),
+          ...(self_evaluation_event_id && { self_evaluation_event_id }),
+          deleted: false,
+        },
+      });
+
+      // Identificar qué signos vitales deben crearse, actualizarse o eliminarse
+      const vitalSignsToCreate: VitalSignDto[] = [];
+      const vitalSignsToUpdate: { id: string; measure: number }[] = [];
+      const vitalSignsToDelete: string[] = [];
+
+      // ID de signos vitales proporcionados en la solicitud
+      const providedVitalSignIds = vital_signs.map((vs) => vs.vital_sign_id);
+
+      // Marcar signos vitales para actualización o eliminación
+      for (const existingVS of existingVitalSigns) {
+        const matchingVS = vital_signs.find(
+          (vs) => vs.vital_sign_id === existingVS.vital_sign_id,
+        );
+
+        if (matchingVS) {
+          // Si la medida ha cambiado, actualizar
+          if (matchingVS.measure !== existingVS.measure) {
+            vitalSignsToUpdate.push({
+              id: existingVS.id,
+              measure: matchingVS.measure,
+            });
+          }
+        } else {
+          // Si el signo vital ya no está en la solicitud, eliminarlo (soft delete)
+          vitalSignsToDelete.push(existingVS.id);
+        }
+      }
+
+      // Identificar signos vitales nuevos
+      for (const vs of vital_signs) {
+        const exists = existingVitalSigns.some(
+          (existingVS) => existingVS.vital_sign_id === vs.vital_sign_id,
+        );
+
+        if (!exists) {
+          vitalSignsToCreate.push(vs);
+        }
+      }
+
+      // Verificar que no hay signos vitales duplicados
+      const uniqueVitalSignIds = new Set(providedVitalSignIds);
+      if (uniqueVitalSignIds.size !== providedVitalSignIds.length) {
+        throw new BadRequestException(
+          'No se permiten signos vitales duplicados para un mismo evento',
+        );
+      }
+
+      // Ejecutar las operaciones en una transacción
+      return this.prisma.$transaction(async (tx) => {
+        // Crear nuevos signos vitales
+        const createdVitalSigns = [];
+        for (const vs of vitalSignsToCreate) {
+          const newVitalSign = await tx.vital_signs.create({
+            data: {
+              patient_id,
+              tenant_id,
+              ...(medical_event_id && { medical_event_id }),
+              ...(self_evaluation_event_id && { self_evaluation_event_id }),
+              vital_sign_id: vs.vital_sign_id,
+              measure: vs.measure,
+            },
+          });
+          createdVitalSigns.push(newVitalSign);
+        }
+
+        // Actualizar signos vitales existentes
+        const updatedVitalSigns = [];
+        for (const vs of vitalSignsToUpdate) {
+          const updatedVitalSign = await tx.vital_signs.update({
+            where: { id: vs.id },
+            data: { measure: vs.measure, updated_at: new Date() },
+          });
+          updatedVitalSigns.push(updatedVitalSign);
+        }
+
+        // Eliminar signos vitales que ya no se necesitan (soft delete)
+        const deletedVitalSigns = [];
+        for (const id of vitalSignsToDelete) {
+          const deletedVitalSign = await tx.vital_signs.update({
+            where: { id },
+            data: { deleted: true, deleted_at: new Date() },
+          });
+          deletedVitalSigns.push(deletedVitalSign);
+        }
+
+        // Obtener todos los signos vitales actualizados
+        const allVitalSigns = await tx.vital_signs.findMany({
+          where: {
+            ...(medical_event_id && { medical_event_id }),
+            ...(self_evaluation_event_id && { self_evaluation_event_id }),
+            deleted: false,
+          },
+          include: {
+            vital_sign: true,
+          },
+        });
+
+        return {
+          created: createdVitalSigns.length,
+          updated: updatedVitalSigns.length,
+          deleted: deletedVitalSigns.length,
+          vital_signs: allVitalSigns,
+        };
+      });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al crear/actualizar signos vitales: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Encuentra todos los signos vitales agrupados por evento
+   * @param findVitalSignsDto Datos para buscar los signos vitales
+   */
+  async findAllByPatient(findVitalSignsDto: FindVitalSignsByPatientDto) {
+    try {
+      const { patient_id, tenant_id } = findVitalSignsDto;
+
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patient_id },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Obtener todos los eventos médicos del paciente
+      const medicalEvents = await this.prisma.medical_event.findMany({
+        where: {
+          patient_id: patient.patient.id,
+          tenant_id,
+          deleted: false,
+        },
+        select: {
+          id: true,
+          created_at: true,
+          updated_at: true,
+          physician: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  last_name: true,
+                },
+              },
+            },
+          },
+          vital_signs: {
+            where: { deleted: false },
+            include: {
+              vital_sign: true,
+            },
+          },
+        },
+      });
+
+      // Obtener todos los eventos de autoevaluación del paciente
+      const selfEvaluationEvents =
+        await this.prisma.self_evaluation_event.findMany({
+          where: {
+            patient_id,
+            tenant_id,
+          },
+          select: {
+            id: true,
+            created_at: true,
+            updated_at: true,
+            vital_signs: {
+              where: { deleted: false },
+              include: {
+                vital_sign: true,
+              },
+            },
+          },
+        });
+
+      return {
+        medical_events: medicalEvents,
+        self_evaluation_events: selfEvaluationEvents,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener signos vitales: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Elimina un signo vital (soft delete)
+   * Solo puede ser eliminado por el médico relacionado con el evento o un superadmin
+   * @param id ID del signo vital
+   * @param userId ID del usuario que realiza la eliminación
+   * @param tenantId ID del tenant
+   */
+  async remove(id: string, userId: string, tenantId: string) {
+    try {
+      // Obtener el signo vital
+      const vitalSign = await this.prisma.vital_signs.findUnique({
+        where: { id },
+        include: {
+          medical_event: {
+            include: {
+              physician: true,
+            },
+          },
+        },
+      });
+
+      if (!vitalSign) {
+        throw new NotFoundException('Signo vital no encontrado');
+      }
+
+      // Verificar que el tenant coincide
+      if (vitalSign.tenant_id !== tenantId) {
+        throw new ForbiddenException(
+          'No tiene permisos para eliminar este signo vital',
+        );
+      }
+
+      // Verificar que el usuario es el médico relacionado con el evento médico o un superadmin
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      const isSuperAdmin = user.is_superadmin;
+      const isPhysician =
+        vitalSign.medical_event &&
+        vitalSign.medical_event.physician &&
+        vitalSign.medical_event.physician.user_id === userId;
+
+      if (!isSuperAdmin && !isPhysician) {
+        throw new ForbiddenException(
+          'No tiene permisos para eliminar este signo vital',
+        );
+      }
+
+      // Eliminar el signo vital (soft delete)
+      return this.prisma.vital_signs.update({
+        where: { id },
+        data: {
+          deleted: true,
+          deleted_at: new Date(),
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al eliminar signo vital: ${error.message}`,
+      );
+    }
+  }
+}
+
+================
+File: src/mobile-functions/mobile-functions.module.ts
+================
+import { Module } from '@nestjs/common';
+import { SelfEvaluationEventModule } from './self-evaluation-event/self-evaluation-event.module';
+
+@Module({
+  imports: [SelfEvaluationEventModule],
+})
+export class MobileFunctionsModule {}
+
+================
+File: src/mobile-functions/self-evaluation-event/dto/create-self-evaluation-event.dto.ts
+================
+import {
+  IsString,
+  IsNotEmpty,
+  IsUUID,
+  IsArray,
+  ValidateNested,
+  ArrayNotEmpty,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { VitalSignDto } from '../../../medical-scheduling/modules/vital-signs/dto/create-vital-sign.dto';
+
+export class CreateSelfEvaluationEventDto {
+  @IsUUID('4', { message: 'El ID del paciente debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del paciente es obligatorio' })
+  patient_id: string;
+
+  @IsUUID('4', { message: 'El ID del evento médico debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del evento médico es obligatorio' })
+  medical_event_id: string;
+
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
+  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
+  tenant_id: string;
+
+  @IsArray()
+  @ArrayNotEmpty({ message: 'Debe proporcionar al menos un signo vital' })
+  @ValidateNested({ each: true })
+  @Type(() => VitalSignDto)
+  vital_signs: VitalSignDto[];
+}
+
+================
+File: src/mobile-functions/self-evaluation-event/self-evaluation-event.controller.ts
+================
+import {
+  Controller,
+  Post,
+  Body,
+  Request,
+  UseGuards,
+  BadRequestException,
+} from '@nestjs/common';
+import { SelfEvaluationEventService } from './self-evaluation-event.service';
+import { CreateSelfEvaluationEventDto } from './dto/create-self-evaluation-event.dto';
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
+import { Permission } from '../../auth/permissions/permission.enum';
+import { PermissionGuard } from '../../auth/guards/permission.guard';
+import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+
+@Controller('mobile/self-evaluation-event')
+@UseGuards(TenantAccessGuard, PermissionGuard)
+export class SelfEvaluationEventController {
+  constructor(
+    private readonly selfEvaluationEventService: SelfEvaluationEventService,
+  ) {}
+
+  @Post()
+  @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
+  async create(
+    @Body() createSelfEvaluationEventDto: CreateSelfEvaluationEventDto,
+    @Request() req,
+  ) {
+    // Verificar que el tenant_id en el DTO coincide con el tenant del request
+    if (createSelfEvaluationEventDto.tenant_id !== req.tenant?.id) {
+      throw new BadRequestException(
+        'El tenant_id no coincide con el tenant del usuario',
+      );
+    }
+
+    // Verificar que el patient_id en el DTO coincide con el usuario autenticado o tiene permisos
+    if (
+      createSelfEvaluationEventDto.patient_id !== req.user?.id &&
+      !req.user?.is_superadmin &&
+      req.user?.role !== 'physician'
+    ) {
+      throw new BadRequestException('No tiene permisos para crear este evento');
+    }
+
+    return this.selfEvaluationEventService.create(createSelfEvaluationEventDto);
+  }
+}
+
+================
+File: src/mobile-functions/self-evaluation-event/self-evaluation-event.module.ts
+================
+import { Module } from '@nestjs/common';
+import { SelfEvaluationEventService } from './self-evaluation-event.service';
+import { SelfEvaluationEventController } from './self-evaluation-event.controller';
+import { PrismaService } from '../../prisma/prisma.service';
+import { GuardAuthModule } from '../../auth/guard-auth.module';
+import { VitalSignsModule } from '../../medical-scheduling/modules/vital-signs/vital-signs.module';
+
+@Module({
+  imports: [GuardAuthModule, VitalSignsModule],
+  controllers: [SelfEvaluationEventController],
+  providers: [SelfEvaluationEventService, PrismaService],
+})
+export class SelfEvaluationEventModule {}
+
+================
+File: src/mobile-functions/self-evaluation-event/self-evaluation-event.service.ts
+================
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateSelfEvaluationEventDto } from './dto/create-self-evaluation-event.dto';
+import { VitalSignsService } from '../../medical-scheduling/modules/vital-signs/vital-signs.service';
+
+@Injectable()
+export class SelfEvaluationEventService {
+  constructor(
+    private prisma: PrismaService,
+    private vitalSignsService: VitalSignsService,
+  ) {}
+
+  /**
+   * Crea un evento de autoevaluación con sus signos vitales asociados
+   * @param createSelfEvaluationEventDto Datos para crear el evento
+   */
+  async create(createSelfEvaluationEventDto: CreateSelfEvaluationEventDto) {
+    const { patient_id, medical_event_id, tenant_id, vital_signs } =
+      createSelfEvaluationEventDto;
+
+    try {
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patient_id },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Verificar que el evento médico existe y pertenece al paciente
+      const medicalEvent = await this.prisma.medical_event.findUnique({
+        where: { id: medical_event_id },
+        include: {
+          patient: true,
+        },
+      });
+
+      if (!medicalEvent) {
+        throw new NotFoundException('Evento médico no encontrado');
+      }
+
+      if (medicalEvent.patient_id !== patient.patient.id) {
+        throw new BadRequestException(
+          'El paciente no coincide con el evento médico',
+        );
+      }
+
+      if (medicalEvent.tenant_id !== tenant_id) {
+        throw new BadRequestException(
+          'El tenant no coincide con el evento médico',
+        );
+      }
+
+      return this.prisma.$transaction(async (tx) => {
+        const selfEvaluationEvent = await tx.self_evaluation_event.create({
+          data: {
+            patient_id,
+            medical_event_id,
+            tenant_id,
+          },
+        });
+
+        // Crear los signos vitales asociados
+        if (vital_signs && vital_signs.length > 0) {
+          await this.vitalSignsService.create({
+            patient_id,
+            tenant_id,
+            self_evaluation_event_id: selfEvaluationEvent.id,
+            vital_signs,
+          });
+        }
+
+        // Obtener el evento completo con los signos vitales
+        return await tx.self_evaluation_event.findUnique({
+          where: { id: selfEvaluationEvent.id },
+          include: {
+            vital_signs: {
+              include: {
+                vital_sign: true,
+              },
+            },
+          },
+        });
+      });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al crear evento de autoevaluación: ${error.message}`,
+      );
+    }
+  }
+}
+
+================
 File: src/prisma/prisma.module.ts
 ================
 import { Module } from '@nestjs/common';
@@ -5139,6 +7895,8 @@ export class PrismaService
     await this.$connect();
 
     this.$use(tenantPrismaMiddleware());
+
+    console.log('Prisma middleware registered');
   }
 
   async onModuleDestroy() {
@@ -5970,28 +8728,46 @@ export class TenantMiddleware implements NestMiddleware {
   constructor(private readonly prisma: PrismaService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    const authorization = req.headers['authorization'];
-    if (!authorization) {
-      throw new UnauthorizedException('Authorization header missing');
+    try {
+      const authorization = req.headers['authorization'];
+      if (!authorization) {
+        throw new UnauthorizedException('Authorization header missing');
+      }
+
+      const token = authorization.replace('Bearer ', '');
+      let payload: any;
+
+      try {
+        payload = AuthHelper.verifyToken(token);
+      } catch (error) {
+        throw new UnauthorizedException(`Invalid token: ${error.message}`);
+      }
+
+      const tenant_id = payload?.tenant_id;
+      if (!tenant_id) {
+        throw new UnauthorizedException('Tenant ID not found in token');
+      }
+
+      const tenant = await this.prisma.tenant.findUnique({
+        where: {
+          id: tenant_id,
+        },
+      });
+      if (!tenant) {
+        throw new UnauthorizedException('Invalid tenant');
+      }
+
+      // Guardar en el contexto global
+      global.tenant_id = tenant_id;
+
+      req['tenant_id'] = tenant_id;
+      req['tenant'] = tenant;
+
+      next();
+    } catch (error) {
+      console.log(error);
+      next(error);
     }
-
-    const token = authorization.replace('Bearer ', '');
-    const payload: any = AuthHelper.verifyToken(token);
-
-    const tenant_id = payload?.tenant_id;
-    if (!tenant_id) {
-      throw new UnauthorizedException('Tenant ID not found in token');
-    }
-
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenant_id },
-    });
-    if (!tenant) {
-      throw new UnauthorizedException('Invalid tenant');
-    }
-
-    req['tenant_id'] = tenant_id;
-    next();
   }
 }
 
@@ -6008,7 +8784,7 @@ export function tenantPrismaMiddleware() {
     > = {
       user: { actions: ['findMany'], requireTenantId: true },
       patient: {
-        actions: ['findMany', 'update'],
+        actions: ['findMany', 'update', 'create'],
         requireTenantId: true,
       },
       appointment: {
@@ -6019,9 +8795,8 @@ export function tenantPrismaMiddleware() {
         actions: ['findMany', 'create', 'update'],
         requireTenantId: true,
       },
-      tenant: { actions: ['findUnique'], requireTenantId: false },
       transaction: { actions: ['findMany', 'create'], requireTenantId: true },
-      organization: { actions: ['create'], requireTenantId: true },
+      organization: { actions: ['update'], requireTenantId: true },
       patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },
     };
 
@@ -6031,38 +8806,34 @@ export function tenantPrismaMiddleware() {
       return next(params, params.args);
     }
 
-    if (modelRules.requireTenantId) {
-      const tenantId =
-        params.args?.data?.tenant_id ?? params.args?.where?.tenant_id;
-      if (!tenantId) {
+    try {
+      const tenant_id = params.args?.tenant_id || global.tenant_id;
+
+      if (modelRules.requireTenantId && !tenant_id) {
         throw new Error(
           `Tenant verification failed: missing tenant_id for ${params.model} in ${params.action} action.`,
         );
       }
-    }
 
-    if (
-      ['findMany', 'findFirst', 'findUnique'].includes(params.action) &&
-      modelRules.requireTenantId
-    ) {
-      params.args.where = {
-        ...params.args.where,
-        tenant_id:
-          params.args?.where?.tenant_id ?? params.args?.data?.tenant_id,
-      };
-    }
+      if (['create'].includes(params.action)) {
+        params.args.data = {
+          ...params.args.data,
+          tenant_id: tenant_id,
+        };
+      }
 
-    if (
-      ['create', 'update'].includes(params.action) &&
-      modelRules.requireTenantId
-    ) {
-      params.args.data = {
-        ...params.args.data,
-        tenant_id: params.args.data?.tenant_id ?? params.args?.where?.tenant_id,
-      };
-    }
+      if (['findMany', 'findFirst', 'findUnique'].includes(params.action)) {
+        params.args.where = {
+          ...params.args.where,
+          tenant_id: tenant_id,
+        };
+      }
 
-    return next(params, params.args);
+      return next(params, params.args);
+    } catch (error) {
+      console.error('Error in tenantPrismaMiddleware:', error);
+      throw new Error(`Middleware error: ${error.message}`);
+    }
   };
 }
 

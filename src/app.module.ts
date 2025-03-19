@@ -27,12 +27,21 @@ import { MedicineModule } from './medical-scheduling/modules/medicine/medicine.m
 import { PrescriptionModule } from './medical-scheduling/modules/prescription/prescription.module';
 import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_history/pres_mod_history.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
+import { TenantExtractorMiddleware } from './auth/middlewares/tenant-extractor.middleware';
+import { JwtUserExtractorMiddleware } from './auth/middlewares/jwt-user-extractor.middleware';
+import { CatVitalSignsModule } from './catalogs/cat-vital-signs/cat-vital-signs.module';
+import { CatMeasureUnitModule } from './catalogs/cat-measure-unit/cat-measure-unit.module';
+import { GuardAuthModule } from './auth/guard-auth.module';
+import { VitalSignsModule } from './medical-scheduling/modules/vital-signs/vital-signs.module';
+import { MobileFunctionsModule } from './mobile-functions/mobile-functions.module';
+import { CatalogSeedModule } from './catalogs/seed/catalog-seed.module';
 import { ChatModule } from './services/chat/chat.module';
 
 config({ path: '.env' });
 
 @Module({
   imports: [
+    GuardAuthModule,
     AppointmentsModule,
     MedicalEventsModule,
     UserModule,
@@ -45,6 +54,11 @@ config({ path: '.env' });
     AuthModule,
     FileUploadModule,
     CatStudyTypeModule,
+    CatCieDiezModule,
+    SubcatCieDiezModule,
+    CatVitalSignsModule,
+    CatMeasureUnitModule,
+    CatalogSeedModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       global: true,
@@ -61,8 +75,8 @@ config({ path: '.env' });
     BackgroundModule,
     PhysicalExplorationModule,
     PhysicalExplorationAreaModule,
-    CatCieDiezModule,
-    SubcatCieDiezModule,
+    VitalSignsModule,
+    MobileFunctionsModule,
     ChatModule,
   ],
   controllers: [AppController],
@@ -86,9 +100,20 @@ export class AppModule {
         { path: 'auth/send-otp', method: RequestMethod.POST },
         { path: 'auth/verify-otp', method: RequestMethod.POST },
         { path: 'user/onboarding', method: RequestMethod.POST },
+        { path: 'auth/create-superadmin', method: RequestMethod.POST },
         { path: 'socket.io', method: RequestMethod.ALL },
         { path: 'alarmas', method: RequestMethod.ALL },
       )
       .forRoutes('*');
+
+    consumer
+      .apply(JwtUserExtractorMiddleware)
+      .exclude({ path: 'auth/create-superadmin', method: RequestMethod.POST })
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+
+    consumer
+      .apply(TenantExtractorMiddleware)
+      .exclude({ path: 'auth/create-superadmin', method: RequestMethod.POST })
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

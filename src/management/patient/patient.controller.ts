@@ -6,44 +6,52 @@ import {
   Patch,
   Param,
   Delete,
-  Req,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PatientService } from './patient.service';
 import { UpdatePatientDto } from './dto/update-patient.dto';
-
 import { MedicalPatientDto } from './dto/medical-patient.dto';
-import { Request } from 'express';
 import { PaginationParams } from 'src/utils/pagination.helper';
-/* import { MedicalPatientDto } from './dto/medical-patient.dto';
- */
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
+import { Permission } from '../../auth/permissions/permission.enum';
+import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import { PermissionGuard } from '../../auth/guards/permission.guard';
+
 @Controller('patient')
+@UseGuards(TenantAccessGuard, PermissionGuard)
 export class PatientController {
   constructor(private readonly patientService: PatientService) {}
 
   @Post()
+  @RequirePermission(Permission.MANAGE_USERS)
   create(@Body() medicalPatientDto: MedicalPatientDto): Promise<object> {
     return this.patientService.create(medicalPatientDto);
   }
 
   @Get()
-  findAll(@Req() req: Request, @Query() pagination: PaginationParams) {
-    const tenant_id = req['tenant_id'];
-    return this.patientService.findAll(tenant_id, pagination);
+  @RequirePermission(Permission.VIEW_PATIENTS_LIST)
+  findAll(
+    @Query() pagination?: PaginationParams,
+    @Query('search') searchQuery?: string,
+  ) {
+    return this.patientService.findAll(pagination, searchQuery);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Req() req: Request) {
-    const tenant_id = req['tenant_id'];
-    return this.patientService.findOne(id, tenant_id);
+  @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
+  findOne(@Param('id') id: string) {
+    return this.patientService.findOne(id);
   }
 
   @Patch(':id')
+  @RequirePermission(Permission.EDIT_PATIENT_INFO)
   update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
     return this.patientService.update(id, updatePatientDto);
   }
 
   @Delete(':id')
+  @RequirePermission(Permission.DELETE_PATIENTS)
   remove(@Param('id') id: string) {
     return this.patientService.remove(id);
   }
