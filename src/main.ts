@@ -3,16 +3,23 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { config } from 'dotenv';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 config({ path: '.env' });
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Configure CORS with WebSocket support
   app.enableCors({
-    origin: '*', // URL del frontend
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Métodos permitidos
-    credentials: true, // Si estás usando cookies o autenticación basada en sesión
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    allowedHeaders: ['content-type', 'authorization'],
   });
+
+  // Configure WebSocket adapter
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -29,7 +36,7 @@ async function bootstrap() {
             })),
           };
         });
-        console.log('Errores de validación detallados:', cleanErrors); // 👈 Depuración
+        console.log('Errores de validación detallados:', cleanErrors);
         return new BadRequestException({
           alert: 'Se han detectado los siguientes errores en la petición: ',
           errors: cleanErrors,
@@ -48,10 +55,11 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 
 bootstrap();

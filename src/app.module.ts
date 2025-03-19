@@ -27,6 +27,7 @@ import { MedicineModule } from './medical-scheduling/modules/medicine/medicine.m
 import { PrescriptionModule } from './medical-scheduling/modules/prescription/prescription.module';
 import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_history/pres_mod_history.module';
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
+import { ChatModule } from './services/chat/chat.module';
 
 config({ path: '.env' });
 
@@ -62,6 +63,7 @@ config({ path: '.env' });
     PhysicalExplorationAreaModule,
     CatCieDiezModule,
     SubcatCieDiezModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
@@ -84,6 +86,8 @@ export class AppModule {
         { path: 'auth/send-otp', method: RequestMethod.POST },
         { path: 'auth/verify-otp', method: RequestMethod.POST },
         { path: 'user/onboarding', method: RequestMethod.POST },
+        { path: 'socket.io', method: RequestMethod.ALL },
+        { path: 'alarmas', method: RequestMethod.ALL },
       )
       .forRoutes('*');
   }

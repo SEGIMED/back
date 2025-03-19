@@ -93,15 +93,23 @@ export class PatientService {
       const users = await this.prisma.user.findMany({
         where: {
           role: 'patient',
-          tenant_id,
+          patient: {
+            patient_tenant: {
+              some: {
+                tenant_id: tenant_id,
+              },
+            },
+          },
         },
         skip,
         take,
         orderBy: { [orderBy]: orderDirection },
       });
+
       if (users.length === 0) {
         throw new BadRequestException('No hay pacientes que mostrar.');
       }
+
       return users.map((user) => {
         return {
           id: user.id,
