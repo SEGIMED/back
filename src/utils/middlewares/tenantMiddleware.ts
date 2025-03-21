@@ -24,6 +24,7 @@ export class TenantMiddleware implements NestMiddleware {
       try {
         payload = AuthHelper.verifyToken(token);
       } catch (error) {
+        console.log(error);
         throw new UnauthorizedException(`Invalid token: ${error.message}`);
       }
 
@@ -33,7 +34,9 @@ export class TenantMiddleware implements NestMiddleware {
       }
 
       const tenant = await this.prisma.tenant.findUnique({
-        where: { id: tenant_id },
+        where: {
+          id: tenant_id,
+        },
       });
       if (!tenant) {
         throw new UnauthorizedException('Invalid tenant');

@@ -7,10 +7,6 @@ export function tenantPrismaMiddleware() {
       { actions: string[]; requireTenantId: boolean }
     > = {
       user: { actions: ['findMany'], requireTenantId: true },
-      patient: {
-        actions: ['findMany', 'update', 'create'],
-        requireTenantId: true,
-      },
       appointment: {
         actions: ['findMany', 'findFirst'],
         requireTenantId: true,
@@ -19,7 +15,6 @@ export function tenantPrismaMiddleware() {
         actions: ['findMany', 'create', 'update'],
         requireTenantId: true,
       },
-      tenant: { actions: ['findUnique'], requireTenantId: false },
       transaction: { actions: ['findMany', 'create'], requireTenantId: true },
       organization: { actions: ['update'], requireTenantId: true },
       patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },

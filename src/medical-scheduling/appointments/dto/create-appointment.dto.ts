@@ -40,7 +40,7 @@ export class CreateAppointmentDto {
   @IsOptional()
   comments?: string;
 
-  @IsUUID()
-  @IsNotEmpty()
-  tenant_id: string;
+  @IsOptional()
+  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
+  tenant_id?: string;
 }

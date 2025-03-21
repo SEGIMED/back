@@ -310,4 +310,126 @@ export class AuthService {
       );
     }
   }
+
+  async createSuperAdmin(createSuperAdminDto: any): Promise<object> {
+    try {
+      const expectedSecretKey = this.configService.get<string>(
+        'SUPER_ADMIN_SECRET_KEY',
+      );
+      if (!expectedSecretKey) {
+        throw new BadRequestException(
+          'La clave secreta no está configurada en el servidor',
+        );
+      }
+
+      const superAdminTenantId = this.configService.get<string>(
+        'SUPER_ADMIN_TENANT_ID',
+      );
+      if (!superAdminTenantId) {
+        throw new BadRequestException(
+          'El ID del tenant del superadmin no está configurado en el servidor',
+        );
+      }
+
+      if (createSuperAdminDto.secret_key !== expectedSecretKey) {
+        throw new BadRequestException('Clave secreta incorrecta');
+      }
+
+      const saltRounds = parseInt(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
+      const hashedPassword = await AuthHelper.hashPassword(
+        createSuperAdminDto.password,
+        saltRounds,
+      );
+
+      const user = await this.prisma.user.create({
+        data: {
+          name: createSuperAdminDto.name,
+          last_name: createSuperAdminDto.last_name,
+          email: createSuperAdminDto.email,
+          password: hashedPassword,
+          role: 'superadmin',
+          tenant_id: superAdminTenantId,
+        },
+      });
+
+      await this.setupSuperAdminRolesAndPermissions(
+        user.id,
+        createSuperAdminDto.tenant_id,
+      );
+
+      return {
+        message: 'Superadmin creado exitosamente',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          last_name: user.last_name,
+          role: user.role,
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al crear el superadmin: ${error.message}`,
+      );
+    }
+  }
+
+  private async setupSuperAdminRolesAndPermissions(
+    userId: string,
+    tenantId?: string,
+  ): Promise<void> {
+    try {
+      let superadminRole = await this.prisma.role.findFirst({
+        where: {
+          name: 'superadmin',
+          tenant_id: tenantId || null,
+        },
+      });
+
+      if (!superadminRole) {
+        superadminRole = await this.prisma.role.create({
+          data: {
+            name: 'superadmin',
+            description: 'Administrador del sistema con acceso total',
+            tenant_id: tenantId || null,
+          },
+        });
+      }
+
+      await this.prisma.user_role.create({
+        data: {
+          user_id: userId,
+          role_id: superadminRole.id,
+        },
+      });
+
+      const permissions = await this.prisma.permission.findMany();
+
+      for (const permission of permissions) {
+        const existingPermission = await this.prisma.role_permission.findFirst({
+          where: {
+            role_id: superadminRole.id,
+            permission_id: permission.id,
+          },
+        });
+
+        if (!existingPermission) {
+          await this.prisma.role_permission.create({
+            data: {
+              role_id: superadminRole.id,
+              permission_id: permission.id,
+            },
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error al configurar roles y permisos:', error);
+      throw new Error('Error al configurar roles y permisos de superadmin');
+    }
+  }
 }

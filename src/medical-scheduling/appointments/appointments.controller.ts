@@ -3,48 +3,67 @@ import {
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { AppointmentsService } from './appointments.service';
 import { status_type } from '@prisma/client';
+import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import { PermissionGuard } from '../../auth/guards/permission.guard';
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
+import { Permission } from '../../auth/permissions/permission.enum';
+import { GetTenant } from '../../auth/decorators/get-tenant.decorator';
+import { GetUser } from '../../auth/decorators/get-user.decorator';
+import { PaginationParams } from 'src/utils/pagination.helper';
 
 @Controller('appointments')
+@UseGuards(TenantAccessGuard, PermissionGuard)
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Post()
-  async createAppointment(@Body() createAppointmentDto: CreateAppointmentDto) {
+  @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
+  async create(
+    @Body() createAppointmentDto: CreateAppointmentDto,
+    @GetTenant() tenant,
+  ) {
+    if (!createAppointmentDto.tenant_id) {
+      createAppointmentDto.tenant_id = tenant.id;
+    } else if (createAppointmentDto.tenant_id !== tenant.id) {
+      throw new BadRequestException(
+        'El tenant_id no coincide con el tenant del usuario',
+      );
+    }
+
     return this.appointmentsService.createAppointment(createAppointmentDto);
   }
 
-  @Get(':userId')
+  @Get('user')
+  @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
   async getAppointmentsByUser(
-    @Param('userId', new ParseUUIDPipe()) userId: string,
-    @Query('status') status?: status_type,
-    @Query('page') page?: number,
-    @Query('pageSize') pageSize?: number,
-    @Query('orderBy') orderBy?: string,
-    @Query('orderDirection') orderDirection?: 'asc' | 'desc',
+    @GetUser() user,
+    @GetTenant() tenant,
+    @Query() params: { status?: status_type } & PaginationParams,
   ) {
-    return this.appointmentsService.getAppointmentsByUser(userId, {
-      status,
-      page,
-      pageSize,
-      orderBy,
-      orderDirection,
-    });
+    return this.appointmentsService.getAppointmentsByUser(user.id, params);
   }
 
   @Patch(':id/status')
-  async updateAppointmentStatus(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Body('status') status: status_type,
-    @Body('reason') reason?: string,
+  @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: { status: status_type; reason?: string },
+    @GetTenant() tenant,
   ) {
-    return this.appointmentsService.updateAppointmentStatus(id, status, reason);
+    return this.appointmentsService.updateAppointmentStatus(
+      id,
+      updateStatusDto.status,
+      updateStatusDto.reason,
+      tenant,
+    );
   }
 }
