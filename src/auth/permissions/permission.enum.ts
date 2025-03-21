@@ -1,4 +1,6 @@
 export enum Permission {
+  CONFIGURE_SYSTEM_SETTINGS = 'configurar_ajustes_del_sistema',
+
   // Gestión de Médicos
   VIEW_DOCTORS_LIST = 'ver_listado_de_medicos',
   VIEW_DOCTOR_DETAILS = 'ver_detalles_de_medico',

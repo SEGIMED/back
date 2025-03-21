@@ -8,6 +8,7 @@ import { TenantAccessGuard } from './guards/tenant-access.guard';
 import { TenantAdminGuard } from './guards/tenant-admin.guard';
 import { SuperAdminGuard } from './guards/superadmin.guard';
 import { RolesController } from './controllers/roles.controller';
+import { UserRoleManagerService } from './roles/user-role-manager.service';
 
 @Module({
   controllers: [RolesController],
@@ -20,6 +21,7 @@ import { RolesController } from './controllers/roles.controller';
     TenantAccessGuard,
     TenantAdminGuard,
     SuperAdminGuard,
+    UserRoleManagerService,
   ],
   exports: [
     PermissionsService,
@@ -29,6 +31,7 @@ import { RolesController } from './controllers/roles.controller';
     TenantAccessGuard,
     TenantAdminGuard,
     SuperAdminGuard,
+    UserRoleManagerService,
   ],
 })
 export class GuardAuthModule {}
