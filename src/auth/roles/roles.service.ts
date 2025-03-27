@@ -77,21 +77,6 @@ export class RolesService {
 
   async createRole(data: CreateRoleDto) {
     try {
-      // Verificar si ya existe un rol con el mismo nombre en el mismo tenant
-      const existingRole = await this.prisma.role.findFirst({
-        where: {
-          name: data.name,
-          tenant_id: data.tenantId || null,
-        },
-      });
-
-      if (existingRole) {
-        throw new BadRequestException(
-          `Ya existe un rol con el nombre ${data.name}`,
-        );
-      }
-
-      // Verificar que los permisos existan
       const permissions = await this.prisma.permission.findMany({
         where: {
           name: {
@@ -104,8 +89,9 @@ export class RolesService {
         throw new BadRequestException('Algunos permisos no existen');
       }
 
-      // Crear el rol con sus permisos
-      return this.prisma.$transaction(async (tx) => {
+      // Crear el rol y asignar permisos en una única transacción atómica
+      return await this.prisma.$transaction(async (tx) => {
+        // Crear el rol
         const role = await tx.role.create({
           data: {
             name: data.name,
@@ -115,15 +101,16 @@ export class RolesService {
           },
         });
 
-        // Asociar permisos al rol
-        for (const permission of permissions) {
-          await tx.role_permission.create({
-            data: {
-              role_id: role.id,
-              permission_id: permission.id,
-            },
-          });
-        }
+        // Preparar los datos para crear las relaciones rol-permiso
+        const rolePermissionsData = permissions.map((permission) => ({
+          role_id: role.id,
+          permission_id: permission.id,
+        }));
+
+        // Crear todas las relaciones role_permission de una vez
+        await tx.role_permission.createMany({
+          data: rolePermissionsData,
+        });
 
         return role;
       });

@@ -18,9 +18,9 @@ export class AppointmentsService {
 
   async createAppointment(
     data: CreateAppointmentDto,
-    tenant?: string,
+    tenant: string,
   ): Promise<{ message: string }> {
-    // Verificar que las fechas de inicio y fin sean válidas
+    // Validaciones iniciales (fechas, paciente, médico, etc.)
     if (!data.start || !data.end || data.start >= data.end) {
       throw new BadRequestException(
         'La fecha de inicio debe ser anterior a la fecha de fin',
@@ -28,21 +28,22 @@ export class AppointmentsService {
     }
 
     try {
-      const patientExists = await this.prisma.patient.findUnique({
-        where: { id: data.patient_id },
-      });
-      if (!patientExists) {
+      // Verificar existencia de entidades relacionadas
+      const [patientExists, physicianExists, tenantExists] = await Promise.all([
+        this.prisma.patient.findUnique({ where: { user_id: data.patient_id } }),
+        this.prisma.physician.findUnique({
+          where: { user_id: data.physician_id },
+        }),
+        this.prisma.tenant.findUnique({ where: { id: tenant } }),
+      ]);
+
+      if (!patientExists)
         throw new BadRequestException('El paciente no existe');
-      }
-
-      const physicianExists = await this.prisma.physician.findUnique({
-        where: { id: data.physician_id },
-      });
-      if (!physicianExists) {
+      if (!physicianExists)
         throw new BadRequestException('El médico no existe');
-      }
+      if (!tenantExists) throw new BadRequestException('El tenant no existe');
 
-      // Verificar si hay conflicto de citas
+      // Verificar conflicto de horarios
       const conflict = await this.prisma.appointment.findFirst({
         where: {
           physician_id: data.physician_id,
@@ -60,36 +61,39 @@ export class AppointmentsService {
         );
       }
 
-      // Iniciar una transacción para asegurar la consistencia de los datos
-      await this.prisma.$transaction(async (prisma) => {
-        // Crear la cita
+      // Transacción optimizada
+      const result = await this.prisma.$transaction(async (prisma) => {
+        // 1. Crear cita médica
         const appointment = await prisma.appointment.create({
           data: {
-            ...data,
-            tenant_id: tenant,
+            consultation_reason: data.consultation_reason,
+            start: data.start,
+            end: data.end,
+            comments: data.comments,
+            status: data.status || 'pendiente',
+            tenant_id: tenant, // Usar tenant_id directamente
+            patient_id: data.patient_id, // Usar patient_id directamente
+            physician_id: data.physician_id, // Usar physician_id directamente
           },
         });
 
-        if (!appointment) {
-          throw new InternalServerErrorException('Error al crear la cita');
-        }
+        // 2. Crear evento médico
 
-        // Crear el evento médico asociado directamente con Prisma
         await prisma.medical_event.create({
           data: {
             appointment_id: appointment.id,
-            patient_id: data.patient_id,
-            physician_id: data.physician_id,
-            tenant_id: tenant,
+            patient_id: appointment.patient_id,
+            physician_id: appointment.physician_id,
+            tenant_id: appointment.tenant_id,
           },
         });
+
+        return { message: 'Cita creada exitosamente' };
       });
 
-      return { message: 'Cita creada exitosamente' };
+      return result;
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
-        throw new InternalServerErrorException('Error al crear la cita');
-      }
+      console.error('Error creating appointment:', error);
       throw error;
     }
   }
