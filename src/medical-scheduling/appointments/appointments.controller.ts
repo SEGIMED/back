@@ -7,7 +7,6 @@ import {
   Post,
   Query,
   UseGuards,
-  BadRequestException,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { AppointmentsService } from './appointments.service';
@@ -29,17 +28,12 @@ export class AppointmentsController {
   @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
   async create(
     @Body() createAppointmentDto: CreateAppointmentDto,
-    @GetTenant() tenant,
+    @GetTenant() tenant: { id: string },
   ) {
-    if (!createAppointmentDto.tenant_id) {
-      createAppointmentDto.tenant_id = tenant.id;
-    } else if (createAppointmentDto.tenant_id !== tenant.id) {
-      throw new BadRequestException(
-        'El tenant_id no coincide con el tenant del usuario',
-      );
-    }
-
-    return this.appointmentsService.createAppointment(createAppointmentDto);
+    return this.appointmentsService.createAppointment(
+      createAppointmentDto,
+      tenant.id,
+    );
   }
 
   @Get('user')

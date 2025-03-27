@@ -8,7 +8,7 @@ export function tenantPrismaMiddleware() {
     > = {
       user: { actions: ['findMany'], requireTenantId: true },
       appointment: {
-        actions: ['findMany', 'findFirst'],
+        actions: ['create', 'findMany', 'findFirst'],
         requireTenantId: true,
       },
       medical_event: {

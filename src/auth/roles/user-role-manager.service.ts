@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Permission } from '../permissions/permission.enum';
 
 @Injectable()
 export class UserRoleManagerService {
@@ -26,10 +27,12 @@ export class UserRoleManagerService {
 
       switch (userType) {
         case 'physician':
-          roleName = 'Admin'; // Los médicos reciben rol de Admin
+          roleName = 'Physician';
+          // Asegurar que existe el rol de médico
+          await this.ensurePhysicianRoleExists(tenantId);
           break;
         case 'patient':
-          roleName = 'Patient'; // Los pacientes reciben rol de Patient
+          roleName = 'Patient';
           // Si no existe un rol "Patient", podemos verificar y crearlo
           await this.ensurePatientRoleExists(tenantId);
           break;
@@ -79,6 +82,88 @@ export class UserRoleManagerService {
   }
 
   /**
+   * Asegura que exista un rol de tipo médico en el sistema
+   */
+  private async ensurePhysicianRoleExists(tenantId?: string): Promise<void> {
+    try {
+      // Verificar si ya existe un rol de médico
+      const physicianRole = await this.prisma.role.findFirst({
+        where: {
+          name: 'Physician',
+          tenant_id: tenantId || null,
+        },
+      });
+
+      // Si ya existe, no hacemos nada
+      if (physicianRole) {
+        return;
+      }
+
+      // Obtener los permisos básicos que un médico debería tener
+      const physicianPermissions = await this.prisma.permission.findMany({
+        where: {
+          name: {
+            in: [
+              Permission.VIEW_PATIENTS_LIST,
+              Permission.VIEW_PATIENT_DETAILS,
+              Permission.EDIT_PATIENT_INFO,
+              Permission.VIEW_DOCTORS_LIST,
+              Permission.VIEW_DOCTOR_DETAILS,
+              Permission.SCHEDULE_APPOINTMENTS,
+              Permission.EDIT_CANCEL_APPOINTMENTS,
+              Permission.CONFIRM_PATIENT_ATTENDANCE,
+              Permission.ASSIGN_TREATMENTS,
+              Permission.MODIFY_TREATMENTS,
+              Permission.VIEW_TREATMENT_HISTORY,
+              Permission.ADD_DIAGNOSES,
+              Permission.EDIT_DIAGNOSES,
+              Permission.VIEW_ACTIVITY_REPORTS,
+              Permission.GENERATE_CONSULTATION_REPORTS,
+              Permission.GENERATE_ADHERENCE_REPORTS,
+              Permission.DOWNLOAD_REPORTS,
+              Permission.MANAGE_USERS,
+              Permission.CONFIGURE_USER_PERMISSIONS,
+            ],
+          },
+        },
+      });
+
+      // Crear el rol y sus permisos en una única transacción atómica
+      await this.prisma.$transaction(async (tx) => {
+        // Crear el rol de médico
+        const newRole = await tx.role.create({
+          data: {
+            name: 'Physician',
+            description: 'Rol para médicos con acceso a funciones médicas',
+            is_system: true,
+            tenant_id: tenantId || null,
+          },
+        });
+
+        // Si hay permisos para asignar, crearlos todos de una vez
+        if (physicianPermissions.length > 0) {
+          // Preparar los datos para crear las relaciones rol-permiso
+          const rolePermissionsData = physicianPermissions.map(
+            (permission) => ({
+              role_id: newRole.id,
+              permission_id: permission.id,
+            }),
+          );
+
+          // Crear todas las relaciones role_permission de una vez
+          await tx.role_permission.createMany({
+            data: rolePermissionsData,
+          });
+        }
+
+        console.log('Rol Physician creado exitosamente');
+      });
+    } catch (error) {
+      console.error('Error al crear el rol de médico:', error);
+    }
+  }
+
+  /**
    * Asegura que exista un rol de tipo paciente en el sistema
    */
   private async ensurePatientRoleExists(tenantId?: string): Promise<void> {
@@ -96,16 +181,6 @@ export class UserRoleManagerService {
         return;
       }
 
-      // Crear el rol de paciente con permisos básicos de paciente
-      const newRole = await this.prisma.role.create({
-        data: {
-          name: 'Patient',
-          description: 'Rol para pacientes con acceso limitado',
-          is_system: true,
-          tenant_id: tenantId || null,
-        },
-      });
-
       // Obtener los permisos básicos que un paciente debería tener
       const basicPermissions = await this.prisma.permission.findMany({
         where: {
@@ -120,17 +195,34 @@ export class UserRoleManagerService {
         },
       });
 
-      // Asignar los permisos al rol
-      for (const permission of basicPermissions) {
-        await this.prisma.role_permission.create({
+      // Crear el rol y sus permisos en una única transacción atómica
+      await this.prisma.$transaction(async (tx) => {
+        // Crear el rol de paciente
+        const newRole = await tx.role.create({
           data: {
-            role_id: newRole.id,
-            permission_id: permission.id,
+            name: 'Patient',
+            description: 'Rol para pacientes con acceso limitado',
+            is_system: true,
+            tenant_id: tenantId || null,
           },
         });
-      }
 
-      console.log('Rol Patient creado exitosamente');
+        // Si hay permisos para asignar, crearlos todos de una vez
+        if (basicPermissions.length > 0) {
+          // Preparar los datos para crear las relaciones rol-permiso
+          const rolePermissionsData = basicPermissions.map((permission) => ({
+            role_id: newRole.id,
+            permission_id: permission.id,
+          }));
+
+          // Crear todas las relaciones role_permission de una vez
+          await tx.role_permission.createMany({
+            data: rolePermissionsData,
+          });
+        }
+
+        console.log('Rol Patient creado exitosamente');
+      });
     } catch (error) {
       console.error('Error al crear el rol de paciente:', error);
     }
