@@ -72,6 +72,8 @@ model user {
 
   physical_exploration_physician physical_exploration[] @relation("physician")
   physical_exploration_patient   physical_exploration[] @relation("patient")
+  medical_event_patient          medical_event[]        @relation("patient")
+  medical_event_physician        medical_event[]        @relation("physician")
 }
 
 model organization {
@@ -123,7 +125,6 @@ model patient {
   user_id            String    @unique
   user               user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  medical_event  medical_event[]
   patient_tenant patient_tenant[]
 }
 
@@ -143,7 +144,7 @@ model patient_tenant {
 
 model physician {
   id               String    @id @default(uuid())
-  user_id          String
+  user_id          String    @unique
   user             user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   tenant_id        String?
   tenant           tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
@@ -153,7 +154,6 @@ model physician {
   deleted          Boolean   @default(false)
   deleted_at       DateTime?
 
-  medical_event          medical_event[]
   physician_speciality   physician_speciality[]
   organization_physician organization_physician[]
 }
@@ -195,8 +195,8 @@ model medical_event {
   deleted              Boolean                @default(false)
   deleted_at           DateTime?
   appointment          appointment            @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
-  patient              patient                @relation(fields: [patient_id], references: [id], onDelete: Cascade)
-  physician            physician              @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  patient              user                   @relation(fields: [patient_id], references: [id], onDelete: Cascade, name: "patient")
+  physician            user                   @relation(fields: [physician_id], references: [id], onDelete: Cascade, name: "physician")
   physical_examination physical_examination[]
   physical_exploration physical_exploration[]
 

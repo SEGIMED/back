@@ -51,11 +51,7 @@ export class VitalSignsService {
           where: { id: medical_event_id },
           include: {
             patient: true,
-            physician: {
-              include: {
-                user: true,
-              },
-            },
+            physician: true,
           },
         });
 
@@ -262,13 +258,9 @@ export class VitalSignsService {
           updated_at: true,
           physician: {
             select: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  last_name: true,
-                },
-              },
+              id: true,
+              name: true,
+              last_name: true,
             },
           },
           vital_signs: {
@@ -359,7 +351,7 @@ export class VitalSignsService {
       const isPhysician =
         vitalSign.medical_event &&
         vitalSign.medical_event.physician &&
-        vitalSign.medical_event.physician.user_id === userId;
+        vitalSign.medical_event.physician.id === userId;
 
       if (!isSuperAdmin && !isPhysician) {
         throw new ForbiddenException(

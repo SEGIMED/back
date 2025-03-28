@@ -6,5 +6,6 @@ import { PhysicalExplorationService } from './physical-exploration.service';
 @Module({
   controllers: [PhysicalExplorationController],
   providers: [PrismaService, PhysicalExplorationService],
+  exports: [PhysicalExplorationService],
 })
 export class PhysicalExplorationModule {}
