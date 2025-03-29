@@ -60,7 +60,7 @@ export class VitalSignsService {
         }
 
         // Verificar que el paciente del evento médico coincide con el paciente proporcionado
-        if (medicalEvent.patient_id !== patient.patient.id) {
+        if (medicalEvent.patient_id !== patient_id) {
           throw new BadRequestException(
             'El paciente no coincide con el evento médico',
           );

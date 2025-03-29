@@ -98,7 +98,6 @@ export class MedicalEventsService {
         ...basicData
       } = attendMedicalEventDto;
 
-      // Ya no necesitamos obtener el tenant_id del usuario
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
       });
@@ -107,7 +106,6 @@ export class MedicalEventsService {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      // Obtener el evento médico
       const medicalEvent = await this.prisma.medical_event.findUnique({
         where: {
           id,
@@ -128,7 +126,6 @@ export class MedicalEventsService {
         throw new NotFoundException('Evento médico no encontrado');
       }
 
-      // Verificar que sea el médico asignado o un superadmin
       const isSuperAdmin = user.is_superadmin;
       const isAssignedPhysician = medicalEvent.physician.id === userId;
 
@@ -138,7 +135,6 @@ export class MedicalEventsService {
         );
       }
 
-      // Verificar que la consulta no haya sido finalizada antes, o que esté dentro del período de gracia
       const appointmentFinished =
         medicalEvent.appointment.status === 'atendida';
       const gracePeriodValid = this._isWithinGracePeriod(
@@ -151,13 +147,11 @@ export class MedicalEventsService {
         );
       }
 
-      // Validar que main_diagnostic_cie esté en las subcategorías del evento
       if (main_diagnostic_cie) {
         const subcategoryCodes = medicalEvent.subcategory_medical_event.map(
           (subCat) => subCat.subcategories_cie_diez.code,
         );
 
-        // Si hay subcategorías definidas, verificar que el diagnóstico principal sea una de ellas
         if (
           subcategoryCodes.length > 0 &&
           !subcategoryCodes.includes(main_diagnostic_cie)
@@ -259,7 +253,7 @@ export class MedicalEventsService {
             createdAt: new Date(),
             updatedAt: new Date(),
           }));
-
+          console.log('formattedExaminations', formattedExaminations);
           await this.physicalExaminationService.create(formattedExaminations);
         }
 
@@ -292,11 +286,6 @@ export class MedicalEventsService {
     }
   }
 
-  /**
-   * Verifica si la fecha está dentro del período de gracia de 24 horas
-   * @param date Fecha a verificar
-   * @returns true si está dentro del período de gracia, false en caso contrario
-   */
   private _isWithinGracePeriod(date: Date): boolean {
     const gracePeriodHours = 24;
     const now = new Date();
