@@ -1,0 +1,56 @@
+[
+  {
+    "type": "study-authorization",
+    "comment": "Ejemplo para probar la autorización de estudios con archivo",
+    "note": "Este JSON debe ser enviado como form-data junto con el archivo en un campo llamado 'file'",
+    "form_data": {
+      "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+      "cat_study_type_id": 1,
+      "request_reason": "Se requiere resonancia magnética para evaluar lesión en rodilla",
+      "description_type": "Resonancia Magnética de Rodilla",
+      "application_date": "2023-12-01T10:00:00Z",
+      "category_cie_diez_id": 45
+    }
+  },
+  {
+    "type": "certification",
+    "comment": "Ejemplo para probar la creación de certificados con archivo",
+    "note": "Este JSON debe ser enviado como form-data junto con el archivo en un campo llamado 'file'",
+    "form_data": {
+      "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+      "cat_certification_type_id": 2,
+      "category_cie_diez_id": 45,
+      "description_type": "Certificado médico para ausentismo laboral",
+      "application_date": "2023-12-01T10:00:00Z"
+    }
+  },
+  {
+    "type": "medication",
+    "comment": "Ejemplo para probar la creación de recetas médicas con archivo",
+    "note": "Este JSON debe ser enviado como form-data junto con el archivo en un campo llamado 'file'",
+    "form_data": {
+      "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+      "description_type": "Receta médica para control de dolor",
+      "medications": [
+        {
+          "monodrug": "Paracetamol",
+          "dose": "500",
+          "dose_units": "mg",
+          "frecuency": "Cada 8 horas",
+          "duration": "7",
+          "duration_units": "días",
+          "observations": "Tomar con alimentos"
+        },
+        {
+          "monodrug": "Ibuprofeno",
+          "dose": "400",
+          "dose_units": "mg",
+          "frecuency": "Cada 12 horas",
+          "duration": "5",
+          "duration_units": "días",
+          "observations": "Tomar después de las comidas para evitar irritación estomacal"
+        }
+      ]
+    }
+  }
+]

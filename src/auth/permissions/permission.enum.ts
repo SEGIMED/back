@@ -42,6 +42,13 @@ export enum Permission {
   BLOCK_SCHEDULE = 'bloquear_horarios_en_la_agenda',
   AUTOMATIC_REMINDERS = 'recordatorios_automaticos_de_citas',
 
+  // Gestión de Ordenes Médicas
+  CREATE_MEDICAL_ORDERS = 'crear_ordenes_medicas',
+  EDIT_MEDICAL_ORDERS = 'editar_ordenes_medicas',
+  DELETE_MEDICAL_ORDERS = 'eliminar_ordenes_medicas',
+  VIEW_MEDICAL_ORDERS = 'ver_ordenes_medicas',
+  UPDATE_MEDICAL_ORDERS = 'actualizar_ordenes_medicas',
+
   // Catálogos
   MANAGE_CATALOGS = 'gestionar_catalogos',
 }

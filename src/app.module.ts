@@ -35,6 +35,9 @@ import { GuardAuthModule } from './auth/guard-auth.module';
 import { VitalSignsModule } from './medical-scheduling/modules/vital-signs/vital-signs.module';
 import { MobileFunctionsModule } from './mobile-functions/mobile-functions.module';
 import { CatalogSeedModule } from './catalogs/seed/catalog-seed.module';
+import { MedicalOrderModule } from './medical_order/medical_order.module';
+import { OrderTypeModule } from './catalogs/order-type/order-type.module';
+import { PermissionCheckerService } from './auth/permissions/permission-checker.service';
 
 config({ path: '.env' });
 
@@ -76,6 +79,11 @@ config({ path: '.env' });
     PhysicalExplorationAreaModule,
     VitalSignsModule,
     MobileFunctionsModule,
+    CatCieDiezModule,
+    SubcatCieDiezModule,
+    MedicalOrderModule,
+    OrderTypeModule,
+    MedicalOrderModule,
   ],
   controllers: [AppController],
   providers: [
@@ -83,6 +91,7 @@ config({ path: '.env' });
     PrismaService,
     PhysicalExaminationService,
     PhysicalSubsystemService,
+    PermissionCheckerService,
   ],
 })
 export class AppModule {

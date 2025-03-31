@@ -34,7 +34,7 @@ export class PresModHistoryService {
 
         createPresHistoryDto.prescription_id = prescription.id;
 
-        const history = await op.pres_mod_history.create({
+        await op.pres_mod_history.create({
           data: { ...createPresHistoryDto },
         });
       });
