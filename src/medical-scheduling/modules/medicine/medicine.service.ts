@@ -28,7 +28,15 @@ export class MedicineService {
 
     try {
       const medicines = await firstValueFrom(this.httpService.get(query));
-      return medicines.data;
+      return medicines.data.map((medicine) => ({
+        id: medicine.expediente,
+        active_principle: medicine.principio_activo,
+        product: medicine.producto,
+        presentation: medicine.formafarmaceutica,
+        administration_route: medicine.viaadministracion,
+        quantity: medicine.cantidad,
+        measurement_unit: medicine.unidadmedida,
+      }));
     } catch (error) {
       console.log(error);
       throw new HttpException('La medicina no ha podido ser consultada', 500);

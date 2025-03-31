@@ -40,6 +40,36 @@ export class PhysicalExaminationItemDto {
   description: string;
 }
 
+export class MedicationItemDto {
+  @IsString()
+  @IsNotEmpty()
+  monodrug: string;
+
+  @IsString()
+  @IsNotEmpty()
+  dose: string;
+
+  @IsString()
+  @IsNotEmpty()
+  dose_units: string;
+
+  @IsString()
+  @IsNotEmpty()
+  frecuency: string;
+
+  @IsString()
+  @IsNotEmpty()
+  duration: string;
+
+  @IsString()
+  @IsNotEmpty()
+  duration_units: string;
+
+  @IsOptional()
+  @IsString()
+  observations?: string;
+}
+
 export class AttendMedicalEventDto {
   @IsUUID()
   @IsNotEmpty()
@@ -87,6 +117,12 @@ export class AttendMedicalEventDto {
   @Type(() => PhysicalExaminationItemDto)
   @IsOptional()
   physical_examinations?: PhysicalExaminationItemDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MedicationItemDto)
+  @IsOptional()
+  medications?: MedicationItemDto[];
 
   @IsBoolean()
   @IsOptional()

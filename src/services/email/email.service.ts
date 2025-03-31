@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google } from 'googleapis';
+import * as path from 'path';
+import * as nodeFetch from 'node-fetch';
+
+interface Attachment {
+  filename: string;
+  content: string; // Base64 encoded content
+  mimeType: string;
+}
 
 @Injectable()
 export class EmailService {
@@ -37,19 +45,61 @@ export class EmailService {
     return `=?UTF-8?B?${Buffer.from(text, 'utf8').toString('base64')}?=`;
   }
 
-  async sendMail(destination: string, mailBody: string, mailSubject: string) {
+  async sendMail(
+    destination: string,
+    mailSubject: string,
+    mailBody: string,
+    attachments?: Attachment[],
+  ) {
     const encodedSubject = this.encodeMIMEHeader(mailSubject);
+    const boundary = 'boundary_' + Date.now().toString();
 
-    const message = [
+    let message = [
       `To: ${destination}`,
       `From: ${this.configService.get('SENDER_MAIL_ADDRESS')}`,
-      'Content-Type: text/html; charset=utf-8',
       `Subject: ${encodedSubject}`,
-      '',
-      mailBody,
-    ].join('\n');
+      'MIME-Version: 1.0',
+    ];
 
-    const encodedMessage = this.encodeBase64URL(message);
+    if (attachments && attachments.length > 0) {
+      // Mensaje con adjuntos
+      message = [
+        ...message,
+        `Content-Type: multipart/mixed; boundary=${boundary}`,
+        '',
+        `--${boundary}`,
+        'Content-Type: text/html; charset=utf-8',
+        'Content-Transfer-Encoding: base64',
+        '',
+        Buffer.from(mailBody).toString('base64'),
+      ];
+
+      // Agregar cada adjunto
+      for (const attachment of attachments) {
+        message = [
+          ...message,
+          `--${boundary}`,
+          `Content-Type: ${attachment.mimeType}`,
+          'Content-Transfer-Encoding: base64',
+          `Content-Disposition: attachment; filename="${attachment.filename}"`,
+          '',
+          attachment.content,
+        ];
+      }
+
+      // Cerrar el boundary
+      message = [...message, `--${boundary}--`];
+    } else {
+      // Mensaje sin adjuntos
+      message = [
+        ...message,
+        'Content-Type: text/html; charset=utf-8',
+        '',
+        mailBody,
+      ];
+    }
+
+    const encodedMessage = this.encodeBase64URL(message.join('\n'));
 
     try {
       const response = await this.gmail.users.messages.send({
@@ -60,8 +110,40 @@ export class EmailService {
       });
 
       return response.data;
-    } catch {
+    } catch (error) {
+      console.error('Error al enviar el correo:', error);
       throw new Error('Error al enviar el correo');
+    }
+  }
+
+  /**
+   * Descarga un archivo desde una URL y lo convierte a base64
+   * @param url URL del archivo a descargar
+   * @returns Objeto con el contenido en base64, nombre de archivo y tipo MIME
+   */
+  async getAttachmentFromUrl(url: string): Promise<Attachment> {
+    try {
+      const response = await nodeFetch(url);
+
+      if (!response.ok) {
+        throw new Error(
+          `Error al descargar el archivo: ${response.statusText}`,
+        );
+      }
+
+      const buffer = await response.buffer();
+      const contentType =
+        response.headers.get('content-type') || 'application/octet-stream';
+      const filename = path.basename(url).split('?')[0]; // Obtener el nombre del archivo de la URL
+
+      return {
+        filename,
+        content: buffer.toString('base64'),
+        mimeType: contentType,
+      };
+    } catch (error) {
+      console.error('Error al obtener el archivo adjunto:', error);
+      throw new Error('Error al obtener el archivo adjunto');
     }
   }
 }
