@@ -351,6 +351,7 @@ export class AuthService {
           password: hashedPassword,
           role: 'superadmin',
           tenant_id: superAdminTenantId,
+          is_superadmin: true,
         },
       });
 
