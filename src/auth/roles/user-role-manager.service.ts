@@ -84,7 +84,7 @@ export class UserRoleManagerService {
   /**
    * Asegura que exista un rol de tipo médico en el sistema
    */
-  private async ensurePhysicianRoleExists(tenantId?: string): Promise<void> {
+  async ensurePhysicianRoleExists(tenantId?: string): Promise<void> {
     try {
       // Verificar si ya existe un rol de médico
       const physicianRole = await this.prisma.role.findFirst({
@@ -171,7 +171,7 @@ export class UserRoleManagerService {
   /**
    * Asegura que exista un rol de tipo paciente en el sistema
    */
-  private async ensurePatientRoleExists(tenantId?: string): Promise<void> {
+  async ensurePatientRoleExists(tenantId?: string): Promise<void> {
     try {
       // Verificar si ya existe un rol de paciente
       const patientRole = await this.prisma.role.findFirst({
@@ -191,10 +191,19 @@ export class UserRoleManagerService {
         where: {
           name: {
             in: [
-              'VIEW_OWN_APPOINTMENTS',
-              'SCHEDULE_OWN_APPOINTMENT',
-              'VIEW_OWN_MEDICAL_RECORDS',
-              'SUBMIT_SELF_EVALUATION',
+              Permission.VIEW_OWN_APPOINTMENTS,
+              Permission.SCHEDULE_OWN_APPOINTMENT,
+              Permission.VIEW_OWN_MEDICAL_RECORDS,
+              Permission.SUBMIT_SELF_EVALUATION,
+              Permission.VIEW_PATIENT_DETAILS,
+              Permission.VIEW_MEDICAL_ORDERS,
+              Permission.VIEW_TREATMENT_HISTORY,
+              Permission.VIEW_DOCTORS_LIST,
+              Permission.VIEW_DOCTOR_DETAILS,
+              Permission.VIEW_OWN_VITAL_SIGNS,
+              Permission.REGISTER_OWN_VITAL_SIGNS,
+              Permission.VIEW_OWN_PRESCRIPTIONS,
+              Permission.VIEW_OWN_MEDICAL_EVENTS,
             ],
           },
         },

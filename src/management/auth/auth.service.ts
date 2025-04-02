@@ -13,6 +13,11 @@ import { recoverPasswordHtml } from 'src/services/email/templates/recoverPasswor
 import { ConfigService } from '@nestjs/config';
 import welcomeEmailHtml from 'src/services/email/templates/welcomeEmailHtml';
 import { TwilioService } from 'src/services/twilio/twilio.service';
+import {
+  JwtPayloadDto,
+  LoginResponseDto,
+  TenantDto,
+} from './dto/login-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -54,7 +59,7 @@ export class AuthService {
       throw new BadRequestException('No se pudo crear el usuario.');
     }
   }
-  async login(createAuthDto: CreateAuthDto): Promise<object> {
+  async login(createAuthDto: CreateAuthDto): Promise<LoginResponseDto> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { email: createAuthDto.email },
@@ -72,18 +77,67 @@ export class AuthService {
       if (!isPasswordValid) {
         throw new BadRequestException('La contraseña es incorrecta');
       }
-      const jwtPayload = {
+
+      // Create the JWT payload
+      const jwtPayload: JwtPayloadDto = {
         email: user.email,
         id: user.id,
         name: user.name,
-        last_name: user.last_name,
-        tenant_id: user.tenant_id || '',
+        last_name: user.last_name || '',
         role: user.role,
         image: user.image,
       };
+
+      // Check if the user is a patient
+      if (user.role === 'patient') {
+        // Get the associated patient record
+        const patient = await this.prisma.patient.findUnique({
+          where: { user_id: user.id },
+        });
+
+        if (patient) {
+          // Get all tenants associated with this patient
+          const patientTenants = await this.prisma.patient_tenant.findMany({
+            where: {
+              patient_id: patient.id,
+              deleted: false,
+            },
+            include: {
+              tenant: {
+                include: {
+                  organizations: true,
+                },
+              },
+            },
+          });
+
+          // Format tenant information
+          if (patientTenants.length > 0) {
+            const tenants: TenantDto[] = patientTenants.map((pt) => ({
+              id: pt.tenant_id,
+              name:
+                pt.tenant.organizations.length > 0
+                  ? pt.tenant.organizations[0].name
+                  : 'Organización',
+              type: pt.tenant.type,
+            }));
+
+            // Add tenants to the JWT payload
+            jwtPayload.tenants = tenants;
+          }
+        }
+      } else {
+        // For non-patient users, just add the tenant_id as before
+        jwtPayload.tenant_id = user.tenant_id || '';
+      }
+
       const jwt = AuthHelper.generateToken(jwtPayload);
 
-      return { message: 'Login exitoso', jwt: jwt, user: jwtPayload };
+      return {
+        message: 'Login exitoso',
+        jwt: jwt,
+        user: jwtPayload,
+      };
     } catch (error) {
       console.log(error);
       if (error instanceof BadRequestException) {
@@ -93,7 +147,7 @@ export class AuthService {
     }
   }
 
-  async googleLogin(GoogleUserDto: GoogleUserDto): Promise<object> {
+  async googleLogin(GoogleUserDto: GoogleUserDto): Promise<LoginResponseDto> {
     try {
       let user = await this.prisma.user.findUnique({
         where: { email: GoogleUserDto.email },
@@ -115,19 +169,64 @@ export class AuthService {
         throw new Error('Error al crear el usuario o el usuario no existe');
       }
 
-      const jwtPayload = {
-        id: user.id,
+      // Create the JWT payload
+      const jwtPayload: JwtPayloadDto = {
         email: user.email,
+        id: user.id,
         name: user.name,
-        image: user.image,
-        tenant_id: user.tenant_id,
+        last_name: user.last_name || '',
         role: user.role,
+        image: user.image,
       };
-      const token = AuthHelper.generateToken(jwtPayload);
+
+      // Check if the user is a patient
+      if (user.role === 'patient') {
+        // Get the associated patient record
+        const patient = await this.prisma.patient.findUnique({
+          where: { user_id: user.id },
+        });
+
+        if (patient) {
+          // Get all tenants associated with this patient
+          const patientTenants = await this.prisma.patient_tenant.findMany({
+            where: {
+              patient_id: patient.id,
+              deleted: false,
+            },
+            include: {
+              tenant: {
+                include: {
+                  organizations: true,
+                },
+              },
+            },
+          });
+
+          // Format tenant information
+          if (patientTenants.length > 0) {
+            const tenants: TenantDto[] = patientTenants.map((pt) => ({
+              id: pt.tenant_id,
+              name:
+                pt.tenant.organizations.length > 0
+                  ? pt.tenant.organizations[0].name
+                  : 'Organización',
+              type: pt.tenant.type,
+            }));
+
+            // Add tenants to the JWT payload
+            jwtPayload.tenants = tenants;
+          }
+        }
+      } else {
+        // For non-patient users, just add the tenant_id as before
+        jwtPayload.tenant_id = user.tenant_id || '';
+      }
+
+      const jwt = AuthHelper.generateToken(jwtPayload);
 
       return {
         message: 'Login exitoso',
-        token: token,
+        jwt: jwt,
         user: jwtPayload,
       };
     } catch (error) {

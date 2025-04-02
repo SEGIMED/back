@@ -11,10 +11,164 @@ import {
 } from 'src/utils/pagination.helper';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { appointment, status_type } from '@prisma/client';
+import * as moment from 'moment';
 
 @Injectable()
 export class AppointmentsService {
   constructor(private prisma: PrismaService) {}
+
+  // Helper method to convert HH:MM to minutes since midnight
+  private timeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  // Method to check if the appointment is within physician's schedule
+  private async isAppointmentInPhysicianSchedule(
+    physicianId: string,
+    startDate: Date,
+    endDate: Date,
+    tenantId: string,
+  ): Promise<{ isAvailable: boolean; reason?: string }> {
+    try {
+      // Get the physician by user_id
+      const physician = await this.prisma.physician.findFirst({
+        where: {
+          user_id: physicianId,
+          tenant_id: tenantId,
+          deleted: false,
+        },
+      });
+
+      if (!physician) {
+        return { isAvailable: false, reason: 'Médico no encontrado' };
+      }
+
+      const appointmentDate = moment(startDate).startOf('day');
+      const dayOfWeek = appointmentDate.day(); // 0 = Sunday, 1 = Monday, etc.
+
+      // Check if there's an exception for this date
+      const exception =
+        await this.prisma.physician_schedule_exception.findFirst({
+          where: {
+            physician_id: physician.id,
+            date: {
+              gte: appointmentDate.toDate(),
+              lt: appointmentDate.clone().add(1, 'day').toDate(),
+            },
+            tenant_id: tenantId,
+            deleted: false,
+          },
+        });
+
+      // If there's an exception and the physician is not available, return false
+      if (exception && !exception.is_available) {
+        return {
+          isAvailable: false,
+          reason:
+            exception.reason || 'El médico no está disponible en esta fecha',
+        };
+      }
+
+      // Get the schedule for this day of the week
+      const schedule = await this.prisma.physician_schedule.findFirst({
+        where: {
+          physician_id: physician.id,
+          day_of_week: dayOfWeek,
+          tenant_id: tenantId,
+          deleted: false,
+        },
+      });
+
+      // If there's no schedule for this day or it's marked as not a working day
+      if (!schedule || !schedule.is_working_day) {
+        return {
+          isAvailable: false,
+          reason: 'El médico no tiene horarios configurados para este día',
+        };
+      }
+
+      // Check if appointment is within physician's working hours
+      const startTime = moment(startDate);
+      const endTime = moment(endDate);
+
+      // Convert times to minutes for easier comparison
+      const apptStartMinutes = startTime.hours() * 60 + startTime.minutes();
+      const apptEndMinutes = endTime.hours() * 60 + endTime.minutes();
+      const scheduleStartMinutes = this.timeToMinutes(schedule.start_time);
+      const scheduleEndMinutes = this.timeToMinutes(schedule.end_time);
+
+      // Check if appointment is within working hours
+      if (
+        apptStartMinutes < scheduleStartMinutes ||
+        apptEndMinutes > scheduleEndMinutes
+      ) {
+        return {
+          isAvailable: false,
+          reason: 'La cita está fuera del horario de atención del médico',
+        };
+      }
+
+      // Check if appointment is during rest period
+      if (schedule.rest_start && schedule.rest_end) {
+        const restStartMinutes = this.timeToMinutes(schedule.rest_start);
+        const restEndMinutes = this.timeToMinutes(schedule.rest_end);
+
+        // If appointment overlaps with rest period
+        if (
+          (apptStartMinutes >= restStartMinutes &&
+            apptStartMinutes < restEndMinutes) ||
+          (apptEndMinutes > restStartMinutes &&
+            apptEndMinutes <= restEndMinutes) ||
+          (apptStartMinutes < restStartMinutes &&
+            apptEndMinutes > restEndMinutes)
+        ) {
+          return {
+            isAvailable: false,
+            reason: 'La cita coincide con el periodo de descanso del médico',
+          };
+        }
+      }
+
+      // Check appointment length
+      const appointmentLengthMinutes = apptEndMinutes - apptStartMinutes;
+      if (appointmentLengthMinutes !== schedule.appointment_length) {
+        return {
+          isAvailable: false,
+          reason: `La duración de la cita debe ser de ${schedule.appointment_length} minutos`,
+        };
+      }
+
+      // Check if there are too many simultaneous appointments
+      if (schedule.simultaneous_slots > 1) {
+        const existingAppointments = await this.prisma.appointment.count({
+          where: {
+            physician_id: physicianId,
+            tenant_id: tenantId,
+            deleted: false,
+            status: { not: 'cancelada' },
+            AND: [{ start: { lte: endDate } }, { end: { gte: startDate } }],
+          },
+        });
+
+        if (existingAppointments >= schedule.simultaneous_slots) {
+          return {
+            isAvailable: false,
+            reason:
+              'El médico ya tiene el máximo de citas simultáneas para este horario',
+          };
+        }
+      }
+
+      return { isAvailable: true };
+    } catch (error) {
+      console.error('Error checking physician schedule:', error);
+      return {
+        isAvailable: false,
+        reason: 'Error al verificar disponibilidad del médico',
+      };
+    }
+  }
 
   async createAppointment(
     data: CreateAppointmentDto,
@@ -43,7 +197,21 @@ export class AppointmentsService {
         throw new BadRequestException('El médico no existe');
       if (!tenantExists) throw new BadRequestException('El tenant no existe');
 
-      // Verificar conflicto de horarios
+      // Verificar si la cita está dentro del horario del médico
+      const scheduleCheck = await this.isAppointmentInPhysicianSchedule(
+        data.physician_id,
+        data.start,
+        data.end,
+        tenant,
+      );
+
+      if (!scheduleCheck.isAvailable) {
+        throw new BadRequestException(
+          scheduleCheck.reason || 'El horario no está disponible',
+        );
+      }
+
+      // Verificar conflicto de horarios con otras citas
       const conflict = await this.prisma.appointment.findFirst({
         where: {
           physician_id: data.physician_id,
@@ -78,7 +246,6 @@ export class AppointmentsService {
         });
 
         // 2. Crear evento médico
-
         await prisma.medical_event.create({
           data: {
             appointment_id: appointment.id,

@@ -13,10 +13,14 @@ import {
 } from 'src/utils/pagination.helper';
 import { EmailService } from 'src/services/email/email.service';
 import { TwilioService } from 'src/services/twilio/twilio.service';
-import { Multer } from 'multer';
 import { FileUploadService } from 'src/utils/file_upload/file_upload.service';
 import { medicalOrderHtml } from 'src/services/email/templates/medicalOrderHtml';
 import { medicationHtml } from 'src/services/email/templates/medicationHtml';
+import {
+  MedicalOrderPaginatedResponseDto,
+  MedicalOrderPhysicianResponseDto,
+  MedicalOrderPatientResponseDto,
+} from './dto/medical-order-response.dto';
 
 @Injectable()
 export class MedicalOrderService {
@@ -32,7 +36,6 @@ export class MedicalOrderService {
     orderType: string,
     tenantId: string,
     physicianId: string,
-    file?: Multer.File,
   ) {
     try {
       // Validar que el tipo de orden médica existe
@@ -55,12 +58,17 @@ export class MedicalOrderService {
         throw new BadRequestException('Paciente no encontrado');
       }
 
-      // Si hay archivo, subirlo a Cloudinary
+      // Si hay archivo en base64, subirlo a Cloudinary
       let fileUrl = createMedicalOrderDto.url;
-      if (file) {
+      if (createMedicalOrderDto.file) {
         try {
-          const result = await this.fileUploadService.uploadFile(file);
-          fileUrl = result.url;
+          const uploadResult = await this.fileUploadService.uploadBase64File(
+            createMedicalOrderDto.file,
+            `medical-order-${orderType}-${createMedicalOrderDto.patient_id}-${Date.now()}`,
+          );
+          fileUrl = uploadResult.url;
+          // Eliminar la propiedad file para evitar errores con Prisma
+          delete createMedicalOrderDto.file;
         } catch (uploadError) {
           console.error('Error al subir archivo a Cloudinary:', uploadError);
           throw new BadRequestException('Error al procesar el archivo adjunto');
@@ -82,7 +90,7 @@ export class MedicalOrderService {
       // Determinar campos específicos según el tipo de orden
       let specificData = {};
 
-      switch (orderType) {
+      switch (orderTypeObj.name) {
         case 'study-authorization':
           if (!createMedicalOrderDto.cat_study_type_id) {
             throw new BadRequestException('El tipo de estudio es requerido');
@@ -198,7 +206,7 @@ export class MedicalOrderService {
 
         default:
           throw new BadRequestException(
-            `Tipo de orden médica "${orderType}" no implementado`,
+            `Tipo de orden médica "${orderTypeObj.description}" no implementado`,
           );
       }
 
@@ -212,8 +220,8 @@ export class MedicalOrderService {
 
       // Procesar medicaciones si existe
       if (
-        (orderType === 'medication' ||
-          orderType === 'medication-authorization') &&
+        (orderTypeObj.name === 'medication' ||
+          orderTypeObj.name === 'medication-authorization') &&
         createMedicalOrderDto.medications &&
         createMedicalOrderDto.medications.length > 0
       ) {
@@ -224,7 +232,7 @@ export class MedicalOrderService {
           newOrder.id,
           tenantId,
           null, // No hay medical_event_id en este caso
-          orderType === 'medication', // true si es prescripción, false si es autorización
+          orderTypeObj.name === 'medication', // true si es prescripción, false si es autorización
         );
       }
 
@@ -237,8 +245,8 @@ export class MedicalOrderService {
       await this._sendNotifications(
         patient,
         newOrder,
-        orderType,
-        physician?.name,
+        orderTypeObj,
+        physician?.last_name,
         createMedicalOrderDto.medications,
       );
 
@@ -377,6 +385,26 @@ export class MedicalOrderService {
         );
       }
 
+      // Si hay archivo en base64, subirlo a Cloudinary
+      if (updateMedicalOrderDto.file) {
+        try {
+          const orderType = await this.prisma.medical_order_type.findUnique({
+            where: { id: existingOrder.medical_order_type_id },
+          });
+
+          const uploadResult = await this.fileUploadService.uploadBase64File(
+            updateMedicalOrderDto.file,
+            `medical-order-${orderType?.name || 'update'}-${existingOrder.patient_id}-${Date.now()}`,
+          );
+          updateMedicalOrderDto.url = uploadResult.url;
+          // Eliminar la propiedad file para evitar errores con Prisma
+          delete updateMedicalOrderDto.file;
+        } catch (uploadError) {
+          console.error('Error al subir archivo a Cloudinary:', uploadError);
+          throw new BadRequestException('Error al procesar el archivo adjunto');
+        }
+      }
+
       await this.prisma.medical_order.update({
         where: { id: id },
         data: { ...updateMedicalOrderDto },
@@ -427,7 +455,7 @@ export class MedicalOrderService {
   private async _sendNotifications(
     patient,
     order,
-    orderType: string,
+    orderType: { description: string; name: string },
     physicianName: string,
     medications?: any[],
   ) {
@@ -437,8 +465,8 @@ export class MedicalOrderService {
       let emailSubject: string;
 
       if (
-        orderType === 'medication' ||
-        orderType === 'medication-authorization'
+        orderType.name === 'medication' ||
+        orderType.name === 'medication-authorization'
       ) {
         emailContent = medicationHtml(
           patient.name,
@@ -451,13 +479,13 @@ export class MedicalOrderService {
         emailContent = medicalOrderHtml(
           patient.name,
           patient.last_name || '',
-          orderType,
+          orderType.description,
           new Date(order.request_date).toLocaleDateString(),
           physicianName,
           order.description_type,
           order.url,
         );
-        emailSubject = `Nueva orden médica: ${orderType}`;
+        emailSubject = `Nueva orden médica: ${orderType.description}`;
       }
 
       // Preparar adjuntos si hay una URL del documento
@@ -498,8 +526,8 @@ export class MedicalOrderService {
           let whatsappMessage: string;
 
           if (
-            orderType === 'medication' ||
-            orderType === 'medication-authorization'
+            orderType.name === 'medication' ||
+            orderType.name === 'medication-authorization'
           ) {
             const medicationListText = medications
               .map(
@@ -628,6 +656,329 @@ SEGIMED - Sistema de Gestión Médica`;
           },
         });
       }
+    }
+  }
+
+  async findAllForPhysician(
+    paginationParams: PaginationParams,
+    tenantId: string,
+    physicianId: string,
+    patientId?: string,
+    orderType?: string,
+  ): Promise<MedicalOrderPaginatedResponseDto> {
+    try {
+      const { skip, take, orderBy, orderDirection } =
+        parsePaginationAndSorting(paginationParams);
+
+      // Default page size to 10 if not specified
+      const limit = take || 10;
+      const page = Math.floor(skip / limit) + 1 || 1;
+
+      // Build the where clause for filtering
+      const whereClause: any = {
+        tenant_id: tenantId,
+        physician_id: physicianId,
+      };
+
+      // Filter by order type if provided
+      if (orderType) {
+        const typeObj = await this.prisma.medical_order_type.findFirst({
+          where: { name: orderType },
+        });
+
+        if (typeObj) {
+          whereClause.medical_order_type_id = typeObj.id;
+        }
+      }
+
+      // Filter by patient if provided
+      if (patientId) {
+        whereClause.patient_id = patientId;
+      }
+
+      // Get total count for pagination
+      const totalCount = await this.prisma.medical_order.count({
+        where: whereClause,
+      });
+
+      const totalPages = Math.ceil(totalCount / limit);
+
+      // Get the actual orders
+      const orders = await this.prisma.medical_order.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        orderBy: { [orderBy]: orderDirection },
+        include: {
+          patient: true,
+          physician: true,
+          medical_order_type: true,
+          tenant: true,
+        },
+      });
+
+      // Format the response according to the required structure
+      const formattedOrders = await Promise.all(
+        orders.map(async (order) => {
+          // Get organization name from tenant
+          let organizationName = 'N/A';
+          if (order.tenant_id) {
+            const org = await this.prisma.organization.findFirst({
+              where: { tenant_id: order.tenant_id },
+              select: { name: true },
+            });
+            if (org) {
+              organizationName = org.name;
+            }
+          }
+
+          // Get physician info
+          let physicianName = 'N/A';
+          if (order.physician_id) {
+            const physician = await this.prisma.user.findUnique({
+              where: { id: order.physician_id },
+              select: { name: true, last_name: true },
+            });
+            if (physician) {
+              physicianName = `${physician.name || ''} ${physician.last_name || ''}`;
+            }
+          }
+
+          // Get patient info
+          let patientName = 'N/A';
+          if (order.patient_id) {
+            const patient = await this.prisma.user.findUnique({
+              where: { id: order.patient_id },
+              select: { name: true, last_name: true },
+            });
+            if (patient) {
+              patientName = `${patient.name || ''} ${patient.last_name || ''}`;
+            }
+          }
+
+          // Get order type name
+          let orderTypeName = '';
+          if (order.medical_order_type_id) {
+            const type = await this.prisma.medical_order_type.findUnique({
+              where: { id: order.medical_order_type_id },
+              select: { name: true },
+            });
+            if (type) {
+              orderTypeName = type.name;
+            }
+          }
+
+          return {
+            id: order.id,
+            url: order.url || '',
+            request_date: order.request_date,
+            organization_name: organizationName,
+            physician_name: physicianName,
+            patient_name: patientName,
+            order_type: orderTypeName,
+          } as MedicalOrderPhysicianResponseDto;
+        }),
+      );
+
+      return {
+        data: formattedOrders,
+        total: totalCount,
+        page,
+        limit,
+        totalPages,
+      };
+    } catch (error) {
+      console.error('Error fetching medical orders for physician:', error);
+      throw new InternalServerErrorException(
+        `No se ha podido consultar las ordenes médicas: ${error.message}`,
+      );
+    }
+  }
+
+  async findAllForPatient(
+    paginationParams: PaginationParams,
+    patientId: string,
+    physicianId?: string,
+    orderType?: string,
+    specificTenantId?: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<MedicalOrderPaginatedResponseDto> {
+    try {
+      const { skip, take, orderBy, orderDirection } =
+        parsePaginationAndSorting(paginationParams);
+
+      // Default page size to 10 if not specified
+      const limit = take || 10;
+      const page = Math.floor(skip / limit) + 1 || 1;
+
+      // Get tenant IDs from JWT or query them if not provided
+      let tenantIds: string[] = [];
+
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patientId },
+        include: {
+          patient: true,
+        },
+      });
+      console.log(patient);
+      if (userTenants && userTenants.length > 0) {
+        tenantIds = userTenants.map((tenant) => tenant.id);
+      } else {
+        // Fallback to querying the database (old method)
+        const patientTenants = await this.prisma.patient_tenant.findMany({
+          where: {
+            patient_id: patient.patient.id,
+            deleted: false,
+          },
+          select: {
+            tenant_id: true,
+          },
+        });
+        console.log(patientTenants);
+        tenantIds = patientTenants.map((pt) => pt.tenant_id);
+      }
+
+      if (tenantIds.length === 0) {
+        return {
+          data: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+        };
+      }
+
+      // Build the where clause for filtering
+      const whereClause: any = {
+        patient_id: patient.id,
+      };
+
+      // Use specific tenant if provided, otherwise use all tenants
+      if (specificTenantId) {
+        // Verify that the specified tenant is in the patient's list
+        if (tenantIds.includes(specificTenantId)) {
+          whereClause.tenant_id = specificTenantId;
+        } else {
+          // If not in the patient's list, return empty result
+          return {
+            data: [],
+            total: 0,
+            page,
+            limit,
+            totalPages: 0,
+          };
+        }
+      } else {
+        // Use all patient's tenants
+        whereClause.tenant_id = { in: tenantIds };
+      }
+
+      // Filter by physician if provided
+      if (physicianId) {
+        whereClause.physician_id = physicianId;
+      }
+
+      // Filter by order type if provided
+      if (orderType) {
+        const typeObj = await this.prisma.medical_order_type.findFirst({
+          where: { name: orderType },
+        });
+
+        if (typeObj) {
+          whereClause.medical_order_type_id = typeObj.id;
+        }
+      }
+
+      // Get total count for pagination
+      const totalCount = await this.prisma.medical_order.count({
+        where: whereClause,
+      });
+
+      const totalPages = Math.ceil(totalCount / limit);
+      console.log(whereClause);
+      // Get the actual orders
+      const orders = await this.prisma.medical_order.findMany({
+        where: whereClause,
+        skip,
+        take: limit,
+        orderBy: { [orderBy]: orderDirection },
+      });
+
+      // Format the response according to the required structure
+      const formattedOrders = await Promise.all(
+        orders.map(async (order) => {
+          // Get organization name from tenant
+          let organizationName = 'N/A';
+
+          // Try to find the tenant info in the JWT first for performance
+          if (userTenants && order.tenant_id) {
+            const matchingTenant = userTenants.find(
+              (t) => t.id === order.tenant_id,
+            );
+            if (matchingTenant) {
+              organizationName = matchingTenant.name;
+            }
+          }
+
+          // If not found in JWT, query the database
+          if (organizationName === 'N/A' && order.tenant_id) {
+            const org = await this.prisma.organization.findFirst({
+              where: { tenant_id: order.tenant_id },
+              select: { name: true },
+            });
+            if (org) {
+              organizationName = org.name;
+            }
+          }
+
+          // Get physician info
+          let physicianName = 'N/A';
+          if (order.physician_id) {
+            const physician = await this.prisma.user.findUnique({
+              where: { id: order.physician_id },
+              select: { name: true, last_name: true },
+            });
+            if (physician) {
+              physicianName = `${physician.name || ''} ${physician.last_name || ''}`;
+            }
+          }
+
+          // Get order type name
+          let orderTypeName = '';
+          if (order.medical_order_type_id) {
+            const type = await this.prisma.medical_order_type.findUnique({
+              where: { id: order.medical_order_type_id },
+              select: { name: true },
+            });
+            if (type) {
+              orderTypeName = type.name;
+            }
+          }
+
+          return {
+            id: order.id,
+            url: order.url || '',
+            request_date: order.request_date,
+            organization_name: organizationName,
+            physician_name: physicianName,
+            order_type: orderTypeName,
+            tenant_id: order.tenant_id, // Add tenant_id to help frontend display organization info
+          } as MedicalOrderPatientResponseDto;
+        }),
+      );
+
+      return {
+        data: formattedOrders,
+        total: totalCount,
+        page,
+        limit,
+        totalPages,
+      };
+    } catch (error) {
+      console.error('Error fetching medical orders for patient:', error);
+      throw new InternalServerErrorException(
+        `No se ha podido consultar las ordenes médicas: ${error.message}`,
+      );
     }
   }
 }

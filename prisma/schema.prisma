@@ -15,22 +15,25 @@ model tenant {
   updated_at DateTime    @updatedAt
   deleted    Boolean     @default(false)
 
-  users                  user[]
-  organizations          organization[]
-  physicians             physician[]
-  appointments           appointment[]
-  medical_events         medical_event[]
-  organization_physician organization_physician[]
-  patient_tenant         patient_tenant[]
-  prescription           prescription[]
-  transaction            transaction[]
-  background             background[]
-  physical_exploration   physical_exploration[]
-  vital_signs            vital_signs[]
-  self_evaluation_event  self_evaluation_event[]
-  role                   role[]
-  medical_order          medical_order[]
-  cat_certification_type cat_certification_type[]
+  users                        user[]
+  organizations                organization[]
+  physicians                   physician[]
+  appointments                 appointment[]
+  medical_events               medical_event[]
+  organization_physician       organization_physician[]
+  patient_tenant               patient_tenant[]
+  prescription                 prescription[]
+  transaction                  transaction[]
+  background                   background[]
+  physical_exploration         physical_exploration[]
+  vital_signs                  vital_signs[]
+  self_evaluation_event        self_evaluation_event[]
+  role                         role[]
+  medical_order                medical_order[]
+  cat_certification_type       cat_certification_type[]
+  physician_schedule           physician_schedule[]
+  physician_schedule_exception physician_schedule_exception[]
+  schedule_slot                schedule_slot[]
 }
 
 model user {
@@ -160,8 +163,11 @@ model physician {
   deleted          Boolean   @default(false)
   deleted_at       DateTime?
 
-  physician_speciality   physician_speciality[]
-  organization_physician organization_physician[]
+  physician_speciality         physician_speciality[]
+  organization_physician       organization_physician[]
+  physician_schedule           physician_schedule[]
+  physician_schedule_exception physician_schedule_exception[]
+  schedule_slot                schedule_slot[]
 }
 
 model appointment {
@@ -615,4 +621,63 @@ model user_role {
   role role @relation(fields: [role_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, role_id])
+}
+
+model physician_schedule {
+  id                 String    @id @default(uuid())
+  physician_id       String
+  day_of_week        Int // 0-6 where 0 is Sunday
+  start_time         String // Format: "HH:MM"
+  end_time           String // Format: "HH:MM"
+  appointment_length Int // Duration in minutes
+  simultaneous_slots Int       @default(1)
+  break_between      Int       @default(0) // Minutes between appointments
+  rest_start         String? // Format: "HH:MM", start time for rest/break
+  rest_end           String? // Format: "HH:MM", end time for rest/break
+  is_working_day     Boolean   @default(true)
+  modality           String // "Presencial" or "Virtual"
+  office_id          String?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  deleted            Boolean   @default(false)
+  deleted_at         DateTime?
+  tenant_id          String
+  tenant             tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  physician          physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
+  @@index([physician_id, day_of_week])
+}
+
+model physician_schedule_exception {
+  id           String    @id @default(uuid())
+  physician_id String
+  date         DateTime // Specific date for exception
+  is_available Boolean   @default(false)
+  reason       String?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted      Boolean   @default(false)
+  deleted_at   DateTime?
+  tenant_id    String
+  tenant       tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  physician    physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
+  @@index([physician_id, date])
+}
+
+model schedule_slot {
+  id           String    @id @default(uuid())
+  physician_id String
+  start_time   DateTime
+  end_time     DateTime
+  is_available Boolean   @default(true)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted      Boolean   @default(false)
+  deleted_at   DateTime?
+  tenant_id    String
+  tenant       tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  physician    physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+
+  @@index([physician_id, start_time, end_time])
 }

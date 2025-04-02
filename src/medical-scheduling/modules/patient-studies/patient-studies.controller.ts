@@ -6,20 +6,14 @@ import {
   Patch,
   Param,
   Delete,
-  UploadedFile,
-  UseInterceptors,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
   BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { PatientStudiesService } from './patient-studies.service';
 import { CreatePatientStudyDto } from './dto/create-patient-study.dto';
 import { UpdatePatientStudyDto } from './dto/update-patient-study.dto';
 import { FileUploadService } from '../../../utils/file_upload/file_upload.service';
-import { Multer } from 'multer';
 import { CatStudyTypeService } from '../../../catalogs/cat-study-type/cat-study-type.service';
+import { GetTenant } from 'src/auth/decorators/get-tenant.decorator';
 
 @Controller('patient-studies')
 export class PatientStudiesController {
@@ -30,23 +24,8 @@ export class PatientStudiesController {
   ) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
   async create(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize: 10 * 1024 * 1024, // 10MB para PDF, 5MB para imágenes
-            message:
-              'File exceeds the maximum size of 10MB for PDFs or 5MB for images',
-          }),
-          new FileTypeValidator({
-            fileType: /^(image\/(jpg|jpeg|png|webp|svg)|application\/pdf)$/i,
-          }),
-        ],
-      }),
-    )
-    file: Multer.File,
+    @GetTenant() tenantId: string | any,
     @Body() createPatientStudyDto: CreatePatientStudyDto,
   ) {
     const catStudyType = await this.catStudyTypeService.findOne(
@@ -55,11 +34,32 @@ export class PatientStudiesController {
     if (!catStudyType) {
       throw new BadRequestException('Invalid cat_study_type_id');
     }
-    if (file) {
-      const uploadResult = await this.fileUploadService.uploadFile(file);
-      createPatientStudyDto.url = uploadResult.url;
+
+    // Asegurar que tenantId sea una cadena de texto
+    const tenant =
+      typeof tenantId === 'object' && tenantId !== null
+        ? tenantId.id
+        : tenantId;
+
+    // Si hay un archivo en base64, subirlo a Cloudinary
+    if (createPatientStudyDto.file) {
+      try {
+        const uploadResult = await this.fileUploadService.uploadBase64File(
+          createPatientStudyDto.file,
+          `patient-study-${createPatientStudyDto.patient_id}-${Date.now()}`,
+        );
+        createPatientStudyDto.url = uploadResult.url;
+        // Eliminar la propiedad file para evitar errores con Prisma
+        delete createPatientStudyDto.file;
+      } catch (error) {
+        console.error('Error al subir archivo:', error);
+        throw new BadRequestException(
+          'Error al procesar el archivo adjunto: ' + error.message,
+        );
+      }
     }
-    return this.patientStudiesService.create(createPatientStudyDto);
+
+    return this.patientStudiesService.create(createPatientStudyDto, tenant);
   }
 
   @Get()
@@ -83,6 +83,25 @@ export class PatientStudiesController {
     if (!catStudyType) {
       throw new BadRequestException('Invalid cat_study_type_id');
     }
+
+    // Si hay un archivo en base64, subirlo a Cloudinary
+    if (updatePatientStudyDto.file) {
+      try {
+        const uploadResult = await this.fileUploadService.uploadBase64File(
+          updatePatientStudyDto.file,
+          `patient-study-${updatePatientStudyDto.patient_id}-${Date.now()}`,
+        );
+        updatePatientStudyDto.url = uploadResult.url;
+        // Eliminar la propiedad file para evitar errores con Prisma
+        delete updatePatientStudyDto.file;
+      } catch (error) {
+        console.error('Error al subir archivo:', error);
+        throw new BadRequestException(
+          'Error al procesar el archivo adjunto: ' + error.message,
+        );
+      }
+    }
+
     return this.patientStudiesService.update(id, updatePatientStudyDto);
   }
 

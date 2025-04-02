@@ -5,6 +5,7 @@ import {
   IsBoolean,
   IsUUID,
   IsNotEmpty,
+  Matches,
 } from 'class-validator';
 
 export class CreatePatientStudyDto {
@@ -32,9 +33,14 @@ export class CreatePatientStudyDto {
   @IsNotEmpty()
   cat_study_type_id: number;
 
-  @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
-  tenant_id: string;
-
   @IsBoolean({ message: 'El campo is_deleted debe ser un valor booleano' })
   is_deleted: boolean = false;
+
+  @IsOptional()
+  @IsString({ message: 'El archivo en base64 debe ser una cadena de texto' })
+  @Matches(/^data:(image\/[^;]+|application\/pdf);base64,/, {
+    message:
+      'El formato del archivo base64 no es válido. Debe ser un DATA URI válido (data:mimetype;base64,)',
+  })
+  file?: string;
 }

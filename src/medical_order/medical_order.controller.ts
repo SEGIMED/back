@@ -8,11 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
-  UseInterceptors,
-  UploadedFile,
-  ParseFilePipe,
-  MaxFileSizeValidator,
-  FileTypeValidator,
+  Req,
 } from '@nestjs/common';
 import { MedicalOrderService } from './medical_order.service';
 import { CreateMedicalOrderDto } from './dto/create-medical_order.dto';
@@ -24,8 +20,7 @@ import { TenantAccessGuard } from 'src/auth/guards/tenant-access.guard';
 import { PermissionGuard } from 'src/auth/guards/permission.guard';
 import { RequirePermission } from 'src/auth/decorators/require-permission.decorator';
 import { Permission } from 'src/auth/permissions/permission.enum';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Multer } from 'multer';
+import { MedicalOrderPaginatedResponseDto } from './dto/medical-order-response.dto';
 
 @Controller('medical-order')
 @UseGuards(TenantAccessGuard, PermissionGuard)
@@ -34,23 +29,7 @@ export class MedicalOrderController {
 
   @Post()
   @RequirePermission(Permission.CREATE_MEDICAL_ORDERS)
-  @UseInterceptors(FileInterceptor('file'))
   create(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({
-            maxSize: 10 * 1024 * 1024, // 10MB para PDF
-            message: 'El archivo excede el tamaño máximo de 10MB',
-          }),
-          new FileTypeValidator({
-            fileType: /^(image\/(jpg|jpeg|png|webp|svg)|application\/pdf)$/i,
-          }),
-        ],
-        fileIsRequired: false,
-      }),
-    )
-    file: Multer.File,
     @Body() createMedicalOrderDto: CreateMedicalOrderDto,
     @Query('type') orderType: string,
     @GetTenant() tenant,
@@ -61,7 +40,6 @@ export class MedicalOrderController {
       orderType,
       tenant.id,
       user.id,
-      file,
     );
   }
 
@@ -78,6 +56,47 @@ export class MedicalOrderController {
       tenant.id,
       orderType,
       patientId,
+    );
+  }
+
+  @Get('physician')
+  @RequirePermission(Permission.VIEW_MEDICAL_ORDERS)
+  findAllForPhysician(
+    @Query() paginationParams: PaginationParams,
+    @GetTenant() tenant,
+    @GetUser() user,
+    @Query('patient_id') patientId?: string,
+    @Query('type') orderType?: string,
+  ): Promise<MedicalOrderPaginatedResponseDto> {
+    return this.medicalOrderService.findAllForPhysician(
+      paginationParams,
+      tenant.id,
+      user.id,
+      patientId,
+      orderType,
+    );
+  }
+
+  @Get('patient')
+  @RequirePermission(Permission.VIEW_MEDICAL_ORDERS)
+  findAllForPatient(
+    @Query() paginationParams: PaginationParams,
+    @GetUser() user,
+    @Query('physician_id') physicianId?: string,
+    @Query('type') orderType?: string,
+    @Query('tenant_id') tenantId?: string,
+    @Req() req?: any,
+  ): Promise<MedicalOrderPaginatedResponseDto> {
+    // Get the tenants array from the request
+    const userTenants = req?.userTenants || [];
+
+    return this.medicalOrderService.findAllForPatient(
+      paginationParams,
+      user.id,
+      physicianId,
+      orderType,
+      tenantId,
+      userTenants,
     );
   }
 
