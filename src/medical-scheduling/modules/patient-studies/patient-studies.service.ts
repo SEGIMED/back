@@ -10,6 +10,7 @@ export class PatientStudiesService {
 
   async create(
     createPatientStudyDto: CreatePatientStudyDto,
+    tenantId: string,
   ): Promise<PatientStudy> {
     createPatientStudyDto.cat_study_type_id = Number(
       createPatientStudyDto.cat_study_type_id,
@@ -18,6 +19,7 @@ export class PatientStudiesService {
       data: {
         ...createPatientStudyDto,
         is_deleted: false,
+        tenant_id: tenantId,
       },
     });
   }

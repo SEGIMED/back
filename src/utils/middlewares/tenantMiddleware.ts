@@ -28,25 +28,76 @@ export class TenantMiddleware implements NestMiddleware {
         throw new UnauthorizedException(`Invalid token: ${error.message}`);
       }
 
-      const tenant_id = payload?.tenant_id;
-      if (!tenant_id) {
-        throw new UnauthorizedException('Tenant ID not found in token');
+      // Check if this is a patient with multiple tenants
+      if (
+        payload.role === 'patient' &&
+        payload.tenants &&
+        Array.isArray(payload.tenants) &&
+        payload.tenants.length > 0
+      ) {
+        // Store tenants info for patients
+        req['userTenants'] = payload.tenants;
+
+        // If there's a tenant_id in the header/request and it's in the list of
+        // patient's tenants, use that one
+        const requestTenantId =
+          (req.headers['x-tenant-id'] as string) ||
+          (req.query.tenantId as string) ||
+          (req.body && req.body.tenantId);
+
+        if (requestTenantId) {
+          const matchingTenant = payload.tenants.find(
+            (t) => t.id === requestTenantId,
+          );
+          if (matchingTenant) {
+            // If the requested tenant is in the patient's tenants, set it as the current tenant
+            const tenant = await this.prisma.tenant.findUnique({
+              where: { id: requestTenantId },
+            });
+            if (tenant) {
+              global.tenant_id = requestTenantId;
+              req['tenant_id'] = requestTenantId;
+              req['tenant'] = tenant;
+              next();
+              return;
+            }
+          }
+        }
+
+        // If no specific tenant is requested but the patient has tenants, use the first one
+        const firstTenantId = payload.tenants[0].id;
+        const tenant = await this.prisma.tenant.findUnique({
+          where: { id: firstTenantId },
+        });
+        if (tenant) {
+          global.tenant_id = firstTenantId;
+          req['tenant_id'] = firstTenantId;
+          req['tenant'] = tenant;
+          next();
+          return;
+        }
+      } else {
+        // Regular handling for non-patient users
+        const tenant_id = payload?.tenant_id;
+        if (!tenant_id) {
+          throw new UnauthorizedException('Tenant ID not found in token');
+        }
+
+        const tenant = await this.prisma.tenant.findUnique({
+          where: {
+            id: tenant_id,
+          },
+        });
+        if (!tenant) {
+          throw new UnauthorizedException('Invalid tenant');
+        }
+
+        // Guardar en el contexto global
+        global.tenant_id = tenant_id;
+
+        req['tenant_id'] = tenant_id;
+        req['tenant'] = tenant;
       }
-
-      const tenant = await this.prisma.tenant.findUnique({
-        where: {
-          id: tenant_id,
-        },
-      });
-      if (!tenant) {
-        throw new UnauthorizedException('Invalid tenant');
-      }
-
-      // Guardar en el contexto global
-      global.tenant_id = tenant_id;
-
-      req['tenant_id'] = tenant_id;
-      req['tenant'] = tenant;
 
       next();
     } catch (error) {

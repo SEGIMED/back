@@ -38,6 +38,8 @@ import { CatalogSeedModule } from './catalogs/seed/catalog-seed.module';
 import { MedicalOrderModule } from './medical_order/medical_order.module';
 import { OrderTypeModule } from './catalogs/order-type/order-type.module';
 import { PermissionCheckerService } from './auth/permissions/permission-checker.service';
+import { PhysicianScheduleModule } from './medical-scheduling/modules/physician-schedule/physician-schedule.module';
+import { TenantAccessGuard } from './auth/guards/tenant-access.guard';
 
 config({ path: '.env' });
 
@@ -84,6 +86,7 @@ config({ path: '.env' });
     MedicalOrderModule,
     OrderTypeModule,
     MedicalOrderModule,
+    PhysicianScheduleModule,
   ],
   controllers: [AppController],
   providers: [
@@ -92,6 +95,7 @@ config({ path: '.env' });
     PhysicalExaminationService,
     PhysicalSubsystemService,
     PermissionCheckerService,
+    TenantAccessGuard,
   ],
 })
 export class AppModule {

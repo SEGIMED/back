@@ -4,7 +4,6 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { UpdatePatientDto } from './dto/update-patient.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailService } from 'src/services/email/email.service';
 import { MedicalPatientDto } from './dto/medical-patient.dto';
@@ -16,11 +15,14 @@ import {
 } from 'src/utils/pagination.helper';
 import { UserRoleManagerService } from '../../auth/roles/user-role-manager.service';
 import { Prisma } from '@prisma/client';
+import { AuthHelper } from 'src/utils/auth.helper';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PatientService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly userRoleManager: UserRoleManagerService,
   ) {}
@@ -67,13 +69,15 @@ export class PatientService {
       }
 
       let newUserId: string;
-
+      const saltRounds = parseInt(
+        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+      );
       await this.prisma.$transaction(async (transaction) => {
         const newUser = await transaction.user.create({
           data: {
             ...user,
             role: 'patient',
-            password: newPassword,
+            password: await AuthHelper.hashPassword(newPassword, saltRounds),
           },
         });
 
@@ -95,8 +99,8 @@ export class PatientService {
 
         await this.emailService.sendMail(
           user.email,
-          sendCredentialsHtml(user.email, newPassword),
           'Credenciales Segimed',
+          sendCredentialsHtml(user.email, newPassword),
         );
       });
 
@@ -214,7 +218,6 @@ export class PatientService {
     try {
       const tenant_id = global.tenant_id;
 
-      console.log('tenant_id', tenant_id);
       if (!tenant_id) {
         throw new BadRequestException('No se ha especificado un tenant válido');
       }
@@ -238,6 +241,245 @@ export class PatientService {
         throw new NotFoundException('Paciente no encontrado en este tenant');
       }
 
+      // Get patient files (studies)
+      const files = await this.prisma.patient_study.findMany({
+        where: {
+          patient_id: id,
+          tenant_id,
+          is_deleted: false,
+        },
+        select: {
+          id: true,
+          title: true,
+          url: true,
+        },
+      });
+
+      const formattedFiles = files.map((file) => ({
+        id: file.id,
+        name: file.title,
+        url: file.url || '',
+      }));
+
+      // Get the latest medical event with status COMPLETED
+      const latestMedicalEvent = await this.prisma.medical_event.findFirst({
+        where: {
+          patient_id: id,
+          tenant_id,
+          deleted: false,
+          appointment: {
+            status: 'atendida',
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+        include: {
+          vital_signs: {
+            include: {
+              vital_sign: true,
+            },
+          },
+        },
+      });
+
+      // Get the latest self evaluation
+      const latestSelfEvaluation =
+        await this.prisma.self_evaluation_event.findFirst({
+          where: {
+            patient_id: id,
+            tenant_id,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          include: {
+            vital_signs: {
+              include: {
+                vital_sign: true,
+              },
+            },
+          },
+        });
+
+      // Determine which vital signs to use (from most recent source)
+      let vitalSignsData = [];
+      let vitalSignsSource = null;
+
+      if (latestMedicalEvent && latestSelfEvaluation) {
+        const medicalEventDate = new Date(latestMedicalEvent.created_at);
+        const selfEvalDate = new Date(latestSelfEvaluation.created_at);
+
+        vitalSignsSource =
+          medicalEventDate > selfEvalDate
+            ? latestMedicalEvent
+            : latestSelfEvaluation;
+      } else if (latestMedicalEvent) {
+        vitalSignsSource = latestMedicalEvent;
+      } else if (latestSelfEvaluation) {
+        vitalSignsSource = latestSelfEvaluation;
+      }
+
+      if (
+        vitalSignsSource &&
+        vitalSignsSource.vital_signs &&
+        vitalSignsSource.vital_signs.length > 0
+      ) {
+        // For each vital sign, get the measure unit
+        const vitalSignPromises = vitalSignsSource.vital_signs.map(
+          async (vs) => {
+            if (!vs.vital_sign) return null;
+
+            const measureUnit = await this.prisma.cat_measure_unit.findFirst({
+              where: {
+                cat_vital_signs_id: vs.vital_sign_id,
+              },
+            });
+
+            return {
+              id: vs.id,
+              vital_sign_category: vs.vital_sign.name,
+              measure: vs.measure,
+              vital_sign_measure_unit: measureUnit ? measureUnit.name : '',
+            };
+          },
+        );
+
+        const results = await Promise.all(vitalSignPromises);
+        vitalSignsData = results.filter((item) => item !== null);
+      }
+
+      // Get the latest patient background
+      const background = await this.prisma.background.findFirst({
+        where: {
+          patient_id: id,
+          tenant_id,
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      });
+
+      // Get active medications
+      const medications = await this.prisma.prescription.findMany({
+        where: {
+          patient_id: id,
+          tenant_id,
+          active: true,
+        },
+        include: {
+          pres_mod_history: {
+            orderBy: {
+              mod_timestamp: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
+
+      const formattedMedications = medications.map((med) => {
+        const lastModification =
+          med.pres_mod_history && med.pres_mod_history.length > 0
+            ? med.pres_mod_history[0]
+            : null;
+        return {
+          id: med.id,
+          name: med.monodrug,
+          dosage: lastModification
+            ? `${lastModification.dose} ${lastModification.dose_units}`
+            : '',
+          instructions: lastModification
+            ? `${lastModification.frecuency}, durante ${lastModification.duration} ${lastModification.duration_units}`
+            : '',
+          active: med.active,
+        };
+      });
+
+      // Get future medical events (upcoming appointments)
+      const futureMedicalEvents = await this.prisma.appointment.findMany({
+        where: {
+          patient_id: id,
+          tenant_id,
+          status: {
+            in: ['pendiente'],
+          },
+          deleted: false,
+        },
+        orderBy: {
+          start: 'asc',
+        },
+        include: {
+          physician: true,
+        },
+      });
+
+      // Get past medical events (past appointments)
+      const pastMedicalEvents = await this.prisma.appointment.findMany({
+        where: {
+          patient_id: id,
+          tenant_id,
+          start: {
+            lt: new Date(),
+          },
+          status: {
+            in: ['atendida', 'cancelada'],
+          },
+          deleted: false,
+        },
+        orderBy: {
+          start: 'desc',
+        },
+        include: {
+          physician: true,
+        },
+      });
+
+      // Format evaluation from latest medical event
+      const evaluation = latestMedicalEvent
+        ? {
+            id: latestMedicalEvent.id,
+            details: latestMedicalEvent.physician_comments || '',
+            date: latestMedicalEvent.created_at,
+          }
+        : null;
+
+      // Format background
+      const backgroundData = background
+        ? {
+            id: background.id,
+            details: `
+          Vacunas: ${background.vaccinations || ''}
+          Alergias: ${background.allergies || ''}
+          Antecedentes patológicos: ${background.pathological_history || ''}
+          Antecedentes familiares: ${background.family_medical_history || ''}
+          Antecedentes no patológicos: ${background.non_pathological_history || ''}
+          Antecedentes quirúrgicos: ${background.surgical_history || ''}
+          Antecedentes de infancia: ${background.childhood_medical_history || ''}
+          Medicación actual: ${background.current_medication || ''}
+        `,
+            date: background.created_at,
+          }
+        : null;
+
+      // Format medical events
+      const formatMedicalEvents = (events) =>
+        events.map((event) => {
+          // Extract time from date or use a default time
+          const date = new Date(event.start);
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          const timeStr = `${hours}:${minutes}`;
+
+          return {
+            id: event.id,
+            date: date,
+            time: timeStr,
+            doctor: `${event.physician.name || ''} ${event.physician.last_name || ''}`,
+            reason: event.consultation_reason || '',
+            status: event.status,
+          };
+        });
+
       const user = patient.user;
 
       return {
@@ -248,20 +490,31 @@ export class PatientService {
         birth_date: user.birth_date,
         email: user.email,
         notes: patient.notes || '',
+        vital_signs: vitalSignsData,
+        files: formattedFiles,
+        evaluation: evaluation,
+        background: backgroundData,
+        current_medication: formattedMedications,
+        future_medical_events: formatMedicalEvents(futureMedicalEvents),
+        past_medical_events: formatMedicalEvents(pastMedicalEvents),
       };
     } catch (error) {
       console.error('Error en findOne:', error);
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      throw new BadRequestException('Error al obtener el paciente');
+      throw new BadRequestException(
+        'Error al obtener el paciente: ' + error.message,
+      );
     }
   }
 
-  async update(id: string, updatePatientDto: UpdatePatientDto) {
+  async update(id: string, updatePatientDto: MedicalPatientDto) {
     try {
       const tenant_id = global.tenant_id;
-
       if (!tenant_id) {
         throw new BadRequestException('No se ha especificado un tenant válido');
       }
@@ -278,18 +531,25 @@ export class PatientService {
         },
       });
 
+      await this.prisma.user.update({
+        where: { id },
+        data: {
+          ...updatePatientDto.user,
+        },
+      });
+
       if (!patient) {
         throw new NotFoundException('Paciente no encontrado en este tenant');
       }
 
-      const { ...filteredDto } = updatePatientDto;
-
-      const updatedPatient = await this.prisma.patient.update({
+      await this.prisma.patient.update({
         where: { user_id: id },
-        data: filteredDto as any,
+        data: {
+          ...updatePatientDto.patient,
+        },
       });
 
-      return updatedPatient;
+      return { message: 'Paciente actualizado correctamente' };
     } catch (error) {
       console.error('Error en update:', error);
       if (error instanceof NotFoundException) {

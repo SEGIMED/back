@@ -23,14 +23,14 @@ export class JwtUserExtractorMiddleware implements NestMiddleware {
           return;
         }
 
-        // Extraer el ID del usuario del payload
+        // Extract user ID from payload
         const userId = payload.id;
         if (!userId) {
           next();
           return;
         }
 
-        // Obtener información del usuario desde la base de datos
+        // Get user information from database
         const user = await this.prisma.user.findUnique({
           where: { id: userId },
           select: {
@@ -44,11 +44,39 @@ export class JwtUserExtractorMiddleware implements NestMiddleware {
         });
 
         if (user) {
-          // Agregar el usuario a la solicitud
+          // Add the user to the request
           req['user'] = user;
+
+          // Store tenants info for patients
+          if (user.role === 'patient') {
+            // Check if tenants are provided in JWT
+            if (payload.tenants && Array.isArray(payload.tenants)) {
+              req['userTenants'] = payload.tenants;
+
+              // If there's a tenant_id in the header/request and it's in the list of
+              // patient's tenants, use that one
+              const requestTenantId =
+                (req.headers['x-tenant-id'] as string) ||
+                (req.query.tenantId as string) ||
+                (req.body && req.body.tenantId);
+
+              if (requestTenantId) {
+                const matchingTenant = payload.tenants.find(
+                  (t) => t.id === requestTenantId,
+                );
+                if (matchingTenant) {
+                  // If the requested tenant is in the patient's tenants, set it as the current tenant
+                  global.tenant_id = requestTenantId;
+                }
+              }
+            }
+          } else if (user.tenant_id) {
+            // For non-patient users, just set the tenant_id as before
+            global.tenant_id = user.tenant_id;
+          }
         }
       } catch (error) {
-        // Si hay un error al verificar el token, simplemente continuar
+        // If there's an error verifying the token, simply continue
         console.error('Error al verificar token JWT:', error);
       }
 

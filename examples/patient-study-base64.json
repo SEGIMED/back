@@ -1,0 +1,9 @@
+{
+  "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+  "physician_id": "123e4567-e89b-12d3-a456-426614174001",
+  "title": "Resonancia magnética de rodilla",
+  "description": "Estudio de resonancia magnética para evaluar lesión en rodilla izquierda",
+  "cat_study_type_id": 1,
+  "tenant_id": "123e4567-e89b-12d3-a456-426614174002",
+  "file": "data:application/pdf;base64,JVBERi0xLjUNJeLjz9MNCjEgMCBvYmoNPDwvTWV0YWRhdGEgMiAwIFIvT0NQcm9wZXJ0aWVzPDwvRDw8L09OWzUgMCBSXS9PcmRlciA2IDAgUi9SQkdyb3Vwc1tdPj4vT0NHc1s1IDAgUl0+Pi9QYWdlcyAzIDAgUi9UeXBlL0NhdGFsb2c+Pg1lbmRvYmoNMiAwIG9iag08PC9MZW5ndGggNDQzMzQvU3VidHlwZS9YTUwvVHlwZS9NZXRhZGF0YT4+c3RyZWFtDQo8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI..."
+}

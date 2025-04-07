@@ -10,7 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PatientService } from './patient.service';
-import { UpdatePatientDto } from './dto/update-patient.dto';
 import { MedicalPatientDto } from './dto/medical-patient.dto';
 import { PaginationParams } from 'src/utils/pagination.helper';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
@@ -46,8 +45,11 @@ export class PatientController {
 
   @Patch(':id')
   @RequirePermission(Permission.EDIT_PATIENT_INFO)
-  update(@Param('id') id: string, @Body() updatePatientDto: UpdatePatientDto) {
-    return this.patientService.update(id, updatePatientDto);
+  update(
+    @Param('id') id: string,
+    @Body() medicalPatientDto: MedicalPatientDto,
+  ) {
+    return this.patientService.update(id, medicalPatientDto);
   }
 
   @Delete(':id')
