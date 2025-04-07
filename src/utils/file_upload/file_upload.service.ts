@@ -14,4 +14,29 @@ export class FileUploadService {
       type: file.mimetype.startsWith('image/') ? 'image' : 'pdf',
     };
   }
+
+  /**
+   * Sube un archivo a Cloudinary a partir de un DATA URI en base64
+   * @param dataUri DATA URI en formato base64 (ej: data:application/pdf;base64,JVBERi0...)
+   * @param filename Nombre del archivo (opcional)
+   * @returns Objeto con la URL y el tipo de archivo
+   */
+  async uploadBase64File(
+    dataUri: string,
+    filename?: string,
+  ): Promise<{ url: string; type: string }> {
+    const result = await this.fileUploadRepository.uploadBase64File(
+      dataUri,
+      filename,
+    );
+
+    // Determinar el tipo de archivo a partir del DATA URI
+    const mimeMatch = dataUri.match(/^data:([^;]+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+
+    return {
+      url: result.secure_url,
+      type: mimeType.startsWith('image/') ? 'image' : 'pdf',
+    };
+  }
 }

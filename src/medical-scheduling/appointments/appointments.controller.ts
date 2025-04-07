@@ -18,6 +18,8 @@ import { Permission } from '../../auth/permissions/permission.enum';
 import { GetTenant } from '../../auth/decorators/get-tenant.decorator';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { PaginationParams } from 'src/utils/pagination.helper';
+import { GetAppointmentsCalendarDto } from './dto/get-appointments-calendar.dto';
+import { GetStatisticsDto } from './dto/get-statistics.dto';
 
 @Controller('appointments')
 @UseGuards(TenantAccessGuard, PermissionGuard)
@@ -30,6 +32,10 @@ export class AppointmentsController {
     @Body() createAppointmentDto: CreateAppointmentDto,
     @GetTenant() tenant: { id: string },
   ) {
+    console.log('Creating appointment with dates:');
+    console.log('Start:', createAppointmentDto.start);
+    console.log('End:', createAppointmentDto.end);
+
     return this.appointmentsService.createAppointment(
       createAppointmentDto,
       tenant.id,
@@ -58,6 +64,64 @@ export class AppointmentsController {
       updateStatusDto.status,
       updateStatusDto.reason,
       tenant,
+    );
+  }
+
+  @Get('physician-calendar')
+  @RequirePermission(Permission.VIEW_DOCTOR_DETAILS)
+  async getPhysicianCalendar(
+    @GetUser() user,
+    @GetTenant() tenant,
+    @Query() params: GetAppointmentsCalendarDto,
+  ) {
+    return this.appointmentsService.getPhysicianCalendar(
+      user.id,
+      params.startDate,
+      params.endDate,
+      params.status,
+      tenant.id,
+      params.month,
+      params.year,
+    );
+  }
+
+  @Get('physician/:physicianId/calendar')
+  @RequirePermission(Permission.VIEW_DOCTOR_DETAILS)
+  async getSpecificPhysicianCalendar(
+    @Param('physicianId') physicianId: string,
+    @GetTenant() tenant,
+    @Query() params: GetAppointmentsCalendarDto,
+  ) {
+    return this.appointmentsService.getPhysicianCalendar(
+      physicianId,
+      params.startDate,
+      params.endDate,
+      params.status,
+      tenant.id,
+      params.month,
+      params.year,
+    );
+  }
+
+  @Get('statistics')
+  @RequirePermission(Permission.VIEW_STATISTICS)
+  async getStatistics(@GetTenant() tenant, @Query() params: GetStatisticsDto) {
+    // Convertir fechas de string a Date si se proporcionan
+    const options = {
+      startDate: params.startDate ? new Date(params.startDate) : undefined,
+      endDate: params.endDate ? new Date(params.endDate) : undefined,
+      groupBy: params.groupBy,
+      physicianId: params.physicianId,
+      patientId: params.patientId,
+      specialtyId: params.specialtyId,
+      limit: params.limit,
+      filter: params.filter,
+    };
+
+    return this.appointmentsService.getStatistics(
+      params.type,
+      tenant.id,
+      options,
     );
   }
 }

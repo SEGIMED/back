@@ -9,9 +9,11 @@ import { TenantAdminGuard } from './guards/tenant-admin.guard';
 import { SuperAdminGuard } from './guards/superadmin.guard';
 import { RolesController } from './controllers/roles.controller';
 import { UserRoleManagerService } from './roles/user-role-manager.service';
+import { PermissionUpdaterService } from './services/permission-updater.service';
+import { PermissionUpdaterController } from './controllers/permission-updater.controller';
 
 @Module({
-  controllers: [RolesController],
+  controllers: [RolesController, PermissionUpdaterController],
   providers: [
     PrismaService,
     PermissionsService,
@@ -22,6 +24,7 @@ import { UserRoleManagerService } from './roles/user-role-manager.service';
     TenantAdminGuard,
     SuperAdminGuard,
     UserRoleManagerService,
+    PermissionUpdaterService,
   ],
   exports: [
     PermissionsService,
@@ -32,6 +35,7 @@ import { UserRoleManagerService } from './roles/user-role-manager.service';
     TenantAdminGuard,
     SuperAdminGuard,
     UserRoleManagerService,
+    PermissionUpdaterService,
   ],
 })
 export class GuardAuthModule {}
