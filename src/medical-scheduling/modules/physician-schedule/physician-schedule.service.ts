@@ -632,8 +632,14 @@ export class PhysicianScheduleService {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
 
+    // Asegurarnos de que trabajamos con la fecha exacta proporcionada, sin ajustes
     const requestedDate = moment(getSlotsDto.date).startOf('day');
     const dayOfWeek = requestedDate.day(); // 0 = Sunday, 1 = Monday, etc.
+
+    // Loguear información para debugging
+    console.log(
+      `Getting slots for date: ${requestedDate.format('YYYY-MM-DD')}, day of week: ${dayOfWeek}`,
+    );
 
     // Check if there's an exception for this date
     const exception = await this.prisma.physician_schedule_exception.findFirst({
@@ -748,6 +754,11 @@ export class PhysicianScheduleService {
         .add(time % 60, 'minutes');
       const slotEnd = moment(slotStart).add(appointmentLength, 'minutes');
 
+      // Para debugging
+      console.log(
+        `Evaluating slot: ${slotStart.format('HH:mm')} - ${slotEnd.format('HH:mm')}`,
+      );
+
       // Skip if this slot is in the past
       if (slotStart.isBefore(moment())) {
         continue;
@@ -757,8 +768,17 @@ export class PhysicianScheduleService {
       let overlappingAppointments = 0;
       for (const blocked of blockedSlots) {
         // Check if the slot overlaps with a blocked slot
-        if (time < blocked.end && time + appointmentLength > blocked.start) {
+        // Fix the overlap condition to properly exclude slots that overlap with existing appointments
+        if (
+          (time < blocked.end && time + appointmentLength > blocked.start) ||
+          // This handles the edge case where one appointment ends exactly when another begins
+          time === blocked.end ||
+          time + appointmentLength === blocked.start
+        ) {
           overlappingAppointments++;
+          console.log(
+            `Slot overlaps with existing appointment: ${blocked.start / 60}:${blocked.start % 60} - ${blocked.end / 60}:${blocked.end % 60}`,
+          );
         }
       }
 

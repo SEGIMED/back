@@ -88,6 +88,7 @@ export class PermissionsService {
       [Permission.GENERATE_ADHERENCE_REPORTS]:
         'Generar reportes de adherencia al tratamiento',
       [Permission.DOWNLOAD_REPORTS]: 'Descargar reportes en PDF o Excel',
+      [Permission.VIEW_STATISTICS]: 'Ver estadísticas y gráficos del sistema',
 
       [Permission.MANAGE_USERS]:
         'Gestión de usuarios (crear, editar, eliminar roles)',

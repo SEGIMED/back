@@ -94,6 +94,7 @@ export class PhysicianScheduleController {
     @Param('userId') userId: string,
     @Query() getSlotsDto: GetSlotsDto,
   ) {
+    console.log('Getting slots for date:', getSlotsDto.date);
     return this.physicianScheduleService.getAvailableSlots(userId, getSlotsDto);
   }
 }

@@ -27,6 +27,7 @@ export enum Permission {
   GENERATE_CONSULTATION_REPORTS = 'generar_reportes_de_consultas_atendidas',
   GENERATE_ADHERENCE_REPORTS = 'generar_reportes_de_adherencia_al_tratamiento',
   DOWNLOAD_REPORTS = 'descargar_reportes_en_pdf_o_excel',
+  VIEW_STATISTICS = 'ver_estadisticas',
 
   // Administración y Configuración
   MANAGE_USERS = 'gestion_de_usuarios',
