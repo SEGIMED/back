@@ -104,7 +104,7 @@ export class AppModule {
       .apply(TenantMiddleware)
       .exclude(
         { path: 'auth/register', method: RequestMethod.POST },
-        { path: 'auth/', method: RequestMethod.POST },
+        { path: 'auth', method: RequestMethod.POST },
         { path: 'auth/google', method: RequestMethod.POST },
         { path: 'auth/request-password', method: RequestMethod.POST },
         { path: 'auth/reset-password', method: RequestMethod.POST },
