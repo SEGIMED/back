@@ -10,7 +10,13 @@ export class JwtUserExtractorMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       // Permitir acceso a la documentación de Swagger sin procesar
-      if (req.path === '/api' || req.path.startsWith('/api/')) {
+      const isSwaggerRequest =
+        req.path === '/api' ||
+        req.path.startsWith('/api/') ||
+        req.originalUrl === '/api' ||
+        req.originalUrl.startsWith('/api/');
+
+      if (isSwaggerRequest) {
         return next();
       }
 

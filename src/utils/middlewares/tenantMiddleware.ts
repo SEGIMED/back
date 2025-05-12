@@ -14,8 +14,20 @@ export class TenantMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       // Permitir acceso a la documentación de Swagger sin autenticación
-      if (req.path === '/api' || req.path.startsWith('/api/')) {
-        console.log('Swagger access detected, bypassing authentication');
+      const isSwaggerRequest =
+        req.path === '/api' ||
+        req.path.startsWith('/api/') ||
+        req.originalUrl === '/api' ||
+        req.originalUrl.startsWith('/api/') ||
+        req.headers['referer']?.includes('/api');
+
+      // Si es una petición de Swagger o relacionada con la documentación, permitir sin autenticación
+      if (isSwaggerRequest) {
+        return next();
+      }
+
+      // Verificar si la URL es para crear un superadmin, ya que esa ruta está excluida
+      if (req.path === '/auth/create-superadmin' && req.method === 'POST') {
         return next();
       }
 

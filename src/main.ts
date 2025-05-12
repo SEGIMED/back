@@ -81,7 +81,22 @@ async function bootstrap() {
       tagsSorter: 'alpha',
       operationsSorter: 'alpha',
       docExpansion: 'none',
+      defaultModelsExpandDepth: -1,
+      displayRequestDuration: true,
+      tryItOutEnabled: true,
+      withCredentials: true,
+      requestInterceptor: (req) => {
+        // Asegurarse de que todas las peticiones incluyan el token de autorización si existe
+        const token = localStorage.getItem('access_token');
+        if (token) {
+          req.headers.Authorization = `Bearer ${token}`;
+        }
+        return req;
+      },
     },
+    customSiteTitle: 'SEGIMED API Documentation',
+    customCss: '.swagger-ui .topbar { display: none }',
+    swaggerUrl: '/api-json',
   });
 
   await app.listen(process.env.PORT ?? 3000);
