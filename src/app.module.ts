@@ -103,6 +103,8 @@ export class AppModule {
     consumer
       .apply(TenantMiddleware)
       .exclude(
+        { path: 'api', method: RequestMethod.GET },
+        { path: 'api/(.*)', method: RequestMethod.GET },
         { path: 'auth/register', method: RequestMethod.POST },
         { path: 'auth', method: RequestMethod.POST },
         { path: 'auth/google', method: RequestMethod.POST },
@@ -117,12 +119,20 @@ export class AppModule {
 
     consumer
       .apply(JwtUserExtractorMiddleware)
-      .exclude({ path: 'auth/create-superadmin', method: RequestMethod.POST })
+      .exclude(
+        { path: 'api', method: RequestMethod.GET },
+        { path: 'api/(.*)', method: RequestMethod.GET },
+        { path: 'auth/create-superadmin', method: RequestMethod.POST },
+      )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
 
     consumer
       .apply(TenantExtractorMiddleware)
-      .exclude({ path: 'auth/create-superadmin', method: RequestMethod.POST })
+      .exclude(
+        { path: 'api', method: RequestMethod.GET },
+        { path: 'api/(.*)', method: RequestMethod.GET },
+        { path: 'auth/create-superadmin', method: RequestMethod.POST },
+      )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
