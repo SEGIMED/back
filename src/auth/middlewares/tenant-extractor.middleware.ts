@@ -7,6 +7,11 @@ export class TenantExtractorMiddleware implements NestMiddleware {
   constructor(private prisma: PrismaService) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
+    // Permitir acceso a la documentación de Swagger sin procesar
+    if (req.path === '/api' || req.path.startsWith('/api/')) {
+      return next();
+    }
+
     // Get the tenant ID from headers, query params or body
     const tenantId =
       (req.headers['x-tenant-id'] as string) ||

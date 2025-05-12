@@ -34,6 +34,7 @@ model tenant {
   physician_schedule           physician_schedule[]
   physician_schedule_exception physician_schedule_exception[]
   schedule_slot                schedule_slot[]
+  mood_entries                 mood_entry[]
 }
 
 model user {
@@ -72,6 +73,7 @@ model user {
 
   self_evaluation_event self_evaluation_event[]
   vital_signs           vital_signs[]
+  mood_entries          mood_entry[]
 
   roles user_role[]
 
@@ -680,4 +682,15 @@ model schedule_slot {
   physician    physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
 
   @@index([physician_id, start_time, end_time])
+}
+
+model mood_entry {
+  id         String   @id @default(uuid())
+  patient_id String
+  patient    user     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  mood_level Int // 1: Muy mal, 2: Mal, 3: Neutral, 4: Bien, 5: Muy bien
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tenant_id  String
+  tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }

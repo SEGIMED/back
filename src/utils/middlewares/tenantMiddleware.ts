@@ -13,6 +13,12 @@ export class TenantMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
+      // Permitir acceso a la documentación de Swagger sin autenticación
+      if (req.path === '/api' || req.path.startsWith('/api/')) {
+        console.log('Swagger access detected, bypassing authentication');
+        return next();
+      }
+
       const authorization = req.headers['authorization'];
       if (!authorization) {
         throw new UnauthorizedException('Authorization header missing');

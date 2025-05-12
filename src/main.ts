@@ -42,17 +42,47 @@ async function bootstrap() {
   );
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('SEGIMED')
+    .setTitle('SEGIMED API')
     .setDescription(
-      'Manage your organization with SEGIMED, your medical partner.',
+      'API documentation for SEGIMED platform - a comprehensive medical management system.',
     )
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'Authorization',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'access-token',
+    )
+    .addTag('Auth', 'Authentication operations')
+    .addTag('Users', 'User management operations')
+    .addTag('Patients', 'Patient management operations')
+    .addTag('Appointments', 'Appointment scheduling operations')
+    .addTag('Medical Events', 'Medical events management')
+    .addTag('Studies', 'Patient studies and results')
+    .addTag('Prescriptions', 'Prescription management')
+    .addTag('Mood', 'Patient mood tracking')
+    .setContact('SEGIMED Support', 'https://segimed.com', 'support@segimed.com')
+    .setLicense('Private', '')
     .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    deepScanRoutes: true,
+    operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+  });
 
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      tagsSorter: 'alpha',
+      operationsSorter: 'alpha',
+      docExpansion: 'none',
+    },
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
