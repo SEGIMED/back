@@ -18,18 +18,18 @@ export class TenantMiddleware implements NestMiddleware {
         req.path === '/api' ||
         req.path.startsWith('/api/') ||
         req.originalUrl === '/api' ||
-        req.originalUrl.startsWith('/api/') ||
-        req.headers['referer']?.includes('/api');
+        req.originalUrl.startsWith('/api/');
 
       // Si es una petición de Swagger o relacionada con la documentación, permitir sin autenticación
-      if (isSwaggerRequest) {
+      if (isSwaggerRequest || req.headers['referer']?.includes('/api')) {
         return next();
       }
 
-      // Verificar si la URL es para crear un superadmin, ya que esa ruta está excluida
-      if (req.path === '/auth/create-superadmin' && req.method === 'POST') {
-        return next();
-      }
+      // Debug headers para identificar problemas
+      console.log('Request path:', req.path);
+      console.log('Request originalUrl:', req.originalUrl);
+      console.log('Request method:', req.method);
+      console.log('Request headers:', JSON.stringify(req.headers));
 
       const authorization = req.headers['authorization'];
       if (!authorization) {

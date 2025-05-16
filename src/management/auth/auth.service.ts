@@ -18,7 +18,6 @@ import {
   LoginResponseDto,
   TenantDto,
 } from './dto/login-response.dto';
-import { CatalogSeedService } from 'src/catalogs/seed/catalog-seed.service';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +26,6 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly otpService: TwilioService,
-    private readonly catalogSeedService: CatalogSeedService,
   ) {}
   async create(data: CreateUserDto): Promise<object> {
     try {
@@ -461,17 +459,8 @@ export class AuthService {
         createSuperAdminDto.tenant_id,
       );
 
-      // Ejecutar los seeds de catálogos después de crear el superadmin
-      try {
-        await this.catalogSeedService.seedAllCatalogs();
-        console.log('Catálogos inicializados correctamente');
-      } catch (seedError) {
-        console.error('Error al inicializar catálogos:', seedError);
-        // No lanzamos el error para no interrumpir la creación del superadmin
-      }
-
       return {
-        message: 'Superadmin creado exitosamente y catálogos inicializados',
+        message: 'Superadmin creado exitosamente',
         user: {
           id: user.id,
           email: user.email,
