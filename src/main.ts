@@ -82,6 +82,7 @@ async function bootstrap() {
     .addTag('Vital Signs', 'Vital signs management operations')
     .addTag('Studies', 'Patient studies and results')
     .addTag('Prescriptions', 'Prescription management')
+    .addTag('Physical Exploration', 'Physical exploration data management') // Added this line
     .addTag('Mood', 'Patient mood tracking')
     .setContact('SEGIMED Support', 'https://segimed.com', 'support@segimed.com')
     .setLicense('Private', '')
