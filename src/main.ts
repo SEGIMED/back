@@ -47,6 +47,20 @@ async function bootstrap() {
       'API documentation for SEGIMED platform - a comprehensive medical management system.',
     )
     .setVersion('1.0')
+    .addServer('http://localhost:3000', 'Local Development Server', {
+      db_env: {
+        default: 'local',
+        description: 'Select database environment',
+        enum: ['local', 'deployed'],
+      },
+    })
+    .addServer('http://localhost:3000', 'Local Server - Deployed DB', {
+      db_env: {
+        default: 'deployed',
+        description: 'Select database environment (API runs locally)',
+        enum: ['local', 'deployed'],
+      },
+    })
     .addBearerAuth(
       {
         type: 'http',
