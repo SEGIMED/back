@@ -77,6 +77,7 @@ async function bootstrap() {
     .addTag('Patients', 'Patient management operations')
     .addTag('Appointments', 'Appointment scheduling operations')
     .addTag('Medical Events', 'Medical events management')
+    .addTag('Medicine', 'Medicine management operations')
     .addTag('Studies', 'Patient studies and results')
     .addTag('Prescriptions', 'Prescription management')
     .addTag('Mood', 'Patient mood tracking')
