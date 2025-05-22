@@ -30,7 +30,7 @@ export class PresModHistoryService {
         delete createPresHistoryDto.active;
         delete createPresHistoryDto.patient_id;
         delete createPresHistoryDto.monodrug;
-        delete createPresHistoryDto.tenat_id;
+        delete createPresHistoryDto.tenant_id; // Corrected typo here
 
         createPresHistoryDto.prescription_id = prescription.id;
 

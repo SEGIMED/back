@@ -28,7 +28,7 @@ export class CreatePresHistoryDto {
 
   @IsString()
   @IsOptional()
-  tenat_id?: string;
+  tenant_id?: string;
 
   // Prescription modification History
 

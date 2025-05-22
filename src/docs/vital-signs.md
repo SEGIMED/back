@@ -38,6 +38,7 @@ El cuerpo de la solicitud debe ser un objeto JSON que se ajuste al `CreateVitalS
 **Respuestas (Responses):**
 
 - `201 Created` (Creado): Registro de signos vitales creado exitosamente.
+
   ```json
   {
     // Cuerpo de la respuesta del servidor tras la creación exitosa
@@ -45,6 +46,7 @@ El cuerpo de la solicitud debe ser un objeto JSON que se ajuste al `CreateVitalS
   ```
 
 - `400 Bad Request` (Solicitud Incorrecta): Entrada inválida. El cuerpo de la solicitud no se ajusta al esquema esperado o contiene datos inválidos.
+
   ```json
   {
     "alert": "Se han detectado los siguientes errores en la petición: ",
@@ -110,6 +112,7 @@ Obtiene todos los registros de signos vitales para un paciente específico.
 **Respuestas (Responses):**
 
 - `200 OK`: Devuelve un array con los registros de signos vitales del paciente.
+
   ```json
   [
     {
@@ -123,7 +126,7 @@ Obtiene todos los registros de signos vitales para un paciente específico.
           "measure": 37.5,
           "name": "Temperatura",
           "unit": "°C"
-        },
+        }
         // Más signos vitales...
       ]
     }
@@ -161,6 +164,7 @@ Elimina un registro de signos vitales específico.
 **Respuestas (Responses):**
 
 - `200 OK`: Registro de signos vitales eliminado exitosamente.
+
   ```json
   {
     // Confirmación de eliminación
@@ -190,14 +194,14 @@ curl -X DELETE \
 
 Los tipos de signos vitales comunes incluyen:
 
-| vital_sign_id | Nombre | Unidad de Medida | Rango Normal Adultos |
-|---------------|--------|------------------|----------------------|
-| 1 | Temperatura | °C | 36.1 - 37.2 |
-| 2 | Presión Arterial Sistólica | mmHg | 90 - 120 |
-| 3 | Presión Arterial Diastólica | mmHg | 60 - 80 |
-| 4 | Frecuencia Respiratoria | resp/min | 12 - 20 |
-| 5 | Frecuencia Cardíaca | lat/min | 60 - 100 |
-| 6 | Saturación de Oxígeno | % | 95 - 100 |
-| 7 | Glucemia | mg/dL | 70 - 100 (en ayunas) |
+| vital_sign_id | Nombre                      | Unidad de Medida | Rango Normal Adultos |
+| ------------- | --------------------------- | ---------------- | -------------------- |
+| 1             | Temperatura                 | °C               | 36.1 - 37.2          |
+| 2             | Presión Arterial Sistólica  | mmHg             | 90 - 120             |
+| 3             | Presión Arterial Diastólica | mmHg             | 60 - 80              |
+| 4             | Frecuencia Respiratoria     | resp/min         | 12 - 20              |
+| 5             | Frecuencia Cardíaca         | lat/min          | 60 - 100             |
+| 6             | Saturación de Oxígeno       | %                | 95 - 100             |
+| 7             | Glucemia                    | mg/dL            | 70 - 100 (en ayunas) |
 
 **Nota**: Los rangos normales pueden variar según la edad, sexo y condiciones médicas particulares del paciente.
