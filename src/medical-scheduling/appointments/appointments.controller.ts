@@ -26,10 +26,16 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiHeader,
 } from '@nestjs/swagger';
 
 @ApiTags('Appointments')
 @ApiBearerAuth('access-token')
+@ApiHeader({
+  name: 'X-Tenant-ID',
+  description: 'ID del tenant (organización)',
+  required: true,
+})
 @Controller('appointments')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class AppointmentsController {
