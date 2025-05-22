@@ -33,39 +33,39 @@ El cuerpo de la solicitud debe ser un objeto JSON que se ajuste al `CreateBackgr
 
 **Respuestas (Responses):**
 
-*   `201 Created` (Creado): Registro de antecedentes creado exitosamente.
-    ```json
-    {
-      // Cuerpo de la respuesta del servidor tras la creación exitosa
-    }
-    ```
-*   `400 Bad Request` (Solicitud Incorrecta): Entrada inválida. El cuerpo de la solicitud no se ajusta al esquema esperado o contiene datos inválidos.
-    ```json
-    {
-      "alert": "Se han detectado los siguientes errores en la petición: ",
-      "errors": [
-        {
-          "property": "nombreDelCampo",
-          "constraints": {
-            "nombreDeLaRestriccion": "Mensaje de error"
-          }
+- `201 Created` (Creado): Registro de antecedentes creado exitosamente.
+  ```json
+  {
+    // Cuerpo de la respuesta del servidor tras la creación exitosa
+  }
+  ```
+- `400 Bad Request` (Solicitud Incorrecta): Entrada inválida. El cuerpo de la solicitud no se ajusta al esquema esperado o contiene datos inválidos.
+  ```json
+  {
+    "alert": "Se han detectado los siguientes errores en la petición: ",
+    "errors": [
+      {
+        "property": "nombreDelCampo",
+        "constraints": {
+          "nombreDeLaRestriccion": "Mensaje de error"
         }
-      ]
-    }
-    ```
-*   `401 Unauthorized` (No Autorizado): El token de autenticación falta o es inválido.
-*   `500 Internal Server Error` (Error Interno del Servidor): Ocurrió un error inesperado en el servidor.
-    ```json
-    {
-      "message": "Error al crear antecedentes",
-      "error": "Mensaje de error específico"
-    }
-    ```
+      }
+    ]
+  }
+  ```
+- `401 Unauthorized` (No Autorizado): El token de autenticación falta o es inválido.
+- `500 Internal Server Error` (Error Interno del Servidor): Ocurrió un error inesperado en el servidor.
+  ```json
+  {
+    "message": "Error al crear antecedentes",
+    "error": "Mensaje de error específico"
+  }
+  ```
 
 **Encabezados (Headers):**
 
-*   `Authorization`: Bearer `token-de-acceso` (Token JWT para autenticación)
-*   `X-Tenant-ID`: `string` (Identificador para el tenant)
+- `Authorization`: Bearer `token-de-acceso` (Token JWT para autenticación)
+- `X-Tenant-ID`: `string` (Identificador para el tenant)
 
 **Ejemplo de Uso (cURL):**
 
