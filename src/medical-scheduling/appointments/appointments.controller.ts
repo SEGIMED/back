@@ -27,24 +27,30 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiHeader,
+  ApiBody,
+  ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 
 @ApiTags('Appointments')
 @ApiBearerAuth('access-token')
 @ApiHeader({
-  name: 'X-Tenant-ID',
-  description: 'ID del tenant (organización)',
+  name: 'tenant-id',
+  description: 'ID del tenant al que pertenecen las citas',
   required: true,
 })
 @Controller('appointments')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
-
   @Post()
   @ApiOperation({
     summary: 'Create appointment',
     description: 'Creates a new appointment in the system',
+  })
+  @ApiBody({
+    description: 'Appointment creation data',
+    type: CreateAppointmentDto,
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -73,11 +79,28 @@ export class AppointmentsController {
       tenant.id,
     );
   }
-
   @Get('user')
   @ApiOperation({
     summary: 'Get user appointments',
     description: 'Returns appointments for the current user',
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filter by appointment status',
+    required: false,
+    enum: ['atendida', 'cancelada', 'pendiente'],
+  })
+  @ApiQuery({
+    name: 'page',
+    description: 'Page number for pagination',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Number of items per page',
+    required: false,
+    type: Number,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -96,11 +119,33 @@ export class AppointmentsController {
   ) {
     return this.appointmentsService.getAppointmentsByUser(user.id, params);
   }
-
   @Patch(':id/status')
   @ApiOperation({
     summary: 'Update appointment status',
     description: 'Updates the status of an existing appointment',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the appointment to update',
+    type: String,
+  })
+  @ApiBody({
+    description: 'Status update data',
+    schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['atendida', 'cancelada', 'pendiente'],
+          description: 'New status for the appointment',
+        },
+        reason: {
+          type: 'string',
+          description: 'Reason for status change (optional)',
+        },
+      },
+      required: ['status'],
+    },
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -132,11 +177,40 @@ export class AppointmentsController {
       tenant,
     );
   }
-
   @Get('physician-calendar')
   @ApiOperation({
     summary: 'Get physician calendar',
     description: 'Returns calendar data for the current physician',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'Start date for calendar view (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    description: 'End date for calendar view (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filter by appointment status',
+    required: false,
+    enum: ['atendida', 'cancelada', 'pendiente'],
+  })
+  @ApiQuery({
+    name: 'month',
+    description: 'Month for calendar (1-12)',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'year',
+    description: 'Year for calendar',
+    required: false,
+    type: Number,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -163,11 +237,45 @@ export class AppointmentsController {
       params.year,
     );
   }
-
   @Get('physician/:physicianId/calendar')
   @ApiOperation({
     summary: 'Get specific physician calendar',
     description: 'Returns calendar data for a specific physician',
+  })
+  @ApiParam({
+    name: 'physicianId',
+    description: 'ID of the physician',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'Start date for calendar view (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    description: 'End date for calendar view (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filter by appointment status',
+    required: false,
+    enum: ['atendida', 'cancelada', 'pendiente'],
+  })
+  @ApiQuery({
+    name: 'month',
+    description: 'Month for calendar (1-12)',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'year',
+    description: 'Year for calendar',
+    required: false,
+    type: Number,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -198,11 +306,86 @@ export class AppointmentsController {
       params.year,
     );
   }
-
   @Get('statistics')
   @ApiOperation({
     summary: 'Get appointment statistics',
     description: 'Returns statistics about appointments',
+  })
+  @ApiQuery({
+    name: 'type',
+    description: 'Type of statistics to retrieve',
+    required: true,
+    enum: [
+      'appointments_by_status',
+      'appointments_by_day',
+      'appointments_by_month',
+      'appointments_by_physician',
+      'diagnoses_distribution',
+      'consultations_count',
+      'patient_demographics',
+      'attendance_rate',
+      'physician_workload',
+      'scheduling_trends',
+    ],
+  })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'Start date for statistics (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    description: 'End date for statistics (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'groupBy',
+    description: 'How to group statistics',
+    required: false,
+    enum: [
+      'day',
+      'week',
+      'month',
+      'quarter',
+      'year',
+      'physician',
+      'patient',
+      'status',
+      'specialty',
+      'diagnosis',
+    ],
+  })
+  @ApiQuery({
+    name: 'physicianId',
+    description: 'Filter by physician ID',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'patientId',
+    description: 'Filter by patient ID',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'specialtyId',
+    description: 'Filter by specialty ID',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Limit number of results',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'filter',
+    description: 'Additional filter criteria',
+    required: false,
+    type: String,
   })
   @ApiResponse({
     status: HttpStatus.OK,
