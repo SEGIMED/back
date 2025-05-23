@@ -82,6 +82,10 @@ async function bootstrap() {
     .addTag('Vital Signs', 'Vital signs management operations')
     .addTag('Studies', 'Patient studies and results')
     .addTag('Prescriptions', 'Prescription management')
+    .addTag(
+      'Prescription Modification History',
+      'History of prescription modifications',
+    )
     .addTag('Physical Exploration', 'Physical exploration data management')
     .addTag(
       'Physical Exploration Area',
