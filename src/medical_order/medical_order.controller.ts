@@ -33,11 +33,11 @@ import {
 } from '@nestjs/swagger';
 import { MedicalOrderPaginatedResponseDto } from './dto/medical-order-response.dto';
 
-@ApiTags('medical-order')
+@ApiTags('Medical Order')
 @ApiBearerAuth('access-token')
 @ApiHeader({
-  name: 'X-Tenant-ID',
-  description: 'ID del tenant (organización)',
+  name: 'tenant-id',
+  description: 'ID del tenant al que pertenecen las órdenes médicas',
   required: true,
 })
 @Controller('medical-order')

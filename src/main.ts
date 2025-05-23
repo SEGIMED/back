@@ -79,6 +79,10 @@ async function bootstrap() {
     )
     .addTag('Patients', 'Patient management operations')
     .addTag('Appointments', 'Appointment scheduling operations')
+    .addTag(
+      'Medical Order',
+      'Medical order management including prescriptions, study authorizations, certifications, hospitalization requests, appointment requests, and medication authorizations',
+    )
     .addTag('Medical Events', 'Medical events management')
     .addTag('Medicine', 'Medicine management operations')
     .addTag('Background', 'Background management operations')
@@ -120,6 +124,18 @@ async function bootstrap() {
     )
     .addTag('Catalogs - Order Types', 'Management of medical order types')
     .addTag('Catalogs - Seed', 'Initialize catalog data with predefined values')
+    .addTag(
+      'Upload File',
+      'Utilities for uploading and storing files (images and PDF documents) using Cloudinary service',
+    )
+    .addTag(
+      'Roles',
+      'Role management and assignment operations for users, including permission management',
+    )
+    .addTag(
+      'Permission Updater',
+      'Utilities for updating and managing system-wide permission configurations',
+    )
     .setContact('SEGIMED Support', 'https://segimed.com', 'support@segimed.com')
     .setLicense('Private', '')
     .build();
