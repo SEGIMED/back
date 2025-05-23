@@ -73,7 +73,10 @@ async function bootstrap() {
       'access-token',
     )
     .addTag('Auth', 'Authentication operations')
-    .addTag('Users', 'User management operations')
+    .addTag(
+      'Users',
+      'User management operations including registration, onboarding, and user profile management',
+    )
     .addTag('Patients', 'Patient management operations')
     .addTag('Appointments', 'Appointment scheduling operations')
     .addTag('Medical Events', 'Medical events management')
