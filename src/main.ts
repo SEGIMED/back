@@ -88,6 +88,7 @@ async function bootstrap() {
       'Management of physical exploration areas',
     )
     .addTag('Patient Studies', 'Management of patient studies and results') // Added this line
+    .addTag('Physician Schedule', 'Physician schedule management operations')
     .addTag('Mood', 'Patient mood tracking')
     .setContact('SEGIMED Support', 'https://segimed.com', 'support@segimed.com')
     .setLicense('Private', '')
