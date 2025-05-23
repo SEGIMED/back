@@ -90,6 +90,15 @@ async function bootstrap() {
     .addTag('Patient Studies', 'Management of patient studies and results') // Added this line
     .addTag('Physician Schedule', 'Physician schedule management operations')
     .addTag('Mood', 'Patient mood tracking')
+    .addTag(
+      'Catalogs - CIE-10',
+      'Management of CIE-10 catalog codes and descriptions',
+    )
+    .addTag(
+      'Catalogs - Measure Units',
+      'Management of measure units for vital signs',
+    )
+    .addTag('Catalogs - Study Types', 'Management of study types')
     .setContact('SEGIMED Support', 'https://segimed.com', 'support@segimed.com')
     .setLicense('Private', '')
     .build();
