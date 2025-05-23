@@ -87,9 +87,13 @@ async function bootstrap() {
       'Physical Exploration Area',
       'Management of physical exploration areas',
     )
-    .addTag('Patient Studies', 'Management of patient studies and results') // Added this line
+    .addTag('Patient Studies', 'Management of patient studies and results')
     .addTag('Physician Schedule', 'Physician schedule management operations')
     .addTag('Mood', 'Patient mood tracking')
+    .addTag(
+      'Mobile - Self-Evaluation Events',
+      'Patient self-evaluation events from mobile app',
+    )
     .addTag(
       'Catalogs - CIE-10',
       'Management of CIE-10 catalog codes and descriptions',
