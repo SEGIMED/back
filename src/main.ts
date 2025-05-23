@@ -95,10 +95,20 @@ async function bootstrap() {
       'Management of CIE-10 catalog codes and descriptions',
     )
     .addTag(
+      'Catalogs - CIE-10 Subcategories',
+      'Management of CIE-10 subcategories associated with main categories',
+    )
+    .addTag(
       'Catalogs - Measure Units',
       'Management of measure units for vital signs',
     )
     .addTag('Catalogs - Study Types', 'Management of study types')
+    .addTag(
+      'Catalogs - Vital Signs',
+      'Management of vital signs for medical specialties',
+    )
+    .addTag('Catalogs - Order Types', 'Management of medical order types')
+    .addTag('Catalogs - Seed', 'Initialize catalog data with predefined values')
     .setContact('SEGIMED Support', 'https://segimed.com', 'support@segimed.com')
     .setLicense('Private', '')
     .build();
