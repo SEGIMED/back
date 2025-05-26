@@ -29,6 +29,9 @@ export class CatVitalSignsService {
           specialties: {
             connect: data.specialties.map((id) => ({ id })),
           },
+          color: data.color,
+          mini_icon: data.mini_icon,
+          icon: data.icon,
         },
         include: {
           specialties: true,

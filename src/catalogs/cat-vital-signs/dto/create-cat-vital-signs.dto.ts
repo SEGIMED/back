@@ -11,4 +11,13 @@ export class CreateCatVitalSignsDto {
   @IsNumber({}, { each: true })
   @ArrayMinSize(1)
   specialties: number[];
+
+  @IsString()
+  color: string;
+
+  @IsString()
+  mini_icon: string;
+
+  @IsString()
+  icon: string;
 }
