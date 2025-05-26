@@ -6,9 +6,63 @@ import {
   IsUUID,
   IsNotEmpty,
   Matches,
+  IsNumber,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePatientStudyDto {
+  @ApiProperty({
+    description: 'The ID of the medical event associated with this study',
+    example: 'clx0k2q00000008l0e1g2h3i4',
+  })
+  @IsNotEmpty()
+  @IsString()
+  medicalEventId: string;
+
+  @ApiProperty({
+    description: 'The type of study performed',
+    example: 'Blood Test',
+  })
+  @IsNotEmpty()
+  @IsString()
+  study_type: string;
+
+  @ApiProperty({
+    description: 'The date the study was performed',
+    example: '2024-07-15T10:00:00.000Z',
+    type: String,
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsString() // Assuming date is handled as string, adjust if it's a Date object
+  study_date: string;
+
+  @ApiProperty({
+    description: 'The institution where the study was performed',
+    example: 'General Hospital',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  institution?: string;
+
+  @ApiProperty({
+    description: 'The URL or path to the study file',
+    example: 'https://example.com/study.pdf',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  study_file?: string;
+
+  @ApiProperty({
+    description: 'The ID of the user who created the study record',
+    example: 1,
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  user_id: number;
+
   @IsUUID('4', { message: 'El ID del paciente debe ser un UUID válido' })
   patient_id: string;
 

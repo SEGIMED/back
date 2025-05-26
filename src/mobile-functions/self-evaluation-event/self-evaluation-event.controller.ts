@@ -12,7 +12,22 @@ import { RequirePermission } from '../../auth/decorators/require-permission.deco
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiSecurity,
+  ApiHeader,
+} from '@nestjs/swagger';
 
+@ApiTags('Mobile - Self-Evaluation Events')
+@ApiSecurity('access-token')
+@ApiHeader({
+  name: 'tenant_id',
+  description: 'ID del tenant',
+  required: true,
+})
 @Controller('mobile/self-evaluation-event')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class SelfEvaluationEventController {
@@ -22,6 +37,26 @@ export class SelfEvaluationEventController {
 
   @Post()
   @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
+  @ApiOperation({
+    summary: 'Crear un evento de autoevaluación',
+    description:
+      'Crea un nuevo evento de autoevaluación con los signos vitales registrados por el paciente mediante la aplicación móvil.',
+  })
+  @ApiBody({ type: CreateSelfEvaluationEventDto })
+  @ApiResponse({
+    status: 201,
+    description: 'El evento de autoevaluación ha sido creado exitosamente.',
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Solicitud inválida (datos faltantes, incorrectos o inconsistencia de tenant/paciente).',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Forbidden - No tiene permisos para crear eventos de autoevaluación.',
+  })
   async create(
     @Body() createSelfEvaluationEventDto: CreateSelfEvaluationEventDto,
     @Request() req,
