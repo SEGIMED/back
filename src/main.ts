@@ -144,7 +144,6 @@ async function bootstrap() {
     deepScanRoutes: true,
     operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
   });
-
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
@@ -169,7 +168,16 @@ async function bootstrap() {
     swaggerUrl: '/api-json',
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+
+  // Mensaje de bienvenida con link a Swagger
+  console.log('\n🎉 ¡Bienvenido a SEGIMED API!');
+  console.log('📋 Sistema integral de gestión médica');
+  console.log(`🚀 Servidor iniciado en: http://localhost:${port}`);
+  console.log(`📖 Documentación Swagger: http://localhost:${port}/api`);
+  console.log(`📊 API JSON: http://localhost:${port}/api-json`);
+  console.log('🏥 ¡Listo para gestionar datos médicos de forma segura!\n');
 }
 
 bootstrap();
