@@ -99,16 +99,20 @@ export class UserService {
       throw new BadRequestException('No se pudo guardar la información.');
     }
   }
-
-  async findAll(): Promise<any[]> {
-    const users = await this.prisma.user.findMany();
+  async findAll(tenant_id: string): Promise<any[]> {
+    const users = await this.prisma.user.findMany({
+      where: { tenant_id },
+    });
     return users;
   }
 
-  async findOneById(id: string) {
+  async findOneById(id: string, tenant_id: string) {
     try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: id },
+      const user = await this.prisma.user.findFirst({
+        where: {
+          id,
+          tenant_id,
+        },
       });
       if (user) {
         return { message: 'Success', user: user };
@@ -119,12 +123,13 @@ export class UserService {
       return { message: 'Error en la consulta', Error: error };
     }
   }
-
-  async findOneByEmail(email: string) {
+  async findOneByEmail(email: string, tenant_id: string) {
     try {
-      console.log(email);
-      const user = await this.prisma.user.findUnique({
-        where: { email: email },
+      const user = await this.prisma.user.findFirst({
+        where: {
+          email,
+          tenant_id,
+        },
       });
       if (user) {
         return { message: 'Success', user: user };

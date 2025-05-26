@@ -16,20 +16,30 @@ import {
   ApiResponse,
   ApiTags,
   ApiBearerAuth,
+  ApiHeader,
+  ApiBody,
 } from '@nestjs/swagger';
 
 @ApiTags('Mood')
 @ApiBearerAuth('access-token')
+@ApiHeader({
+  name: 'tenant-id',
+  description: 'ID del tenant al que pertenece el usuario',
+  required: true,
+})
 @Controller('mobile/mood')
 @UseGuards(TenantAccessGuard)
 export class MoodController {
   constructor(private readonly moodService: MoodService) {}
-
   @Post()
   @ApiOperation({
     summary: 'Registrar estado de ánimo',
     description:
       'Guarda el estado de ánimo actual del paciente (limitado a uno por día)',
+  })
+  @ApiBody({
+    description: 'Datos del estado de ánimo a registrar',
+    type: CreateMoodDto,
   })
   @ApiResponse({
     status: HttpStatus.CREATED,

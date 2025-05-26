@@ -26,32 +26,47 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiHeader,
+  ApiBody,
+  ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 
 @ApiTags('Appointments')
 @ApiBearerAuth('access-token')
+@ApiHeader({
+  name: 'tenant-id',
+  description: 'ID del tenant al que pertenecen las citas',
+  required: true,
+})
 @Controller('appointments')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
-
   @Post()
   @ApiOperation({
-    summary: 'Create appointment',
-    description: 'Creates a new appointment in the system',
+    summary: 'Crear cita',
+    description: 'Crea una nueva cita en el sistema',
+  })
+  @ApiBody({
+    description: 'Datos para crear la cita',
+    type: CreateAppointmentDto,
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Appointment successfully created',
+    description: 'Cita creada exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid appointment data',
+    description: 'Datos de cita inválidos',
   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado',
+  })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
-    description: 'Forbidden - Insufficient permissions',
+    description: 'Prohibido - Permisos insuficientes',
   })
   @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
   async create(
@@ -67,20 +82,40 @@ export class AppointmentsController {
       tenant.id,
     );
   }
-
   @Get('user')
   @ApiOperation({
-    summary: 'Get user appointments',
-    description: 'Returns appointments for the current user',
+    summary: 'Obtener citas del usuario',
+    description: 'Devuelve las citas del usuario actual',
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filtrar por estado de la cita',
+    required: false,
+    enum: ['atendida', 'cancelada', 'pendiente'],
+  })
+  @ApiQuery({
+    name: 'page',
+    description: 'Número de página para paginación',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Número de elementos por página',
+    required: false,
+    type: Number,
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'User appointments returned successfully',
+    description: 'Citas del usuario devueltas exitosamente',
   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado',
+  })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
-    description: 'Forbidden - Insufficient permissions',
+    description: 'Prohibido - Permisos insuficientes',
   })
   @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
   async getAppointmentsByUser(
@@ -90,28 +125,53 @@ export class AppointmentsController {
   ) {
     return this.appointmentsService.getAppointmentsByUser(user.id, params);
   }
-
   @Patch(':id/status')
   @ApiOperation({
-    summary: 'Update appointment status',
-    description: 'Updates the status of an existing appointment',
+    summary: 'Actualizar estado de cita',
+    description: 'Actualiza el estado de una cita existente',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID de la cita a actualizar',
+    type: String,
+  })
+  @ApiBody({
+    description: 'Datos para actualizar el estado',
+    schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['atendida', 'cancelada', 'pendiente'],
+          description: 'Nuevo estado para la cita',
+        },
+        reason: {
+          type: 'string',
+          description: 'Razón para el cambio de estado (opcional)',
+        },
+      },
+      required: ['status'],
+    },
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Appointment status updated successfully',
+    description: 'Estado de cita actualizado exitosamente',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid status data',
+    description: 'Datos de estado inválidos',
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Appointment not found',
+    description: 'Cita no encontrada',
   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado',
+  })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
-    description: 'Forbidden - Insufficient permissions',
+    description: 'Prohibido - Permisos insuficientes',
   })
   @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
   async updateStatus(
@@ -126,20 +186,52 @@ export class AppointmentsController {
       tenant,
     );
   }
-
   @Get('physician-calendar')
   @ApiOperation({
-    summary: 'Get physician calendar',
-    description: 'Returns calendar data for the current physician',
+    summary: 'Obtener calendario del médico',
+    description: 'Devuelve los datos del calendario para el médico actual',
+  })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'Fecha de inicio para la vista del calendario (formato ISO)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    description: 'Fecha de fin para la vista del calendario (formato ISO)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filtrar por estado de la cita',
+    required: false,
+    enum: ['atendida', 'cancelada', 'pendiente'],
+  })
+  @ApiQuery({
+    name: 'month',
+    description: 'Mes para el calendario (1-12)',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'year',
+    description: 'Año para el calendario',
+    required: false,
+    type: Number,
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Physician calendar returned successfully',
+    description: 'Calendario del médico devuelto exitosamente',
   })
-  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado',
+  })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
-    description: 'Forbidden - Insufficient permissions',
+    description: 'Prohibido - Permisos insuficientes',
   })
   @RequirePermission(Permission.VIEW_DOCTOR_DETAILS)
   async getPhysicianCalendar(
@@ -157,11 +249,45 @@ export class AppointmentsController {
       params.year,
     );
   }
-
   @Get('physician/:physicianId/calendar')
   @ApiOperation({
     summary: 'Get specific physician calendar',
     description: 'Returns calendar data for a specific physician',
+  })
+  @ApiParam({
+    name: 'physicianId',
+    description: 'ID of the physician',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'Start date for calendar view (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    description: 'End date for calendar view (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'status',
+    description: 'Filter by appointment status',
+    required: false,
+    enum: ['atendida', 'cancelada', 'pendiente'],
+  })
+  @ApiQuery({
+    name: 'month',
+    description: 'Month for calendar (1-12)',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'year',
+    description: 'Year for calendar',
+    required: false,
+    type: Number,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -192,11 +318,86 @@ export class AppointmentsController {
       params.year,
     );
   }
-
   @Get('statistics')
   @ApiOperation({
     summary: 'Get appointment statistics',
     description: 'Returns statistics about appointments',
+  })
+  @ApiQuery({
+    name: 'type',
+    description: 'Type of statistics to retrieve',
+    required: true,
+    enum: [
+      'appointments_by_status',
+      'appointments_by_day',
+      'appointments_by_month',
+      'appointments_by_physician',
+      'diagnoses_distribution',
+      'consultations_count',
+      'patient_demographics',
+      'attendance_rate',
+      'physician_workload',
+      'scheduling_trends',
+    ],
+  })
+  @ApiQuery({
+    name: 'startDate',
+    description: 'Start date for statistics (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    description: 'End date for statistics (ISO format)',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'groupBy',
+    description: 'How to group statistics',
+    required: false,
+    enum: [
+      'day',
+      'week',
+      'month',
+      'quarter',
+      'year',
+      'physician',
+      'patient',
+      'status',
+      'specialty',
+      'diagnosis',
+    ],
+  })
+  @ApiQuery({
+    name: 'physicianId',
+    description: 'Filter by physician ID',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'patientId',
+    description: 'Filter by patient ID',
+    required: false,
+    type: String,
+  })
+  @ApiQuery({
+    name: 'specialtyId',
+    description: 'Filter by specialty ID',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Limit number of results',
+    required: false,
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'filter',
+    description: 'Additional filter criteria',
+    required: false,
+    type: String,
   })
   @ApiResponse({
     status: HttpStatus.OK,

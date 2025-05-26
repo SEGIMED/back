@@ -14,7 +14,22 @@ import { TenantAccessGuard } from '../../../auth/guards/tenant-access.guard';
 import { PermissionGuard } from '../../../auth/guards/permission.guard';
 import { RequirePermission } from '../../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../../auth/permissions/permission.enum';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiQuery,
+  ApiHeader,
+} from '@nestjs/swagger';
 
+@ApiTags('Physician Schedule')
+@ApiHeader({
+  name: 'tenant_id',
+  description: 'Tenant ID',
+  required: true,
+})
 @UseGuards(TenantAccessGuard, PermissionGuard)
 @Controller('physicians')
 export class PhysicianScheduleController {
@@ -22,22 +37,45 @@ export class PhysicianScheduleController {
     private readonly physicianScheduleService: PhysicianScheduleService,
   ) {}
 
-  // Get all schedule entries for a physician
   @Get(':userId/schedule')
+  @ApiOperation({ summary: 'Get all schedule entries for a physician' })
+  @ApiParam({ name: 'userId', description: 'Physician User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved schedule entries.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @RequirePermission(Permission.VIEW_DOCTOR_DETAILS)
   getSchedule(@Param('userId') userId: string) {
     return this.physicianScheduleService.getSchedule(userId);
   }
 
-  // Get a specific schedule entry
   @Get('schedule/:id')
+  @ApiOperation({ summary: 'Get a specific schedule entry by ID' })
+  @ApiParam({ name: 'id', description: 'Schedule Entry ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved schedule entry.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Schedule entry not found.' })
   @RequirePermission(Permission.VIEW_DOCTOR_DETAILS)
   getScheduleEntry(@Param('id') id: string) {
     return this.physicianScheduleService.getScheduleEntry(id);
   }
 
-  // Create or update multiple schedule entries at once
   @Post(':userId/schedule')
+  @ApiOperation({
+    summary: 'Create or update multiple schedule entries for a physician',
+  })
+  @ApiParam({ name: 'userId', description: 'Physician User ID' })
+  @ApiBody({ type: BulkCreateScheduleDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Successfully created/updated schedule entries.',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @RequirePermission(Permission.BLOCK_SCHEDULE)
   upsertSchedules(
     @Param('userId') userId: string,
@@ -46,29 +84,72 @@ export class PhysicianScheduleController {
     return this.physicianScheduleService.upsertSchedules(userId, scheduleDto);
   }
 
-  // Delete a schedule entry
   @Delete('schedule/:id')
+  @ApiOperation({ summary: 'Delete a schedule entry by ID' })
+  @ApiParam({ name: 'id', description: 'Schedule Entry ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully deleted schedule entry.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Schedule entry not found.' })
   @RequirePermission(Permission.BLOCK_SCHEDULE)
   deleteSchedule(@Param('id') id: string) {
     return this.physicianScheduleService.deleteSchedule(id);
   }
 
-  // Delete all schedule entries for a physician
   @Delete(':userId/schedule')
+  @ApiOperation({ summary: 'Delete all schedule entries for a physician' })
+  @ApiParam({ name: 'userId', description: 'Physician User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully deleted all schedule entries.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @RequirePermission(Permission.BLOCK_SCHEDULE)
   deleteAllSchedules(@Param('userId') userId: string) {
     return this.physicianScheduleService.deleteAllSchedules(userId);
   }
 
-  // Get all exceptions for a physician
   @Get(':userId/exceptions')
+  @ApiOperation({ summary: 'Get all exceptions for a physician' })
+  @ApiParam({ name: 'userId', description: 'Physician User ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved exceptions.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @RequirePermission(Permission.VIEW_DOCTOR_DETAILS)
   getExceptions(@Param('userId') userId: string) {
     return this.physicianScheduleService.getExceptions(userId);
   }
 
-  // Create a new exception
   @Post(':userId/exceptions')
+  @ApiOperation({ summary: 'Create a new exception for a physician' })
+  @ApiParam({ name: 'userId', description: 'Physician User ID' })
+  @ApiBody({
+    type: CreateExceptionDto,
+    examples: {
+      a: {
+        summary: 'Exception with reason',
+        value: {
+          date: '2024-12-25',
+          is_available: false,
+          reason: 'Christmas Day',
+        },
+      },
+      b: {
+        summary: 'Exception without reason',
+        value: { date: '2024-11-01', is_available: false },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Successfully created exception.',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @RequirePermission(Permission.BLOCK_SCHEDULE)
   createException(
     @Param('userId') userId: string,
@@ -80,15 +161,40 @@ export class PhysicianScheduleController {
     );
   }
 
-  // Delete an exception
   @Delete('exceptions/:id')
+  @ApiOperation({ summary: 'Delete an exception by ID' })
+  @ApiParam({ name: 'id', description: 'Exception ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully deleted exception.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiResponse({ status: 404, description: 'Exception not found.' })
   @RequirePermission(Permission.BLOCK_SCHEDULE)
   deleteException(@Param('id') id: string) {
     return this.physicianScheduleService.deleteException(id);
   }
 
-  // Get available slots for a physician on a given date
   @Get(':userId/slots')
+  @ApiOperation({ summary: 'Get available slots for a physician' })
+  @ApiParam({ name: 'userId', description: 'Physician User ID' })
+  @ApiQuery({
+    name: 'date',
+    required: true,
+    type: String,
+    description: 'Date to check slots (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: false,
+    type: String,
+    description: 'Optional end date for a range (YYYY-MM-DD)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved available slots.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
   @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
   getAvailableSlots(
     @Param('userId') userId: string,
