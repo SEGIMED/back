@@ -32,9 +32,17 @@ export class CatVitalSignsService {
           color: data.color,
           mini_icon: data.mini_icon,
           icon: data.icon,
+          background_icon: data.background_icon,
+          normal_min_value: data.normal_min_value,
+          normal_max_value: data.normal_max_value,
+          slightly_high_value: data.slightly_high_value,
+          high_max_value: data.high_max_value,
+          critical_max_value: data.critical_max_value,
+          cat_measure_unit_id: data.cat_measure_unit_id,
         },
         include: {
           specialties: true,
+          cat_measure_unit: true,
         },
       });
     } catch (error) {
@@ -42,6 +50,29 @@ export class CatVitalSignsService {
         throw error;
       }
       throw new BadRequestException('Error al crear el signo vital');
+    }
+  }
+
+  async findById(id: number) {
+    try {
+      const vitalSign = await this.prisma.cat_vital_signs.findUnique({
+        where: { id },
+        include: {
+          specialties: true,
+          cat_measure_unit: true,
+        },
+      });
+
+      if (!vitalSign) {
+        throw new NotFoundException('Signo vital no encontrado');
+      }
+
+      return vitalSign;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Error al obtener el signo vital');
     }
   }
 
@@ -61,7 +92,7 @@ export class CatVitalSignsService {
         },
         include: {
           specialties: true,
-          cat_vital_sign_measure: true,
+          cat_measure_unit: true,
         },
       });
     } catch {

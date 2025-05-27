@@ -332,7 +332,11 @@ export class PatientService {
 
             const measureUnit = await this.prisma.cat_measure_unit.findFirst({
               where: {
-                cat_vital_signs_id: vs.vital_sign_id,
+                cat_vital_signs: {
+                  some: {
+                    id: vs.vital_sign_id,
+                  },
+                },
               },
             });
 

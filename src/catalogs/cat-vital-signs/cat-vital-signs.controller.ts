@@ -11,10 +11,7 @@ import {
 } from '@nestjs/common';
 import { CatVitalSignsService } from './cat-vital-signs.service';
 import { CreateCatVitalSignsDto } from './dto/create-cat-vital-signs.dto';
-import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
-import { Permission } from '../../auth/permissions/permission.enum';
-import { PermissionGuard } from '../../auth/guards/permission.guard';
-import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import { VitalSignResponseDto } from './dto/vital-sign-response.dto';
 import { SuperAdminGuard } from '../../auth/guards/superadmin.guard';
 import {
   ApiTags,
@@ -24,30 +21,22 @@ import {
   ApiParam,
   ApiQuery,
   ApiSecurity,
-  ApiHeader,
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - Vital Signs')
-@ApiSecurity('access-token')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'ID del tenant',
-  required: true,
-})
 @Controller('cat-vital-signs')
-@UseGuards(TenantAccessGuard, PermissionGuard)
 export class CatVitalSignsController {
   constructor(private readonly catVitalSignsService: CatVitalSignsService) {}
 
   @Post()
   @UseGuards(SuperAdminGuard)
-  @RequirePermission(Permission.MANAGE_CATALOGS)
+  @ApiSecurity('access-token')
   @ApiOperation({ summary: 'Create a new vital sign' })
   @ApiBody({ type: CreateCatVitalSignsDto })
   @ApiResponse({
     status: 201,
     description: 'The vital sign has been successfully created',
-    type: Object,
+    type: VitalSignResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({
@@ -59,7 +48,6 @@ export class CatVitalSignsController {
   }
 
   @Get()
-  @RequirePermission(Permission.VIEW_DOCTORS_LIST)
   @ApiOperation({
     summary: 'Get all vital signs, optionally filtered by specialty IDs',
   })
@@ -72,7 +60,7 @@ export class CatVitalSignsController {
   @ApiResponse({
     status: 200,
     description: 'List of vital signs',
-    type: [Object],
+    type: [VitalSignResponseDto],
   })
   @ApiResponse({
     status: 400,
@@ -101,9 +89,32 @@ export class CatVitalSignsController {
     }
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a vital sign by ID' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'ID of the vital sign to retrieve',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The vital sign details',
+    type: VitalSignResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request - Invalid ID format' })
+  @ApiResponse({ status: 404, description: 'Vital sign not found' })
+  async findById(@Param('id') id: string) {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      throw new BadRequestException('ID inválido');
+    }
+    return this.catVitalSignsService.findById(parsedId);
+  }
+
   @Delete(':id')
   @UseGuards(SuperAdminGuard)
-  @RequirePermission(Permission.MANAGE_CATALOGS)
+  @ApiSecurity('access-token')
   @ApiOperation({ summary: 'Delete a vital sign' })
   @ApiParam({
     name: 'id',

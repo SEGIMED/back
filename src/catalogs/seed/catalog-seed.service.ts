@@ -392,7 +392,9 @@ export class CatalogSeedService {
           data: {
             name: unit.name,
             description: unit.description,
-            cat_vital_signs_id: unit.vitalSignId,
+            cat_vital_signs: {
+              connect: { id: unit.vitalSignId },
+            },
           },
         });
       }
