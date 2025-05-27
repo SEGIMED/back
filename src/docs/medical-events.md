@@ -21,11 +21,21 @@ Durante la atención de eventos médicos, el procesamiento de medicaciones utili
 - **Consistencia**: Las medicaciones prescritas en consultas se integran automáticamente con el historial global del paciente
 - **Autorización Automática**: Las medicaciones prescritas durante consultas se marcan como autorizadas por defecto
 
+### Sistema de Notificaciones Centralizado
+
+El sistema utiliza el `NotificationService` para enviar notificaciones automáticas:
+
+- **Notificaciones de Medicación**: Cuando se finalizan consultas con medicaciones prescritas
+- **Email y WhatsApp**: Envío por ambos canales cuando están disponibles
+- **Plantillas Específicas**: Plantillas optimizadas para notificaciones de medicación
+- **Adjuntos Inteligentes**: Búsqueda automática de órdenes médicas relacionadas para incluir archivos PDF
+- **Gestión de Errores**: Notificaciones no bloquean el flujo principal de la consulta
+
 ### Flujo de Atención
 
 1. **Actualización del Evento**: Se actualizan los datos clínicos del evento médico
 2. **Procesamiento de Medicaciones**: Se procesan las medicaciones usando el servicio centralizado
-3. **Notificaciones**: Si la consulta finaliza, se envían notificaciones al paciente
+3. **Notificaciones**: Si la consulta finaliza, se envían notificaciones automáticas al paciente
 4. **Finalización**: Se actualiza el estado de la cita asociada
 
 ## Endpoints

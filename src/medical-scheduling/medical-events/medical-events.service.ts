@@ -13,10 +13,8 @@ import { AttendMedicalEventDto } from './dto/attend-medical-event.dto';
 import { VitalSignsService } from '../modules/vital-signs/vital-signs.service';
 import { PhysicalExplorationService } from '../modules/physical-exploration-data/physical-exploration/physical-exploration.service';
 import { PhysicalExaminationService } from '../modules/physical-examination-data/physical-examination/physical-examination.service';
-import { EmailService } from 'src/services/email/email.service';
-import { TwilioService } from 'src/services/twilio/twilio.service';
-import { medicationHtml } from 'src/services/email/templates/medicationHtml';
 import { PrescriptionService } from '../modules/prescription/prescription.service';
+import { NotificationService } from 'src/services/notification/notification.service';
 
 @Injectable()
 export class MedicalEventsService {
@@ -25,9 +23,8 @@ export class MedicalEventsService {
     private vitalSignsService: VitalSignsService,
     private physicalExplorationService: PhysicalExplorationService,
     private physicalExaminationService: PhysicalExaminationService,
-    private emailService: EmailService,
-    private twilioService: TwilioService,
     private prescriptionService: PrescriptionService,
+    private notificationService: NotificationService,
   ) {}
 
   async createMedicalEvent(
@@ -371,73 +368,11 @@ export class MedicalEventsService {
     physicianName,
     fileUrl?: string,
   ) {
-    try {
-      // Preparar adjuntos si hay una URL del documento
-      let attachments = [];
-      if (fileUrl) {
-        try {
-          const attachment =
-            await this.emailService.getAttachmentFromUrl(fileUrl);
-          attachments = [attachment];
-        } catch (attachmentError) {
-          console.error(
-            'Error al preparar el archivo adjunto:',
-            attachmentError,
-          );
-          // Continuar sin adjunto si hay error
-        }
-      }
-
-      if (patient.email) {
-        const emailContent = medicationHtml(
-          patient.name,
-          patient.last_name || '',
-          medications,
-          physicianName,
-        );
-        await this.emailService.sendMail(
-          patient.email,
-          `Nuevas medicaciones prescritas`,
-          emailContent,
-          attachments.length > 0 ? attachments : undefined,
-        );
-      }
-
-      if (patient.phone && patient.is_phone_verified) {
-        const medicationListText = medications
-          .map(
-            (med) =>
-              `• ${med.monodrug}: ${med.dose} ${med.dose_units}, ${med.frecuency}, por ${med.duration} ${med.duration_units}` +
-              (med.observations
-                ? `\n  _Observaciones: ${med.observations}_`
-                : ''),
-          )
-          .join('\n');
-
-        const whatsappMessage = `Hola ${patient.name},
-
-Durante su consulta, el Dr./Dra. ${physicianName || 'su médico'} ha prescrito las siguientes medicaciones:
-
-${medicationListText}
-
-Por favor, siga las indicaciones de su médico y tome sus medicamentos según lo prescrito.
-
-SEGIMED - Sistema de Gestión Médica`;
-
-        // Si hay URL del documento, enviar con archivo adjunto
-        if (fileUrl) {
-          await this.twilioService.sendWhatsAppWithMedia(
-            patient.phone,
-            whatsappMessage,
-            fileUrl,
-          );
-        } else {
-          await this.twilioService.sendOtp(patient.phone, whatsappMessage);
-        }
-      }
-    } catch (error) {
-      console.error('Error sending medication notification:', error);
-      // No lanzar error, seguir con el flujo
-    }
+    await this.notificationService.sendMedicationUpdateNotification(
+      patient,
+      medications,
+      physicianName,
+      fileUrl,
+    );
   }
 }
