@@ -9,26 +9,17 @@ export class MedicineController {
 
   @Get('searchMedicine')
   @ApiOperation({
-    summary: 'Buscar medicamentos por principio activo o producto',
+    summary: 'Buscar medicamentos por texto',
     description:
-      'Permite buscar medicamentos utilizando el principio activo o el nombre del producto. Al menos uno de los parámetros debe ser proporcionado.',
+      'Busca medicamentos utilizando un texto que se aplicará tanto al principio activo como al nombre del producto.',
   })
   @ApiQuery({
-    name: 'principioActivo',
-    required: false,
-    description: 'Principio activo del medicamento a buscar',
-    example: 'Amoxicilina',
+    name: 'query',
+    required: true,
+    description: 'Texto a buscar en principio activo y producto',
+    example: 'clon',
   })
-  @ApiQuery({
-    name: 'producto',
-    required: false,
-    description: 'Nombre del producto del medicamento a buscar',
-    example: 'Amoxidal',
-  })
-  searchMedicine(
-    @Query('principioActivo') principioActivo: string,
-    @Query('producto') producto: string,
-  ) {
-    return this.medicineService.searchMedicine(principioActivo, producto);
+  searchMedicine(@Query('query') query: string) {
+    return this.medicineService.searchMedicine(query);
   }
 }
