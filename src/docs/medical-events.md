@@ -4,9 +4,29 @@
 
 El módulo de Eventos Médicos gestiona la creación, consulta y atención de eventos médicos asociados a citas de pacientes. Un evento médico registra los detalles clínicos de una consulta o interacción médica.
 
+**Nota Importante:** La gestión de medicaciones durante las consultas médicas está centralizada en el `PrescriptionService` para garantizar consistencia con el resto del sistema y mantener un historial unificado de prescripciones.
+
 ## Utilidad
 
 Este módulo es crucial para registrar la información clínica generada durante una consulta, como diagnósticos, comentarios del médico, procedimientos, tratamientos y signos vitales. Esta información es fundamental para el seguimiento del paciente y la continuidad de la atención.
+
+## Arquitectura de Medicaciones
+
+### Procesamiento Integrado
+
+Durante la atención de eventos médicos, el procesamiento de medicaciones utiliza:
+
+- **PrescriptionService.processMedications()**: Mismo método centralizado usado por las órdenes médicas
+- **Transacciones**: Todas las operaciones (evento médico + medicaciones) se ejecutan en una sola transacción
+- **Consistencia**: Las medicaciones prescritas en consultas se integran automáticamente con el historial global del paciente
+- **Autorización Automática**: Las medicaciones prescritas durante consultas se marcan como autorizadas por defecto
+
+### Flujo de Atención
+
+1. **Actualización del Evento**: Se actualizan los datos clínicos del evento médico
+2. **Procesamiento de Medicaciones**: Se procesan las medicaciones usando el servicio centralizado
+3. **Notificaciones**: Si la consulta finaliza, se envían notificaciones al paciente
+4. **Finalización**: Se actualiza el estado de la cita asociada
 
 ## Endpoints
 

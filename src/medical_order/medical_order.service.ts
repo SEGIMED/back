@@ -21,6 +21,7 @@ import {
   MedicalOrderPhysicianResponseDto,
   MedicalOrderPatientResponseDto,
 } from './dto/medical-order-response.dto';
+import { PrescriptionService } from 'src/medical-scheduling/modules/prescription/prescription.service';
 
 @Injectable()
 export class MedicalOrderService {
@@ -29,6 +30,7 @@ export class MedicalOrderService {
     private readonly emailService: EmailService,
     private readonly twilioService: TwilioService,
     private readonly fileUploadService: FileUploadService,
+    private readonly prescriptionService: PrescriptionService,
   ) {}
 
   async create(
@@ -211,30 +213,35 @@ export class MedicalOrderService {
       }
 
       // Crear la orden médica combinando los datos comunes y específicos
-      const newOrder = await this.prisma.medical_order.create({
-        data: {
-          ...commonData,
-          ...specificData,
-        },
-      });
+      const newOrder = await this.prisma.$transaction(async (tx) => {
+        const order = await tx.medical_order.create({
+          data: {
+            ...commonData,
+            ...specificData,
+          },
+        });
 
-      // Procesar medicaciones si existe
-      if (
-        (orderTypeObj.name === 'medication' ||
-          orderTypeObj.name === 'medication-authorization') &&
-        createMedicalOrderDto.medications &&
-        createMedicalOrderDto.medications.length > 0
-      ) {
-        await this._processMedications(
-          createMedicalOrderDto.medications,
-          createMedicalOrderDto.patient_id,
-          physicianId,
-          newOrder.id,
-          tenantId,
-          null, // No hay medical_event_id en este caso
-          orderTypeObj.name === 'medication', // true si es prescripción, false si es autorización
-        );
-      }
+        // Procesar medicaciones si existe
+        if (
+          (orderTypeObj.name === 'medication' ||
+            orderTypeObj.name === 'medication-authorization') &&
+          createMedicalOrderDto.medications &&
+          createMedicalOrderDto.medications.length > 0
+        ) {
+          await this.prescriptionService.processMedications(
+            tx,
+            createMedicalOrderDto.medications,
+            createMedicalOrderDto.patient_id,
+            physicianId,
+            tenantId,
+            undefined, // No hay medical_event_id en este caso
+            order.id,
+            orderTypeObj.name === 'medication', // true si es prescripción, false si es autorización
+          );
+        }
+
+        return order;
+      });
 
       // Obtener el médico para el correo
       const physician = await this.prisma.user.findUnique({
@@ -580,82 +587,6 @@ SEGIMED - Sistema de Gestión Médica`;
     } catch (error) {
       console.error('Error en notificaciones:', error);
       // Continuamos con el flujo normal aunque fallen las notificaciones
-    }
-  }
-
-  /**
-   * Procesa las medicaciones para una orden médica o consulta
-   * @param medications Lista de medicaciones a procesar
-   * @param patientId ID del paciente
-   * @param physicianId ID del médico
-   * @param orderId ID de la orden médica (opcional)
-   * @param tenantId ID del tenant
-   * @param medicalEventId ID del evento médico (opcional)
-   * @param isAuthorized Indica si la medicación está autorizada
-   */
-  private async _processMedications(
-    medications: any[],
-    patientId: string,
-    physicianId: string,
-    orderId: string,
-    tenantId: string,
-    medicalEventId: string | null,
-    isAuthorized: boolean = true,
-  ) {
-    for (const medication of medications) {
-      // Verificar si ya existe una prescripción activa para este medicamento
-      const existingPrescription = await this.prisma.prescription.findFirst({
-        where: {
-          patient_id: patientId,
-          monodrug: medication.monodrug,
-          active: true,
-        },
-      });
-
-      if (existingPrescription) {
-        // Si ya existe una prescripción activa, crear una nueva entrada en el historial
-        await this.prisma.pres_mod_history.create({
-          data: {
-            prescription_id: existingPrescription.id,
-            physician_id: physicianId,
-            medical_order_id: orderId,
-            medical_event_id: medicalEventId,
-            observations: medication.observations,
-            dose: medication.dose,
-            dose_units: medication.dose_units,
-            frecuency: medication.frecuency,
-            duration: medication.duration,
-            duration_units: medication.duration_units,
-          },
-        });
-      } else {
-        // Si no existe, crear nueva prescripción y su primer entrada en el historial
-        const newPrescription = await this.prisma.prescription.create({
-          data: {
-            patient_id: patientId,
-            monodrug: medication.monodrug,
-            active: true,
-            authorized: isAuthorized,
-            tenant_id: tenantId,
-          },
-        });
-
-        // Crear la primera entrada en el historial
-        await this.prisma.pres_mod_history.create({
-          data: {
-            prescription_id: newPrescription.id,
-            physician_id: physicianId,
-            medical_order_id: orderId,
-            medical_event_id: medicalEventId,
-            observations: medication.observations,
-            dose: medication.dose,
-            dose_units: medication.dose_units,
-            frecuency: medication.frecuency,
-            duration: medication.duration,
-            duration_units: medication.duration_units,
-          },
-        });
-      }
     }
   }
 

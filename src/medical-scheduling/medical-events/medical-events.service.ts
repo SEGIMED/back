@@ -16,6 +16,7 @@ import { PhysicalExaminationService } from '../modules/physical-examination-data
 import { EmailService } from 'src/services/email/email.service';
 import { TwilioService } from 'src/services/twilio/twilio.service';
 import { medicationHtml } from 'src/services/email/templates/medicationHtml';
+import { PrescriptionService } from '../modules/prescription/prescription.service';
 
 @Injectable()
 export class MedicalEventsService {
@@ -26,6 +27,7 @@ export class MedicalEventsService {
     private physicalExaminationService: PhysicalExaminationService,
     private emailService: EmailService,
     private twilioService: TwilioService,
+    private prescriptionService: PrescriptionService,
   ) {}
 
   async createMedicalEvent(
@@ -265,60 +267,16 @@ export class MedicalEventsService {
 
         // 6. Si se proporcionaron medicaciones, procesarlas
         if (medications && medications.length > 0) {
-          // Procesamos cada medicación
-          for (const medication of medications) {
-            // Verificamos si ya existe una prescripción activa para este medicamento
-            const existingPrescription = await tx.prescription.findFirst({
-              where: {
-                patient_id: medicalEvent.patient_id,
-                monodrug: medication.monodrug,
-                active: true,
-              },
-            });
-
-            if (existingPrescription) {
-              // Si ya existe una prescripción activa, crear una nueva entrada en el historial
-              await tx.pres_mod_history.create({
-                data: {
-                  prescription_id: existingPrescription.id,
-                  physician_id: userId,
-                  medical_event_id: id,
-                  observations: medication.observations,
-                  dose: medication.dose,
-                  dose_units: medication.dose_units,
-                  frecuency: medication.frecuency,
-                  duration: medication.duration,
-                  duration_units: medication.duration_units,
-                },
-              });
-            } else {
-              // Si no existe, crear nueva prescripción y su primer entrada en el historial
-              const newPrescription = await tx.prescription.create({
-                data: {
-                  patient_id: medicalEvent.patient_id,
-                  monodrug: medication.monodrug,
-                  active: true,
-                  authorized: true,
-                  tenant_id,
-                },
-              });
-
-              // Crear la primera entrada en el historial
-              await tx.pres_mod_history.create({
-                data: {
-                  prescription_id: newPrescription.id,
-                  physician_id: userId,
-                  medical_event_id: id,
-                  observations: medication.observations,
-                  dose: medication.dose,
-                  dose_units: medication.dose_units,
-                  frecuency: medication.frecuency,
-                  duration: medication.duration,
-                  duration_units: medication.duration_units,
-                },
-              });
-            }
-          }
+          await this.prescriptionService.processMedications(
+            tx,
+            medications,
+            medicalEvent.patient_id,
+            userId,
+            tenant_id,
+            id,
+            undefined, // No hay medical_order_id en este caso
+            true, // Las medicaciones en consultas están autorizadas
+          );
 
           // Si la consulta está siendo finalizada, enviar notificación
           if (consultation_ended) {

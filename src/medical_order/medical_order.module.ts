@@ -8,8 +8,10 @@ import { PermissionCheckerService } from 'src/auth/permissions/permission-checke
 import { FileUploadService } from 'src/utils/file_upload/file_upload.service';
 import { FileUploadRepository } from 'src/utils/file_upload/file_upload.repository';
 import { CloudinaryConfig } from 'src/utils/cloudinary';
+import { PrescriptionModule } from 'src/medical-scheduling/modules/prescription/prescription.module';
 
 @Module({
+  imports: [PrescriptionModule],
   controllers: [MedicalOrderController],
   providers: [
     MedicalOrderService,

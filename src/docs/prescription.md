@@ -6,6 +6,30 @@ El módulo de Prescripciones se encarga de gestionar las recetas médicas emitid
 
 Esta funcionalidad es esencial para el seguimiento del tratamiento farmacológico de los pacientes.
 
+## Arquitectura Centralizada
+
+### Procesamiento de Medicaciones
+
+El `PrescriptionService` incluye un método centralizado `processMedications()` que es utilizado por otros módulos del sistema:
+
+- **Órdenes Médicas**: Cuando se crean órdenes de tipo `medication` o `medication-authorization`
+- **Eventos Médicos**: Durante la atención de consultas médicas cuando se prescriben medicamentos
+- **Prescripciones Directas**: A través de los endpoints directos del módulo
+
+### Características del Procesamiento Centralizado
+
+- **Transaccional**: Todas las operaciones se ejecutan dentro de transacciones de base de datos
+- **Historial Unificado**: Mantiene un historial completo en `pres_mod_history` independientemente del origen
+- **Reutilización**: Evita duplicación de lógica entre diferentes módulos
+- **Consistencia**: Garantiza el mismo comportamiento en todo el sistema
+
+### Flujo de Procesamiento
+
+1. **Verificación**: Se verifica si existe una prescripción activa para el medicamento y paciente
+2. **Actualización**: Si existe, se crea una nueva entrada en el historial de modificaciones
+3. **Creación**: Si no existe, se crea una nueva prescripción y su primera entrada en el historial
+4. **Asociación**: Se vincula con el evento médico o orden médica correspondiente
+
 ## Endpoints
 
 ### `POST /prescription`
