@@ -1,4 +1,4 @@
-import { Controller, Post, Query } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { MedicineService } from './medicine.service';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 
@@ -7,27 +7,28 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 export class MedicineController {
   constructor(private readonly medicineService: MedicineService) {}
 
-  @Post('searchMedicine')
+  @Get('searchMedicine')
   @ApiOperation({
-    summary:
-      'Search for medicines based on active ingredient and product name.',
+    summary: 'Buscar medicamentos por principio activo o producto',
+    description:
+      'Permite buscar medicamentos utilizando el principio activo o el nombre del producto. Al menos uno de los parámetros debe ser proporcionado.',
   })
   @ApiQuery({
-    name: 'drug',
+    name: 'principioActivo',
     required: false,
-    description: 'The active ingredient of the medicine to search for.',
+    description: 'Principio activo del medicamento a buscar',
     example: 'Amoxicilina',
   })
   @ApiQuery({
-    name: 'product',
+    name: 'producto',
     required: false,
-    description: 'The product name of the medicine to search for.',
+    description: 'Nombre del producto del medicamento a buscar',
     example: 'Amoxidal',
   })
   searchMedicine(
-    @Query('drug') principioActivo: string,
-    @Query('product') product: string,
+    @Query('principioActivo') principioActivo: string,
+    @Query('producto') producto: string,
   ) {
-    return this.medicineService.searchMedicine(principioActivo, product);
+    return this.medicineService.searchMedicine(principioActivo, producto);
   }
 }
