@@ -7,27 +7,20 @@ export class MedicineService {
   private readonly apiUrl = 'https://www.datos.gov.co/resource/i7cb-raxc.json';
 
   constructor(private readonly httpService: HttpService) {}
-
-  async searchMedicine(principioActivo: string, producto: string) {
-    const prActivo = principioActivo
-      ? `principioactivo%20like%20%27%25${principioActivo.toUpperCase()}%25%27`
-      : undefined;
-    const pr = producto
-      ? `producto%20like%20%27%25${producto.toUpperCase()}%25%27`
-      : undefined;
-    let query = '';
-    if (pr && prActivo) {
-      query = `${this.apiUrl}?$where=${pr}OR%20${prActivo}`;
-    } else if (pr) {
-      query = `${this.apiUrl}?$where=${pr}`;
-    } else if (prActivo) {
-      query = `${this.apiUrl}?$where=${prActivo}`;
-    } else {
-      query = this.apiUrl;
+  async searchMedicine(query: string) {
+    if (!query || query.trim() === '') {
+      throw new HttpException('El parámetro de búsqueda es requerido', 400);
     }
 
+    const searchTerm = query.toUpperCase();
+    const principioActivoQuery = `principioactivo%20like%20%27%25${searchTerm}%25%27`;
+    const productoQuery = `producto%20like%20%27%25${searchTerm}%25%27`;
+
+    // Búsqueda que incluye tanto principio activo como producto
+    const apiQuery = `${this.apiUrl}?$where=${principioActivoQuery}%20OR%20${productoQuery}`;
+
     try {
-      const medicines = await firstValueFrom(this.httpService.get(query));
+      const medicines = await firstValueFrom(this.httpService.get(apiQuery));
       return medicines.data.map((medicine) => ({
         id: medicine.expediente,
         active_principle: medicine.principio_activo,
