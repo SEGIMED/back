@@ -137,6 +137,7 @@ src/docs/medical_order.md
 src/docs/medical-events.md
 src/docs/medicine.md
 src/docs/mood.md
+src/docs/notification-service.md
 src/docs/order-type.md
 src/docs/patient-studies.md
 src/docs/patients.md
@@ -279,6 +280,8 @@ src/services/email/templates/medicalOrderHtml.ts
 src/services/email/templates/medicationHtml.ts
 src/services/email/templates/recoverPasswordHtml.ts
 src/services/email/templates/welcomeEmailHtml.ts
+src/services/notification/notification.module.ts
+src/services/notification/notification.service.ts
 src/services/twilio/twilio.module.ts
 src/services/twilio/twilio.service.ts
 src/utils/auth.helper.ts
@@ -66020,6 +66023,8 @@ File: src/docs/medical_order.md
 
 La API de Órdenes Médicas proporciona endpoints para gestionar varios tipos de órdenes médicas, incluyendo recetas, autorizaciones de estudios, certificados, solicitudes de hospitalización y solicitudes de turnos.
 
+**Nota Importante:** La gestión de medicaciones (creación/actualización de prescripciones y su historial) está centralizada en el `PrescriptionService` para garantizar consistencia y reutilización entre diferentes módulos del sistema.
+
 ## Autenticación
 
 Todos los endpoints requieren autenticación mediante token Bearer y los permisos apropiados.
@@ -66027,6 +66032,34 @@ Todos los endpoints requieren autenticación mediante token Bearer y los permiso
 ## URL Base
 
 `/medical-order`
+
+## Arquitectura de Medicaciones
+
+### Procesamiento Centralizado
+
+El sistema utiliza un enfoque centralizado para el procesamiento de medicaciones:
+
+- **PrescriptionService.processMedications()**: Método centralizado que maneja la lógica de creación/actualización de prescripciones y su historial
+- **Transacciones**: Todas las operaciones de medicación se ejecutan dentro de transacciones de base de datos para garantizar consistencia
+- **Reutilización**: La misma lógica se utiliza tanto para órdenes médicas como para consultas médicas
+
+### Sistema de Notificaciones Centralizado
+
+El sistema incluye un `NotificationService` centralizado que maneja todas las notificaciones a pacientes:
+
+- **Email y WhatsApp**: Envío automático de notificaciones por ambos canales cuando están disponibles
+- **Plantillas Dinámicas**: Diferentes plantillas según el tipo de orden médica (medicación vs. otros tipos)
+- **Adjuntos Automáticos**: Inclusión automática de documentos PDF cuando están disponibles
+- **Gestión de Errores**: Manejo robusto de errores sin afectar el flujo principal
+- **Reutilización**: Mismo servicio utilizado por órdenes médicas y eventos médicos
+
+### Flujo de Procesamiento
+
+1. **Verificación**: Se verifica si existe una prescripción activa para el medicamento
+2. **Actualización**: Si existe, se crea una nueva entrada en el historial de modificaciones
+3. **Creación**: Si no existe, se crea una nueva prescripción y su primera entrada en el historial
+4. **Asociación**: Se asocia la entrada del historial con la orden médica o evento médico correspondiente
+5. **Notificación**: Se envían notificaciones automáticas al paciente por email y WhatsApp
 
 ## Tipos de Órdenes Médicas
 
@@ -66449,9 +66482,39 @@ File: src/docs/medical-events.md
 
 El módulo de Eventos Médicos gestiona la creación, consulta y atención de eventos médicos asociados a citas de pacientes. Un evento médico registra los detalles clínicos de una consulta o interacción médica.
 
+**Nota Importante:** La gestión de medicaciones durante las consultas médicas está centralizada en el `PrescriptionService` para garantizar consistencia con el resto del sistema y mantener un historial unificado de prescripciones.
+
 ## Utilidad
 
 Este módulo es crucial para registrar la información clínica generada durante una consulta, como diagnósticos, comentarios del médico, procedimientos, tratamientos y signos vitales. Esta información es fundamental para el seguimiento del paciente y la continuidad de la atención.
+
+## Arquitectura de Medicaciones
+
+### Procesamiento Integrado
+
+Durante la atención de eventos médicos, el procesamiento de medicaciones utiliza:
+
+- **PrescriptionService.processMedications()**: Mismo método centralizado usado por las órdenes médicas
+- **Transacciones**: Todas las operaciones (evento médico + medicaciones) se ejecutan en una sola transacción
+- **Consistencia**: Las medicaciones prescritas en consultas se integran automáticamente con el historial global del paciente
+- **Autorización Automática**: Las medicaciones prescritas durante consultas se marcan como autorizadas por defecto
+
+### Sistema de Notificaciones Centralizado
+
+El sistema utiliza el `NotificationService` para enviar notificaciones automáticas:
+
+- **Notificaciones de Medicación**: Cuando se finalizan consultas con medicaciones prescritas
+- **Email y WhatsApp**: Envío por ambos canales cuando están disponibles
+- **Plantillas Específicas**: Plantillas optimizadas para notificaciones de medicación
+- **Adjuntos Inteligentes**: Búsqueda automática de órdenes médicas relacionadas para incluir archivos PDF
+- **Gestión de Errores**: Notificaciones no bloquean el flujo principal de la consulta
+
+### Flujo de Atención
+
+1. **Actualización del Evento**: Se actualizan los datos clínicos del evento médico
+2. **Procesamiento de Medicaciones**: Se procesan las medicaciones usando el servicio centralizado
+3. **Notificaciones**: Si la consulta finaliza, se envían notificaciones automáticas al paciente
+4. **Finalización**: Se actualiza el estado de la cita asociada
 
 ## Endpoints
 
@@ -66978,6 +67041,309 @@ Este módulo está diseñado específicamente para ser utilizado por la aplicaci
 3. Revisar su historial para observar cambios en su bienestar emocional a lo largo del tiempo
 
 Esta información también está disponible para los profesionales de salud a través de otras interfaces, permitiéndoles monitorear el bienestar emocional de sus pacientes.
+
+================
+File: src/docs/notification-service.md
+================
+# NotificationService - Servicio Centralizado de Notificaciones
+
+## Descripción General
+
+El `NotificationService` es un servicio centralizado que maneja todas las notificaciones a pacientes en el sistema SEGIMED. Este servicio unifica la lógica de envío de emails y mensajes de WhatsApp, proporcionando una interfaz consistente para diferentes tipos de notificaciones médicas.
+
+## Ubicación
+
+- **Servicio**: `src/services/notification/notification.service.ts`
+- **Módulo**: `src/services/notification/notification.module.ts`
+
+## Arquitectura
+
+### Dependencias
+
+El `NotificationService` inyecta y utiliza:
+
+- **EmailService**: Para el envío de correos electrónicos con plantillas HTML
+- **TwilioService**: Para el envío de mensajes de WhatsApp
+
+### Interfaces
+
+#### `PatientNotificationData`
+
+```typescript
+interface PatientNotificationData {
+  id: string;
+  name: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  is_phone_verified?: boolean;
+}
+```
+
+#### `MedicalOrderData`
+
+```typescript
+interface MedicalOrderData {
+  id: string;
+  url?: string;
+  request_date: Date;
+  description_type?: string;
+}
+```
+
+#### `MedicalOrderTypeData`
+
+```typescript
+interface MedicalOrderTypeData {
+  name: string;
+  description: string;
+}
+```
+
+## Métodos Principales
+
+### `sendMedicalOrderNotification()`
+
+Envía notificaciones para órdenes médicas de cualquier tipo.
+
+**Firma:**
+
+```typescript
+async sendMedicalOrderNotification(
+  patient: PatientNotificationData,
+  order: MedicalOrderData,
+  orderType: MedicalOrderTypeData,
+  physicianName?: string,
+  medications?: MedicationItemInterface[],
+): Promise<void>
+```
+
+**Funcionalidades:**
+
+- Determina automáticamente el tipo de plantilla según el tipo de orden
+- Maneja adjuntos de archivos PDF automáticamente
+- Envía por email y WhatsApp cuando están disponibles
+- Gestión robusta de errores sin afectar el flujo principal
+
+**Tipos de Orden Soportados:**
+
+- `medication` / `medication-authorization`: Usa plantilla de medicación
+- Otros tipos: Usa plantilla de orden médica general
+
+### `sendMedicationUpdateNotification()`
+
+Envía notificaciones específicas para actualizaciones de medicación (usado principalmente en consultas médicas).
+
+**Firma:**
+
+```typescript
+async sendMedicationUpdateNotification(
+  patient: PatientNotificationData,
+  medications: MedicationItemInterface[],
+  physicianName?: string,
+  fileUrl?: string,
+): Promise<void>
+```
+
+**Funcionalidades:**
+
+- Optimizado para notificaciones de medicación durante consultas
+- Incluye lista detallada de medicamentos prescritos
+- Soporte para archivos adjuntos opcionales
+- Plantillas específicas para medicación
+
+## Plantillas de Notificación
+
+### Email
+
+El servicio utiliza plantillas HTML predefinidas:
+
+- **medicationHtml**: Para notificaciones de medicación
+- **medicalOrderHtml**: Para órdenes médicas generales
+
+### WhatsApp
+
+Mensajes de texto formateados con:
+
+- Saludo personalizado con nombre del paciente
+- Lista detallada de medicamentos (cuando aplica)
+- Información del médico
+- Instrucciones de seguimiento
+- Firma institucional
+
+## Gestión de Archivos Adjuntos
+
+### Email
+
+- Descarga automática de archivos desde URLs públicas
+- Conversión a formato base64 para adjuntos
+- Manejo de errores sin interrumpir el envío
+
+### WhatsApp
+
+- Envío de archivos multimedia usando URLs públicas
+- Fallback a mensaje de texto si falla el envío con archivo
+
+## Gestión de Errores
+
+El servicio implementa una estrategia de gestión de errores no bloqueante:
+
+- **Errores de Email**: Se registran pero no interrumpen el flujo
+- **Errores de WhatsApp**: Se registran pero no interrumpen el flujo
+- **Errores de Adjuntos**: Se continúa sin adjunto si falla la descarga
+- **Logging**: Todos los errores se registran en consola para debugging
+
+## Integración con Otros Módulos
+
+### MedicalOrderService
+
+```typescript
+// Reemplaza el método _sendNotifications
+await this.notificationService.sendMedicalOrderNotification(
+  patient,
+  order,
+  orderType,
+  physicianName,
+  medications,
+);
+```
+
+### MedicalEventsService
+
+```typescript
+// Reemplaza el método _sendMedicationNotification
+await this.notificationService.sendMedicationUpdateNotification(
+  patient,
+  medications,
+  physicianName,
+  fileUrl,
+);
+```
+
+## Configuración de Módulos
+
+### NotificationModule
+
+```typescript
+@Module({
+  imports: [EmailModule, TwilioModule],
+  providers: [NotificationService],
+  exports: [NotificationService],
+})
+export class NotificationModule {}
+```
+
+### Módulos que lo Utilizan
+
+- **MedicalOrderModule**: Importa `NotificationModule`
+- **MedicalEventsModule**: Importa `NotificationModule`
+
+## Beneficios de la Centralización
+
+### Mantenibilidad
+
+- Lógica de notificación en un solo lugar
+- Cambios en plantillas o lógica se aplican globalmente
+- Fácil testing y debugging
+
+### Consistencia
+
+- Mismo formato y estilo en todas las notificaciones
+- Gestión uniforme de errores
+- Comportamiento predecible
+
+### Reutilización
+
+- Mismo servicio para diferentes tipos de notificaciones
+- Interfaces bien definidas para diferentes casos de uso
+- Fácil extensión para nuevos tipos de notificación
+
+### Escalabilidad
+
+- Fácil agregar nuevos canales de notificación
+- Posibilidad de implementar colas de notificación
+- Métricas centralizadas de envío
+
+## Ejemplos de Uso
+
+### Notificación de Orden Médica
+
+```typescript
+const patient = {
+  id: 'patient-uuid',
+  name: 'Juan',
+  last_name: 'Pérez',
+  email: 'juan.perez@email.com',
+  phone: '+1234567890',
+  is_phone_verified: true,
+};
+
+const order = {
+  id: 'order-uuid',
+  url: 'https://example.com/order.pdf',
+  request_date: new Date(),
+  description_type: 'Certificado médico',
+};
+
+const orderType = {
+  name: 'certification',
+  description: 'Certificado',
+};
+
+await notificationService.sendMedicalOrderNotification(
+  patient,
+  order,
+  orderType,
+  'Dr. García',
+);
+```
+
+### Notificación de Medicación
+
+```typescript
+const medications = [
+  {
+    monodrug: 'Paracetamol',
+    dose: '500',
+    dose_units: 'mg',
+    frecuency: 'Cada 8 horas',
+    duration: '7',
+    duration_units: 'días',
+    observations: 'Tomar con alimentos',
+  },
+];
+
+await notificationService.sendMedicationUpdateNotification(
+  patient,
+  medications,
+  'Dr. García',
+  'https://example.com/prescription.pdf',
+);
+```
+
+## Consideraciones de Seguridad
+
+- **Datos Sensibles**: No se almacenan datos de pacientes en el servicio
+- **URLs Temporales**: Los archivos adjuntos deben ser accesibles públicamente
+- **Validación**: Se valida la disponibilidad de email/teléfono antes del envío
+- **Privacidad**: Los mensajes incluyen solo información médica necesaria
+
+## Monitoreo y Logging
+
+El servicio registra:
+
+- Errores de envío de email
+- Errores de envío de WhatsApp
+- Errores de descarga de adjuntos
+- Información de debugging para troubleshooting
+
+## Futuras Mejoras
+
+- **Colas de Notificación**: Para manejo de alto volumen
+- **Plantillas Dinámicas**: Sistema de plantillas configurable
+- **Métricas**: Tracking de tasas de entrega y apertura
+- **Notificaciones Push**: Integración con aplicaciones móviles
+- **Preferencias de Usuario**: Configuración de canales preferidos por paciente
 
 ================
 File: src/docs/order-type.md
@@ -68544,6 +68910,30 @@ File: src/docs/prescription.md
 El módulo de Prescripciones se encarga de gestionar las recetas médicas emitidas para los pacientes. Permite crear, consultar y eliminar prescripciones, detallando información como el medicamento (monodroga), las fechas de inicio y fin, la descripción o indicaciones, y el estado de la prescripción.
 
 Esta funcionalidad es esencial para el seguimiento del tratamiento farmacológico de los pacientes.
+
+## Arquitectura Centralizada
+
+### Procesamiento de Medicaciones
+
+El `PrescriptionService` incluye un método centralizado `processMedications()` que es utilizado por otros módulos del sistema:
+
+- **Órdenes Médicas**: Cuando se crean órdenes de tipo `medication` o `medication-authorization`
+- **Eventos Médicos**: Durante la atención de consultas médicas cuando se prescriben medicamentos
+- **Prescripciones Directas**: A través de los endpoints directos del módulo
+
+### Características del Procesamiento Centralizado
+
+- **Transaccional**: Todas las operaciones se ejecutan dentro de transacciones de base de datos
+- **Historial Unificado**: Mantiene un historial completo en `pres_mod_history` independientemente del origen
+- **Reutilización**: Evita duplicación de lógica entre diferentes módulos
+- **Consistencia**: Garantiza el mismo comportamiento en todo el sistema
+
+### Flujo de Procesamiento
+
+1. **Verificación**: Se verifica si existe una prescripción activa para el medicamento y paciente
+2. **Actualización**: Si existe, se crea una nueva entrada en el historial de modificaciones
+3. **Creación**: Si no existe, se crea una nueva prescripción y su primera entrada en el historial
+4. **Asociación**: Se vincula con el evento médico o orden médica correspondiente
 
 ## Endpoints
 
@@ -73558,20 +73948,19 @@ import { Module } from '@nestjs/common';
 import { MedicalOrderService } from './medical_order.service';
 import { MedicalOrderController } from './medical_order.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EmailService } from 'src/services/email/email.service';
-import { TwilioService } from 'src/services/twilio/twilio.service';
 import { PermissionCheckerService } from 'src/auth/permissions/permission-checker.service';
 import { FileUploadService } from 'src/utils/file_upload/file_upload.service';
 import { FileUploadRepository } from 'src/utils/file_upload/file_upload.repository';
 import { CloudinaryConfig } from 'src/utils/cloudinary';
+import { PrescriptionModule } from 'src/medical-scheduling/modules/prescription/prescription.module';
+import { NotificationModule } from 'src/services/notification/notification.module';
 
 @Module({
+  imports: [PrescriptionModule, NotificationModule],
   controllers: [MedicalOrderController],
   providers: [
     MedicalOrderService,
     PrismaService,
-    EmailService,
-    TwilioService,
     PermissionCheckerService,
     FileUploadService,
     FileUploadRepository,
@@ -73596,24 +73985,22 @@ import {
   PaginationParams,
   parsePaginationAndSorting,
 } from 'src/utils/pagination.helper';
-import { EmailService } from 'src/services/email/email.service';
-import { TwilioService } from 'src/services/twilio/twilio.service';
 import { FileUploadService } from 'src/utils/file_upload/file_upload.service';
-import { medicalOrderHtml } from 'src/services/email/templates/medicalOrderHtml';
-import { medicationHtml } from 'src/services/email/templates/medicationHtml';
 import {
   MedicalOrderPaginatedResponseDto,
   MedicalOrderPhysicianResponseDto,
   MedicalOrderPatientResponseDto,
 } from './dto/medical-order-response.dto';
+import { PrescriptionService } from 'src/medical-scheduling/modules/prescription/prescription.service';
+import { NotificationService } from 'src/services/notification/notification.service';
 
 @Injectable()
 export class MedicalOrderService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly emailService: EmailService,
-    private readonly twilioService: TwilioService,
     private readonly fileUploadService: FileUploadService,
+    private readonly prescriptionService: PrescriptionService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(
@@ -73796,30 +74183,35 @@ export class MedicalOrderService {
       }
 
       // Crear la orden médica combinando los datos comunes y específicos
-      const newOrder = await this.prisma.medical_order.create({
-        data: {
-          ...commonData,
-          ...specificData,
-        },
-      });
+      const newOrder = await this.prisma.$transaction(async (tx) => {
+        const order = await tx.medical_order.create({
+          data: {
+            ...commonData,
+            ...specificData,
+          },
+        });
 
-      // Procesar medicaciones si existe
-      if (
-        (orderTypeObj.name === 'medication' ||
-          orderTypeObj.name === 'medication-authorization') &&
-        createMedicalOrderDto.medications &&
-        createMedicalOrderDto.medications.length > 0
-      ) {
-        await this._processMedications(
-          createMedicalOrderDto.medications,
-          createMedicalOrderDto.patient_id,
-          physicianId,
-          newOrder.id,
-          tenantId,
-          null, // No hay medical_event_id en este caso
-          orderTypeObj.name === 'medication', // true si es prescripción, false si es autorización
-        );
-      }
+        // Procesar medicaciones si existe
+        if (
+          (orderTypeObj.name === 'medication' ||
+            orderTypeObj.name === 'medication-authorization') &&
+          createMedicalOrderDto.medications &&
+          createMedicalOrderDto.medications.length > 0
+        ) {
+          await this.prescriptionService.processMedications(
+            tx,
+            createMedicalOrderDto.medications,
+            createMedicalOrderDto.patient_id,
+            physicianId,
+            tenantId,
+            undefined, // No hay medical_event_id en este caso
+            order.id,
+            orderTypeObj.name === 'medication', // true si es prescripción, false si es autorización
+          );
+        }
+
+        return order;
+      });
 
       // Obtener el médico para el correo
       const physician = await this.prisma.user.findUnique({
@@ -74044,204 +74436,13 @@ export class MedicalOrderService {
     physicianName: string,
     medications?: any[],
   ) {
-    try {
-      // Determinar qué plantilla usar según el tipo de orden
-      let emailContent: string;
-      let emailSubject: string;
-
-      if (
-        orderType.name === 'medication' ||
-        orderType.name === 'medication-authorization'
-      ) {
-        emailContent = medicationHtml(
-          patient.name,
-          patient.last_name || '',
-          medications,
-          physicianName,
-        );
-        emailSubject = `Nuevas medicaciones prescritas`;
-      } else {
-        emailContent = medicalOrderHtml(
-          patient.name,
-          patient.last_name || '',
-          orderType.description,
-          new Date(order.request_date).toLocaleDateString(),
-          physicianName,
-          order.description_type,
-          order.url,
-        );
-        emailSubject = `Nueva orden médica: ${orderType.description}`;
-      }
-
-      // Preparar adjuntos si hay una URL del documento
-      let attachments = [];
-      if (order.url) {
-        try {
-          const attachment = await this.emailService.getAttachmentFromUrl(
-            order.url,
-          );
-          attachments = [attachment];
-        } catch (attachmentError) {
-          console.error(
-            'Error al preparar el archivo adjunto:',
-            attachmentError,
-          );
-          // Continuar sin adjunto si hay error
-        }
-      }
-
-      // Enviar email
-      if (patient.email) {
-        try {
-          await this.emailService.sendMail(
-            patient.email,
-            emailSubject,
-            emailContent,
-            attachments.length > 0 ? attachments : undefined,
-          );
-        } catch (emailError) {
-          console.error('Error sending email notification:', emailError);
-          // No lanzar error, seguir con el flujo
-        }
-      }
-
-      // Enviar WhatsApp si está disponible
-      if (patient.phone && patient.is_phone_verified) {
-        try {
-          let whatsappMessage: string;
-
-          if (
-            orderType.name === 'medication' ||
-            orderType.name === 'medication-authorization'
-          ) {
-            const medicationListText = medications
-              .map(
-                (med) =>
-                  `• ${med.monodrug}: ${med.dose} ${med.dose_units}, ${med.frecuency}, por ${med.duration} ${med.duration_units}` +
-                  (med.observations
-                    ? `\n  _Observaciones: ${med.observations}_`
-                    : ''),
-              )
-              .join('\n');
-
-            whatsappMessage = `Hola ${patient.name},
-
-Durante su consulta, el Dr./Dra. ${physicianName || 'su médico'} ha prescrito las siguientes medicaciones:
-
-${medicationListText}
-
-Por favor, siga las indicaciones de su médico y tome sus medicamentos según lo prescrito.
-
-SEGIMED - Sistema de Gestión Médica`;
-          } else {
-            whatsappMessage = `Hola ${patient.name},
-Se ha generado una nueva orden médica de tipo *${orderType}* para usted.
-
-*Detalles de la orden:*
-• Fecha: ${new Date(order.request_date).toLocaleDateString()}
-• Médico: ${physicianName || 'No especificado'}
-${order.description_type ? `• Descripción: ${order.description_type}` : ''}
-
-Si tiene alguna pregunta, contacte a su médico.
-
-SEGIMED - Sistema de Gestión Médica`;
-          }
-
-          // Si hay URL del documento, enviar con archivo adjunto
-          if (order.url) {
-            await this.twilioService.sendWhatsAppWithMedia(
-              patient.phone,
-              whatsappMessage,
-              order.url,
-            );
-          } else {
-            await this.twilioService.sendOtp(patient.phone, whatsappMessage);
-          }
-        } catch (whatsappError) {
-          console.error('Error sending WhatsApp notification:', whatsappError);
-          // No lanzar error, seguir con el flujo
-        }
-      }
-    } catch (error) {
-      console.error('Error en notificaciones:', error);
-      // Continuamos con el flujo normal aunque fallen las notificaciones
-    }
-  }
-
-  /**
-   * Procesa las medicaciones para una orden médica o consulta
-   * @param medications Lista de medicaciones a procesar
-   * @param patientId ID del paciente
-   * @param physicianId ID del médico
-   * @param orderId ID de la orden médica (opcional)
-   * @param tenantId ID del tenant
-   * @param medicalEventId ID del evento médico (opcional)
-   * @param isAuthorized Indica si la medicación está autorizada
-   */
-  private async _processMedications(
-    medications: any[],
-    patientId: string,
-    physicianId: string,
-    orderId: string,
-    tenantId: string,
-    medicalEventId: string | null,
-    isAuthorized: boolean = true,
-  ) {
-    for (const medication of medications) {
-      // Verificar si ya existe una prescripción activa para este medicamento
-      const existingPrescription = await this.prisma.prescription.findFirst({
-        where: {
-          patient_id: patientId,
-          monodrug: medication.monodrug,
-          active: true,
-        },
-      });
-
-      if (existingPrescription) {
-        // Si ya existe una prescripción activa, crear una nueva entrada en el historial
-        await this.prisma.pres_mod_history.create({
-          data: {
-            prescription_id: existingPrescription.id,
-            physician_id: physicianId,
-            medical_order_id: orderId,
-            medical_event_id: medicalEventId,
-            observations: medication.observations,
-            dose: medication.dose,
-            dose_units: medication.dose_units,
-            frecuency: medication.frecuency,
-            duration: medication.duration,
-            duration_units: medication.duration_units,
-          },
-        });
-      } else {
-        // Si no existe, crear nueva prescripción y su primer entrada en el historial
-        const newPrescription = await this.prisma.prescription.create({
-          data: {
-            patient_id: patientId,
-            monodrug: medication.monodrug,
-            active: true,
-            authorized: isAuthorized,
-            tenant_id: tenantId,
-          },
-        });
-
-        // Crear la primera entrada en el historial
-        await this.prisma.pres_mod_history.create({
-          data: {
-            prescription_id: newPrescription.id,
-            physician_id: physicianId,
-            medical_order_id: orderId,
-            medical_event_id: medicalEventId,
-            observations: medication.observations,
-            dose: medication.dose,
-            dose_units: medication.dose_units,
-            frecuency: medication.frecuency,
-            duration: medication.duration,
-            duration_units: medication.duration_units,
-          },
-        });
-      }
-    }
+    await this.notificationService.sendMedicalOrderNotification(
+      patient,
+      order,
+      orderType,
+      physicianName,
+      medications,
+    );
   }
 
   async findAllForPhysician(
@@ -76902,6 +77103,8 @@ import { PhysicalExaminationModule } from '../modules/physical-examination-data/
 import { FileUploadService } from 'src/utils/file_upload/file_upload.service';
 import { FileUploadRepository } from 'src/utils/file_upload/file_upload.repository';
 import { CloudinaryConfig } from 'src/utils/cloudinary';
+import { PrescriptionModule } from '../modules/prescription/prescription.module';
+import { NotificationModule } from 'src/services/notification/notification.module';
 
 @Module({
   imports: [
@@ -76909,6 +77112,8 @@ import { CloudinaryConfig } from 'src/utils/cloudinary';
     VitalSignsModule,
     PhysicalExplorationModule,
     PhysicalExaminationModule,
+    PrescriptionModule,
+    NotificationModule,
   ],
   controllers: [MedicalEventsController],
   providers: [
@@ -76940,9 +77145,8 @@ import { AttendMedicalEventDto } from './dto/attend-medical-event.dto';
 import { VitalSignsService } from '../modules/vital-signs/vital-signs.service';
 import { PhysicalExplorationService } from '../modules/physical-exploration-data/physical-exploration/physical-exploration.service';
 import { PhysicalExaminationService } from '../modules/physical-examination-data/physical-examination/physical-examination.service';
-import { EmailService } from 'src/services/email/email.service';
-import { TwilioService } from 'src/services/twilio/twilio.service';
-import { medicationHtml } from 'src/services/email/templates/medicationHtml';
+import { PrescriptionService } from '../modules/prescription/prescription.service';
+import { NotificationService } from 'src/services/notification/notification.service';
 
 @Injectable()
 export class MedicalEventsService {
@@ -76951,8 +77155,8 @@ export class MedicalEventsService {
     private vitalSignsService: VitalSignsService,
     private physicalExplorationService: PhysicalExplorationService,
     private physicalExaminationService: PhysicalExaminationService,
-    private emailService: EmailService,
-    private twilioService: TwilioService,
+    private prescriptionService: PrescriptionService,
+    private notificationService: NotificationService,
   ) {}
 
   async createMedicalEvent(
@@ -77192,60 +77396,16 @@ export class MedicalEventsService {
 
         // 6. Si se proporcionaron medicaciones, procesarlas
         if (medications && medications.length > 0) {
-          // Procesamos cada medicación
-          for (const medication of medications) {
-            // Verificamos si ya existe una prescripción activa para este medicamento
-            const existingPrescription = await tx.prescription.findFirst({
-              where: {
-                patient_id: medicalEvent.patient_id,
-                monodrug: medication.monodrug,
-                active: true,
-              },
-            });
-
-            if (existingPrescription) {
-              // Si ya existe una prescripción activa, crear una nueva entrada en el historial
-              await tx.pres_mod_history.create({
-                data: {
-                  prescription_id: existingPrescription.id,
-                  physician_id: userId,
-                  medical_event_id: id,
-                  observations: medication.observations,
-                  dose: medication.dose,
-                  dose_units: medication.dose_units,
-                  frecuency: medication.frecuency,
-                  duration: medication.duration,
-                  duration_units: medication.duration_units,
-                },
-              });
-            } else {
-              // Si no existe, crear nueva prescripción y su primer entrada en el historial
-              const newPrescription = await tx.prescription.create({
-                data: {
-                  patient_id: medicalEvent.patient_id,
-                  monodrug: medication.monodrug,
-                  active: true,
-                  authorized: true,
-                  tenant_id,
-                },
-              });
-
-              // Crear la primera entrada en el historial
-              await tx.pres_mod_history.create({
-                data: {
-                  prescription_id: newPrescription.id,
-                  physician_id: userId,
-                  medical_event_id: id,
-                  observations: medication.observations,
-                  dose: medication.dose,
-                  dose_units: medication.dose_units,
-                  frecuency: medication.frecuency,
-                  duration: medication.duration,
-                  duration_units: medication.duration_units,
-                },
-              });
-            }
-          }
+          await this.prescriptionService.processMedications(
+            tx,
+            medications,
+            medicalEvent.patient_id,
+            userId,
+            tenant_id,
+            id,
+            undefined, // No hay medical_order_id en este caso
+            true, // Las medicaciones en consultas están autorizadas
+          );
 
           // Si la consulta está siendo finalizada, enviar notificación
           if (consultation_ended) {
@@ -77340,74 +77500,12 @@ export class MedicalEventsService {
     physicianName,
     fileUrl?: string,
   ) {
-    try {
-      // Preparar adjuntos si hay una URL del documento
-      let attachments = [];
-      if (fileUrl) {
-        try {
-          const attachment =
-            await this.emailService.getAttachmentFromUrl(fileUrl);
-          attachments = [attachment];
-        } catch (attachmentError) {
-          console.error(
-            'Error al preparar el archivo adjunto:',
-            attachmentError,
-          );
-          // Continuar sin adjunto si hay error
-        }
-      }
-
-      if (patient.email) {
-        const emailContent = medicationHtml(
-          patient.name,
-          patient.last_name || '',
-          medications,
-          physicianName,
-        );
-        await this.emailService.sendMail(
-          patient.email,
-          `Nuevas medicaciones prescritas`,
-          emailContent,
-          attachments.length > 0 ? attachments : undefined,
-        );
-      }
-
-      if (patient.phone && patient.is_phone_verified) {
-        const medicationListText = medications
-          .map(
-            (med) =>
-              `• ${med.monodrug}: ${med.dose} ${med.dose_units}, ${med.frecuency}, por ${med.duration} ${med.duration_units}` +
-              (med.observations
-                ? `\n  _Observaciones: ${med.observations}_`
-                : ''),
-          )
-          .join('\n');
-
-        const whatsappMessage = `Hola ${patient.name},
-
-Durante su consulta, el Dr./Dra. ${physicianName || 'su médico'} ha prescrito las siguientes medicaciones:
-
-${medicationListText}
-
-Por favor, siga las indicaciones de su médico y tome sus medicamentos según lo prescrito.
-
-SEGIMED - Sistema de Gestión Médica`;
-
-        // Si hay URL del documento, enviar con archivo adjunto
-        if (fileUrl) {
-          await this.twilioService.sendWhatsAppWithMedia(
-            patient.phone,
-            whatsappMessage,
-            fileUrl,
-          );
-        } else {
-          await this.twilioService.sendOtp(patient.phone, whatsappMessage);
-        }
-      }
-    } catch (error) {
-      console.error('Error sending medication notification:', error);
-      // No lanzar error, seguir con el flujo
-    }
+    await this.notificationService.sendMedicationUpdateNotification(
+      patient,
+      medications,
+      physicianName,
+      fileUrl,
+    );
   }
 }
 
@@ -81134,6 +81232,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Module({
   controllers: [PrescriptionController],
   providers: [PrescriptionService, PrismaService],
+  exports: [PrescriptionService],
 })
 export class PrescriptionModule {}
 
@@ -81143,13 +81242,24 @@ File: src/medical-scheduling/modules/prescription/prescription.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+
+export interface MedicationItemInterface {
+  monodrug: string;
+  dose: string;
+  dose_units: string;
+  frecuency: string;
+  duration: string;
+  duration_units: string;
+  observations?: string;
+}
 
 @Injectable()
 export class PrescriptionService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createPrescriptionDto: CreatePrescriptionDto) {
     try {
-      const prescription = await this.prisma.prescription.create({
+      await this.prisma.prescription.create({
         data: { ...createPrescriptionDto },
       });
       return { message: 'La prescripción ha sido correctamente generada' };
@@ -81203,6 +81313,84 @@ export class PrescriptionService {
       throw new Error(
         `No se ha podido eliminar la prescripción ${error.message}`,
       );
+    }
+  }
+
+  /**
+   * Procesa las medicaciones para una orden médica o consulta médica
+   * @param tx Cliente Prisma transaccional
+   * @param medications Lista de medicaciones a procesar
+   * @param patientId ID del paciente
+   * @param physicianId ID del médico
+   * @param tenantId ID del tenant
+   * @param medicalEventId ID del evento médico (opcional)
+   * @param medicalOrderId ID de la orden médica (opcional)
+   * @param isAuthorized Indica si la medicación está autorizada
+   */
+  async processMedications(
+    tx: Prisma.TransactionClient,
+    medications: MedicationItemInterface[],
+    patientId: string,
+    physicianId: string,
+    tenantId: string,
+    medicalEventId?: string,
+    medicalOrderId?: string,
+    isAuthorized: boolean = true,
+  ): Promise<void> {
+    for (const medication of medications) {
+      // Verificar si ya existe una prescripción activa para este medicamento
+      const existingPrescription = await tx.prescription.findFirst({
+        where: {
+          patient_id: patientId,
+          monodrug: medication.monodrug,
+          active: true,
+        },
+      });
+
+      if (existingPrescription) {
+        // Si ya existe una prescripción activa, crear una nueva entrada en el historial
+        await tx.pres_mod_history.create({
+          data: {
+            prescription_id: existingPrescription.id,
+            physician_id: physicianId,
+            medical_order_id: medicalOrderId || null,
+            medical_event_id: medicalEventId || null,
+            observations: medication.observations,
+            dose: medication.dose,
+            dose_units: medication.dose_units,
+            frecuency: medication.frecuency,
+            duration: medication.duration,
+            duration_units: medication.duration_units,
+          },
+        });
+      } else {
+        // Si no existe, crear nueva prescripción y su primer entrada en el historial
+        const newPrescription = await tx.prescription.create({
+          data: {
+            patient_id: patientId,
+            monodrug: medication.monodrug,
+            active: true,
+            authorized: isAuthorized,
+            tenant_id: tenantId,
+          },
+        });
+
+        // Crear la primera entrada en el historial
+        await tx.pres_mod_history.create({
+          data: {
+            prescription_id: newPrescription.id,
+            physician_id: physicianId,
+            medical_order_id: medicalOrderId || null,
+            medical_event_id: medicalEventId || null,
+            observations: medication.observations,
+            dose: medication.dose,
+            dose_units: medication.dose_units,
+            frecuency: medication.frecuency,
+            duration: medication.duration,
+            duration_units: medication.duration_units,
+          },
+        });
+      }
     }
   }
 }
@@ -83467,6 +83655,285 @@ const welcomeEmailHtml = (name: string): string => {
 };
 
 export default welcomeEmailHtml;
+
+================
+File: src/services/notification/notification.module.ts
+================
+import { Module } from '@nestjs/common';
+import { NotificationService } from './notification.service';
+import { EmailModule } from '../email/email.module';
+import { TwilioModule } from '../twilio/twilio.module';
+
+@Module({
+  imports: [EmailModule, TwilioModule],
+  providers: [NotificationService],
+  exports: [NotificationService],
+})
+export class NotificationModule {}
+
+================
+File: src/services/notification/notification.service.ts
+================
+import { Injectable } from '@nestjs/common';
+import { EmailService } from '../email/email.service';
+import { TwilioService } from '../twilio/twilio.service';
+import { medicalOrderHtml } from '../email/templates/medicalOrderHtml';
+import { medicationHtml } from '../email/templates/medicationHtml';
+import { MedicationItemInterface } from '../../medical-scheduling/modules/prescription/prescription.service';
+
+export interface PatientNotificationData {
+  id: string;
+  name: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  is_phone_verified?: boolean;
+}
+
+export interface MedicalOrderData {
+  id: string;
+  url?: string;
+  request_date: Date;
+  description_type?: string;
+}
+
+export interface MedicalOrderTypeData {
+  name: string;
+  description: string;
+}
+
+@Injectable()
+export class NotificationService {
+  constructor(
+    private readonly emailService: EmailService,
+    private readonly twilioService: TwilioService,
+  ) {}
+
+  /**
+   * Envía notificaciones para órdenes médicas
+   */
+  async sendMedicalOrderNotification(
+    patient: PatientNotificationData,
+    order: MedicalOrderData,
+    orderType: MedicalOrderTypeData,
+    physicianName?: string,
+    medications?: MedicationItemInterface[],
+  ): Promise<void> {
+    try {
+      // Determinar qué plantilla usar según el tipo de orden
+      let emailContent: string;
+      let emailSubject: string;
+
+      if (
+        orderType.name === 'medication' ||
+        orderType.name === 'medication-authorization'
+      ) {
+        emailContent = medicationHtml(
+          patient.name,
+          patient.last_name || '',
+          medications || [],
+          physicianName || 'su médico',
+        );
+        emailSubject = `Nuevas medicaciones prescritas`;
+      } else {
+        emailContent = medicalOrderHtml(
+          patient.name,
+          patient.last_name || '',
+          orderType.description,
+          new Date(order.request_date).toLocaleDateString(),
+          physicianName || 'No especificado',
+          order.description_type,
+          order.url,
+        );
+        emailSubject = `Nueva orden médica: ${orderType.description}`;
+      }
+
+      // Preparar adjuntos si hay una URL del documento
+      let attachments = [];
+      if (order.url) {
+        try {
+          const attachment = await this.emailService.getAttachmentFromUrl(
+            order.url,
+          );
+          attachments = [attachment];
+        } catch (attachmentError) {
+          console.error(
+            'Error al preparar el archivo adjunto:',
+            attachmentError,
+          );
+          // Continuar sin adjunto si hay error
+        }
+      }
+
+      // Enviar email
+      if (patient.email) {
+        try {
+          await this.emailService.sendMail(
+            patient.email,
+            emailSubject,
+            emailContent,
+            attachments.length > 0 ? attachments : undefined,
+          );
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError);
+          // No lanzar error, seguir con el flujo
+        }
+      }
+
+      // Enviar WhatsApp si está disponible
+      if (patient.phone && patient.is_phone_verified) {
+        try {
+          let whatsappMessage: string;
+
+          if (
+            orderType.name === 'medication' ||
+            orderType.name === 'medication-authorization'
+          ) {
+            const medicationListText = (medications || [])
+              .map(
+                (med) =>
+                  `• ${med.monodrug}: ${med.dose} ${med.dose_units}, ${med.frecuency}, por ${med.duration} ${med.duration_units}` +
+                  (med.observations
+                    ? `\n  _Observaciones: ${med.observations}_`
+                    : ''),
+              )
+              .join('\n');
+
+            whatsappMessage = `Hola ${patient.name},
+
+Durante su consulta, el Dr./Dra. ${physicianName || 'su médico'} ha prescrito las siguientes medicaciones:
+
+${medicationListText}
+
+Por favor, siga las indicaciones de su médico y tome sus medicamentos según lo prescrito.
+
+SEGIMED - Sistema de Gestión Médica`;
+          } else {
+            whatsappMessage = `Hola ${patient.name},
+Se ha generado una nueva orden médica de tipo *${orderType.description}* para usted.
+
+*Detalles de la orden:*
+• Fecha: ${new Date(order.request_date).toLocaleDateString()}
+• Médico: ${physicianName || 'No especificado'}
+${order.description_type ? `• Descripción: ${order.description_type}` : ''}
+
+Si tiene alguna pregunta, contacte a su médico.
+
+SEGIMED - Sistema de Gestión Médica`;
+          }
+
+          // Si hay URL del documento, enviar con archivo adjunto
+          if (order.url) {
+            await this.twilioService.sendWhatsAppWithMedia(
+              patient.phone,
+              whatsappMessage,
+              order.url,
+            );
+          } else {
+            await this.twilioService.sendOtp(patient.phone, whatsappMessage);
+          }
+        } catch (whatsappError) {
+          console.error('Error sending WhatsApp notification:', whatsappError);
+          // No lanzar error, seguir con el flujo
+        }
+      }
+    } catch (error) {
+      console.error('Error en notificaciones de orden médica:', error);
+      // Continuamos con el flujo normal aunque fallen las notificaciones
+    }
+  }
+
+  /**
+   * Envía notificaciones específicas para actualizaciones de medicación
+   */
+  async sendMedicationUpdateNotification(
+    patient: PatientNotificationData,
+    medications: MedicationItemInterface[],
+    physicianName?: string,
+    fileUrl?: string,
+  ): Promise<void> {
+    try {
+      // Preparar adjuntos si hay una URL del documento
+      let attachments = [];
+      if (fileUrl) {
+        try {
+          const attachment =
+            await this.emailService.getAttachmentFromUrl(fileUrl);
+          attachments = [attachment];
+        } catch (attachmentError) {
+          console.error(
+            'Error al preparar el archivo adjunto:',
+            attachmentError,
+          );
+          // Continuar sin adjunto si hay error
+        }
+      }
+
+      // Enviar email
+      if (patient.email) {
+        try {
+          const emailContent = medicationHtml(
+            patient.name,
+            patient.last_name || '',
+            medications,
+            physicianName || 'su médico',
+          );
+          await this.emailService.sendMail(
+            patient.email,
+            `Nuevas medicaciones prescritas`,
+            emailContent,
+            attachments.length > 0 ? attachments : undefined,
+          );
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError);
+          // No lanzar error, seguir con el flujo
+        }
+      }
+
+      // Enviar WhatsApp si está disponible
+      if (patient.phone && patient.is_phone_verified) {
+        try {
+          const medicationListText = medications
+            .map(
+              (med) =>
+                `• ${med.monodrug}: ${med.dose} ${med.dose_units}, ${med.frecuency}, por ${med.duration} ${med.duration_units}` +
+                (med.observations
+                  ? `\n  _Observaciones: ${med.observations}_`
+                  : ''),
+            )
+            .join('\n');
+
+          const whatsappMessage = `Hola ${patient.name},
+
+Durante su consulta, el Dr./Dra. ${physicianName || 'su médico'} ha prescrito las siguientes medicaciones:
+
+${medicationListText}
+
+Por favor, siga las indicaciones de su médico y tome sus medicamentos según lo prescrito.
+
+SEGIMED - Sistema de Gestión Médica`;
+
+          // Si hay URL del documento, enviar con archivo adjunto
+          if (fileUrl) {
+            await this.twilioService.sendWhatsAppWithMedia(
+              patient.phone,
+              whatsappMessage,
+              fileUrl,
+            );
+          } else {
+            await this.twilioService.sendOtp(patient.phone, whatsappMessage);
+          }
+        } catch (whatsappError) {
+          console.error('Error sending WhatsApp notification:', whatsappError);
+          // No lanzar error, seguir con el flujo
+        }
+      }
+    } catch (error) {
+      console.error('Error en notificaciones de medicación:', error);
+      // Continuamos con el flujo normal aunque fallen las notificaciones
+    }
+  }
+}
 
 ================
 File: src/services/twilio/twilio.module.ts
