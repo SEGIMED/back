@@ -62,6 +62,13 @@ export class PermissionUpdaterService {
         Permission.DELETE_MEDICAL_ORDERS,
         Permission.VIEW_MEDICAL_ORDERS,
         Permission.UPDATE_MEDICAL_ORDERS,
+        Permission.SCHEDULE_APPOINTMENTS,
+        Permission.EDIT_CANCEL_APPOINTMENTS,
+        Permission.CONFIRM_PATIENT_ATTENDANCE,
+        Permission.BLOCK_SCHEDULE,
+        Permission.AUTOMATIC_REMINDERS,
+        Permission.VIEW_STATISTICS,
+        Permission.SCHEDULE_OWN_APPOINTMENT,
       ];
 
       const patientPermissions = [

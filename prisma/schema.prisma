@@ -502,21 +502,30 @@ model subcategories_cie_diez {
 }
 
 model cat_vital_signs {
-  id                     Int                @id @default(autoincrement())
-  name                   String
-  category               String
-  vital_signs            vital_signs[]
-  cat_vital_sign_measure cat_measure_unit[]
+  id                  Int               @id @default(autoincrement())
+  name                String
+  category            String
+  vital_signs         vital_signs[]
+  color               String?
+  mini_icon           String?
+  icon                String?
+  background_icon     String?
+  normal_min_value    Float?
+  normal_max_value    Float?
+  slightly_high_value Float?
+  high_max_value      Float?
+  critical_max_value  Float?
+  cat_measure_unit_id Int?
+  cat_measure_unit    cat_measure_unit? @relation(fields: [cat_measure_unit_id], references: [id])
 
   specialties cat_speciality[] @relation("SpecialityVitalSigns")
 }
 
 model cat_measure_unit {
-  id                 Int             @id @default(autoincrement())
-  name               String
-  description        String
-  cat_vital_signs_id Int
-  cat_vital_signs    cat_vital_signs @relation(fields: [cat_vital_signs_id], references: [id])
+  id              Int               @id @default(autoincrement())
+  name            String
+  description     String
+  cat_vital_signs cat_vital_signs[]
 }
 
 model cat_study_type {

@@ -11,24 +11,22 @@ import {
   PaginationParams,
   parsePaginationAndSorting,
 } from 'src/utils/pagination.helper';
-import { EmailService } from 'src/services/email/email.service';
-import { TwilioService } from 'src/services/twilio/twilio.service';
 import { FileUploadService } from 'src/utils/file_upload/file_upload.service';
-import { medicalOrderHtml } from 'src/services/email/templates/medicalOrderHtml';
-import { medicationHtml } from 'src/services/email/templates/medicationHtml';
 import {
   MedicalOrderPaginatedResponseDto,
   MedicalOrderPhysicianResponseDto,
   MedicalOrderPatientResponseDto,
 } from './dto/medical-order-response.dto';
+import { PrescriptionService } from 'src/medical-scheduling/modules/prescription/prescription.service';
+import { NotificationService } from 'src/services/notification/notification.service';
 
 @Injectable()
 export class MedicalOrderService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly emailService: EmailService,
-    private readonly twilioService: TwilioService,
     private readonly fileUploadService: FileUploadService,
+    private readonly prescriptionService: PrescriptionService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(
@@ -211,30 +209,35 @@ export class MedicalOrderService {
       }
 
       // Crear la orden médica combinando los datos comunes y específicos
-      const newOrder = await this.prisma.medical_order.create({
-        data: {
-          ...commonData,
-          ...specificData,
-        },
-      });
+      const newOrder = await this.prisma.$transaction(async (tx) => {
+        const order = await tx.medical_order.create({
+          data: {
+            ...commonData,
+            ...specificData,
+          },
+        });
 
-      // Procesar medicaciones si existe
-      if (
-        (orderTypeObj.name === 'medication' ||
-          orderTypeObj.name === 'medication-authorization') &&
-        createMedicalOrderDto.medications &&
-        createMedicalOrderDto.medications.length > 0
-      ) {
-        await this._processMedications(
-          createMedicalOrderDto.medications,
-          createMedicalOrderDto.patient_id,
-          physicianId,
-          newOrder.id,
-          tenantId,
-          null, // No hay medical_event_id en este caso
-          orderTypeObj.name === 'medication', // true si es prescripción, false si es autorización
-        );
-      }
+        // Procesar medicaciones si existe
+        if (
+          (orderTypeObj.name === 'medication' ||
+            orderTypeObj.name === 'medication-authorization') &&
+          createMedicalOrderDto.medications &&
+          createMedicalOrderDto.medications.length > 0
+        ) {
+          await this.prescriptionService.processMedications(
+            tx,
+            createMedicalOrderDto.medications,
+            createMedicalOrderDto.patient_id,
+            physicianId,
+            tenantId,
+            undefined, // No hay medical_event_id en este caso
+            order.id,
+            orderTypeObj.name === 'medication', // true si es prescripción, false si es autorización
+          );
+        }
+
+        return order;
+      });
 
       // Obtener el médico para el correo
       const physician = await this.prisma.user.findUnique({
@@ -459,204 +462,13 @@ export class MedicalOrderService {
     physicianName: string,
     medications?: any[],
   ) {
-    try {
-      // Determinar qué plantilla usar según el tipo de orden
-      let emailContent: string;
-      let emailSubject: string;
-
-      if (
-        orderType.name === 'medication' ||
-        orderType.name === 'medication-authorization'
-      ) {
-        emailContent = medicationHtml(
-          patient.name,
-          patient.last_name || '',
-          medications,
-          physicianName,
-        );
-        emailSubject = `Nuevas medicaciones prescritas`;
-      } else {
-        emailContent = medicalOrderHtml(
-          patient.name,
-          patient.last_name || '',
-          orderType.description,
-          new Date(order.request_date).toLocaleDateString(),
-          physicianName,
-          order.description_type,
-          order.url,
-        );
-        emailSubject = `Nueva orden médica: ${orderType.description}`;
-      }
-
-      // Preparar adjuntos si hay una URL del documento
-      let attachments = [];
-      if (order.url) {
-        try {
-          const attachment = await this.emailService.getAttachmentFromUrl(
-            order.url,
-          );
-          attachments = [attachment];
-        } catch (attachmentError) {
-          console.error(
-            'Error al preparar el archivo adjunto:',
-            attachmentError,
-          );
-          // Continuar sin adjunto si hay error
-        }
-      }
-
-      // Enviar email
-      if (patient.email) {
-        try {
-          await this.emailService.sendMail(
-            patient.email,
-            emailSubject,
-            emailContent,
-            attachments.length > 0 ? attachments : undefined,
-          );
-        } catch (emailError) {
-          console.error('Error sending email notification:', emailError);
-          // No lanzar error, seguir con el flujo
-        }
-      }
-
-      // Enviar WhatsApp si está disponible
-      if (patient.phone && patient.is_phone_verified) {
-        try {
-          let whatsappMessage: string;
-
-          if (
-            orderType.name === 'medication' ||
-            orderType.name === 'medication-authorization'
-          ) {
-            const medicationListText = medications
-              .map(
-                (med) =>
-                  `• ${med.monodrug}: ${med.dose} ${med.dose_units}, ${med.frecuency}, por ${med.duration} ${med.duration_units}` +
-                  (med.observations
-                    ? `\n  _Observaciones: ${med.observations}_`
-                    : ''),
-              )
-              .join('\n');
-
-            whatsappMessage = `Hola ${patient.name},
-
-Durante su consulta, el Dr./Dra. ${physicianName || 'su médico'} ha prescrito las siguientes medicaciones:
-
-${medicationListText}
-
-Por favor, siga las indicaciones de su médico y tome sus medicamentos según lo prescrito.
-
-SEGIMED - Sistema de Gestión Médica`;
-          } else {
-            whatsappMessage = `Hola ${patient.name},
-Se ha generado una nueva orden médica de tipo *${orderType}* para usted.
-
-*Detalles de la orden:*
-• Fecha: ${new Date(order.request_date).toLocaleDateString()}
-• Médico: ${physicianName || 'No especificado'}
-${order.description_type ? `• Descripción: ${order.description_type}` : ''}
-
-Si tiene alguna pregunta, contacte a su médico.
-
-SEGIMED - Sistema de Gestión Médica`;
-          }
-
-          // Si hay URL del documento, enviar con archivo adjunto
-          if (order.url) {
-            await this.twilioService.sendWhatsAppWithMedia(
-              patient.phone,
-              whatsappMessage,
-              order.url,
-            );
-          } else {
-            await this.twilioService.sendOtp(patient.phone, whatsappMessage);
-          }
-        } catch (whatsappError) {
-          console.error('Error sending WhatsApp notification:', whatsappError);
-          // No lanzar error, seguir con el flujo
-        }
-      }
-    } catch (error) {
-      console.error('Error en notificaciones:', error);
-      // Continuamos con el flujo normal aunque fallen las notificaciones
-    }
-  }
-
-  /**
-   * Procesa las medicaciones para una orden médica o consulta
-   * @param medications Lista de medicaciones a procesar
-   * @param patientId ID del paciente
-   * @param physicianId ID del médico
-   * @param orderId ID de la orden médica (opcional)
-   * @param tenantId ID del tenant
-   * @param medicalEventId ID del evento médico (opcional)
-   * @param isAuthorized Indica si la medicación está autorizada
-   */
-  private async _processMedications(
-    medications: any[],
-    patientId: string,
-    physicianId: string,
-    orderId: string,
-    tenantId: string,
-    medicalEventId: string | null,
-    isAuthorized: boolean = true,
-  ) {
-    for (const medication of medications) {
-      // Verificar si ya existe una prescripción activa para este medicamento
-      const existingPrescription = await this.prisma.prescription.findFirst({
-        where: {
-          patient_id: patientId,
-          monodrug: medication.monodrug,
-          active: true,
-        },
-      });
-
-      if (existingPrescription) {
-        // Si ya existe una prescripción activa, crear una nueva entrada en el historial
-        await this.prisma.pres_mod_history.create({
-          data: {
-            prescription_id: existingPrescription.id,
-            physician_id: physicianId,
-            medical_order_id: orderId,
-            medical_event_id: medicalEventId,
-            observations: medication.observations,
-            dose: medication.dose,
-            dose_units: medication.dose_units,
-            frecuency: medication.frecuency,
-            duration: medication.duration,
-            duration_units: medication.duration_units,
-          },
-        });
-      } else {
-        // Si no existe, crear nueva prescripción y su primer entrada en el historial
-        const newPrescription = await this.prisma.prescription.create({
-          data: {
-            patient_id: patientId,
-            monodrug: medication.monodrug,
-            active: true,
-            authorized: isAuthorized,
-            tenant_id: tenantId,
-          },
-        });
-
-        // Crear la primera entrada en el historial
-        await this.prisma.pres_mod_history.create({
-          data: {
-            prescription_id: newPrescription.id,
-            physician_id: physicianId,
-            medical_order_id: orderId,
-            medical_event_id: medicalEventId,
-            observations: medication.observations,
-            dose: medication.dose,
-            dose_units: medication.dose_units,
-            frecuency: medication.frecuency,
-            duration: medication.duration,
-            duration_units: medication.duration_units,
-          },
-        });
-      }
-    }
+    await this.notificationService.sendMedicalOrderNotification(
+      patient,
+      order,
+      orderType,
+      physicianName,
+      medications,
+    );
   }
 
   async findAllForPhysician(

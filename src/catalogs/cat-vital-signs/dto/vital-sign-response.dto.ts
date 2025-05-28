@@ -1,118 +1,131 @@
-import {
-  IsString,
-  IsArray,
-  IsNumber,
-  ArrayMinSize,
-  IsOptional,
-} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateCatVitalSignsDto {
+export class SpecialtyResponseDto {
+  @ApiProperty({
+    description: 'Specialty ID',
+    example: 1,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: 'Specialty name',
+    example: 'Cardiología',
+  })
+  name: string;
+}
+
+export class MeasureUnitResponseDto {
+  @ApiProperty({
+    description: 'Measure unit ID',
+    example: 1,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: 'Measure unit name',
+    example: 'mmHg',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Measure unit description',
+    example: 'Milímetros de mercurio',
+  })
+  description: string;
+}
+
+export class VitalSignResponseDto {
+  @ApiProperty({
+    description: 'Vital sign ID',
+    example: 1,
+  })
+  id: number;
+
   @ApiProperty({
     description: 'Name of the vital sign',
-    example: 'Heart Rate',
+    example: 'Presión arterial',
   })
-  @IsString()
   name: string;
 
   @ApiProperty({
     description: 'Category of the vital sign',
     example: 'Cardiovascular',
   })
-  @IsString()
   category: string;
-
-  @ApiProperty({
-    description: 'List of specialty IDs associated with this vital sign',
-    example: [1, 2, 3],
-    type: [Number],
-  })
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @ArrayMinSize(1)
-  specialties: number[];
 
   @ApiProperty({
     description: 'Color associated with the vital sign for UI display',
     example: '#FF5733',
+    nullable: true,
   })
-  @IsString()
-  color: string;
+  color?: string;
 
   @ApiProperty({
     description: 'Mini icon identifier for the vital sign',
     example: 'heart-mini',
+    nullable: true,
   })
-  @IsString()
-  mini_icon: string;
+  mini_icon?: string;
 
   @ApiProperty({
     description: 'Icon identifier for the vital sign',
     example: 'heart-icon',
+    nullable: true,
   })
-  @IsString()
-  icon: string;
+  icon?: string;
 
   @ApiProperty({
     description: 'Background icon identifier for the vital sign',
     example: 'heart-background',
-    required: false,
+    nullable: true,
   })
-  @IsOptional()
-  @IsString()
   background_icon?: string;
 
   @ApiProperty({
     description: 'Normal minimum value for the vital sign',
     example: 60,
-    required: false,
+    nullable: true,
   })
-  @IsOptional()
-  @IsNumber()
   normal_min_value?: number;
 
   @ApiProperty({
     description: 'Normal maximum value for the vital sign',
     example: 100,
-    required: false,
+    nullable: true,
   })
-  @IsOptional()
-  @IsNumber()
   normal_max_value?: number;
 
   @ApiProperty({
     description: 'Slightly high threshold value for the vital sign',
     example: 120,
-    required: false,
+    nullable: true,
   })
-  @IsOptional()
-  @IsNumber()
   slightly_high_value?: number;
 
   @ApiProperty({
     description: 'High maximum value for the vital sign',
     example: 140,
-    required: false,
+    nullable: true,
   })
-  @IsOptional()
-  @IsNumber()
   high_max_value?: number;
 
   @ApiProperty({
     description: 'Critical maximum value for the vital sign',
     example: 180,
-    required: false,
+    nullable: true,
   })
-  @IsOptional()
-  @IsNumber()
   critical_max_value?: number;
 
   @ApiProperty({
-    description: 'ID of the measure unit associated with this vital sign',
-    example: 1,
-    required: false,
+    description: 'Associated specialties',
+    type: [SpecialtyResponseDto],
   })
-  @IsOptional()
-  @IsNumber()
-  cat_measure_unit_id?: number;
+  specialties: SpecialtyResponseDto[];
+
+  @ApiProperty({
+    description: 'Associated measure unit',
+    type: MeasureUnitResponseDto,
+    nullable: true,
+  })
+  cat_measure_unit?: MeasureUnitResponseDto;
 }

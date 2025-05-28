@@ -25,7 +25,11 @@ export class CatMeasureUnitService {
       const existingMeasureUnit = await this.prisma.cat_measure_unit.findFirst({
         where: {
           name: data.name,
-          cat_vital_signs_id: data.cat_vital_signs_id,
+          cat_vital_signs: {
+            some: {
+              id: data.cat_vital_signs_id,
+            },
+          },
         },
       });
 
@@ -40,7 +44,12 @@ export class CatMeasureUnitService {
         data: {
           name: data.name,
           description: data.description,
-          cat_vital_signs_id: data.cat_vital_signs_id,
+          cat_vital_signs: {
+            connect: { id: data.cat_vital_signs_id },
+          },
+        },
+        include: {
+          cat_vital_signs: true,
         },
       });
     } catch (error) {
@@ -57,7 +66,11 @@ export class CatMeasureUnitService {
         // Filter by vital sign ID
         return await this.prisma.cat_measure_unit.findMany({
           where: {
-            cat_vital_signs_id: vitalSignId,
+            cat_vital_signs: {
+              some: {
+                id: vitalSignId,
+              },
+            },
           },
           include: {
             cat_vital_signs: true,

@@ -6,5 +6,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Module({
   controllers: [PrescriptionController],
   providers: [PrescriptionService, PrismaService],
+  exports: [PrescriptionService],
 })
 export class PrescriptionModule {}

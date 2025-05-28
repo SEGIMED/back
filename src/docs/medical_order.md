@@ -4,6 +4,8 @@
 
 La API de Órdenes Médicas proporciona endpoints para gestionar varios tipos de órdenes médicas, incluyendo recetas, autorizaciones de estudios, certificados, solicitudes de hospitalización y solicitudes de turnos.
 
+**Nota Importante:** La gestión de medicaciones (creación/actualización de prescripciones y su historial) está centralizada en el `PrescriptionService` para garantizar consistencia y reutilización entre diferentes módulos del sistema.
+
 ## Autenticación
 
 Todos los endpoints requieren autenticación mediante token Bearer y los permisos apropiados.
@@ -11,6 +13,34 @@ Todos los endpoints requieren autenticación mediante token Bearer y los permiso
 ## URL Base
 
 `/medical-order`
+
+## Arquitectura de Medicaciones
+
+### Procesamiento Centralizado
+
+El sistema utiliza un enfoque centralizado para el procesamiento de medicaciones:
+
+- **PrescriptionService.processMedications()**: Método centralizado que maneja la lógica de creación/actualización de prescripciones y su historial
+- **Transacciones**: Todas las operaciones de medicación se ejecutan dentro de transacciones de base de datos para garantizar consistencia
+- **Reutilización**: La misma lógica se utiliza tanto para órdenes médicas como para consultas médicas
+
+### Sistema de Notificaciones Centralizado
+
+El sistema incluye un `NotificationService` centralizado que maneja todas las notificaciones a pacientes:
+
+- **Email y WhatsApp**: Envío automático de notificaciones por ambos canales cuando están disponibles
+- **Plantillas Dinámicas**: Diferentes plantillas según el tipo de orden médica (medicación vs. otros tipos)
+- **Adjuntos Automáticos**: Inclusión automática de documentos PDF cuando están disponibles
+- **Gestión de Errores**: Manejo robusto de errores sin afectar el flujo principal
+- **Reutilización**: Mismo servicio utilizado por órdenes médicas y eventos médicos
+
+### Flujo de Procesamiento
+
+1. **Verificación**: Se verifica si existe una prescripción activa para el medicamento
+2. **Actualización**: Si existe, se crea una nueva entrada en el historial de modificaciones
+3. **Creación**: Si no existe, se crea una nueva prescripción y su primera entrada en el historial
+4. **Asociación**: Se asocia la entrada del historial con la orden médica o evento médico correspondiente
+5. **Notificación**: Se envían notificaciones automáticas al paciente por email y WhatsApp
 
 ## Tipos de Órdenes Médicas
 

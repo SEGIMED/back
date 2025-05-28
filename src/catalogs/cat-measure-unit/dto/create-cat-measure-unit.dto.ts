@@ -31,4 +31,20 @@ export class CreateCatMeasureUnitDto {
   })
   @IsNumber()
   cat_vital_signs_id: number;
+
+  /**
+   * Minimum value
+   * @example 0
+   */
+  @ApiProperty({ example: 0, description: 'Minimum value' })
+  @IsNumber()
+  min_value: number;
+
+  /**
+   * Maximum value
+   * @example 100
+   */
+  @ApiProperty({ example: 100, description: 'Maximum value' })
+  @IsNumber()
+  max_value: number;
 }
