@@ -47,6 +47,20 @@ async function bootstrap() {
       'API documentation for SEGIMED platform - a comprehensive medical management system.',
     )
     .setVersion('1.0')
+    .addServer('http://localhost:3000', 'Local Development Server', {
+      db_env: {
+        default: 'local',
+        description: 'Select database environment',
+        enum: ['local', 'deployed'],
+      },
+    })
+    .addServer('http://localhost:3000', 'Local Server - Deployed DB', {
+      db_env: {
+        default: 'deployed',
+        description: 'Select database environment (API runs locally)',
+        enum: ['local', 'deployed'],
+      },
+    })
     .addBearerAuth(
       {
         type: 'http',
@@ -59,13 +73,69 @@ async function bootstrap() {
       'access-token',
     )
     .addTag('Auth', 'Authentication operations')
-    .addTag('Users', 'User management operations')
+    .addTag(
+      'Users',
+      'User management operations including registration, onboarding, and user profile management',
+    )
     .addTag('Patients', 'Patient management operations')
     .addTag('Appointments', 'Appointment scheduling operations')
+    .addTag(
+      'Medical Order',
+      'Medical order management including prescriptions, study authorizations, certifications, hospitalization requests, appointment requests, and medication authorizations',
+    )
     .addTag('Medical Events', 'Medical events management')
+    .addTag('Medicine', 'Medicine management operations')
+    .addTag('Background', 'Background management operations')
+    .addTag('Vital Signs', 'Vital signs management operations')
     .addTag('Studies', 'Patient studies and results')
     .addTag('Prescriptions', 'Prescription management')
+    .addTag(
+      'Prescription Modification History',
+      'History of prescription modifications',
+    )
+    .addTag('Physical Exploration', 'Physical exploration data management')
+    .addTag(
+      'Physical Exploration Area',
+      'Management of physical exploration areas',
+    )
+    .addTag('Patient Studies', 'Management of patient studies and results')
+    .addTag('Physician Schedule', 'Physician schedule management operations')
     .addTag('Mood', 'Patient mood tracking')
+    .addTag(
+      'Mobile - Self-Evaluation Events',
+      'Patient self-evaluation events from mobile app',
+    )
+    .addTag(
+      'Catalogs - CIE-10',
+      'Management of CIE-10 catalog codes and descriptions',
+    )
+    .addTag(
+      'Catalogs - CIE-10 Subcategories',
+      'Management of CIE-10 subcategories associated with main categories',
+    )
+    .addTag(
+      'Catalogs - Measure Units',
+      'Management of measure units for vital signs',
+    )
+    .addTag('Catalogs - Study Types', 'Management of study types')
+    .addTag(
+      'Catalogs - Vital Signs',
+      'Management of vital signs for medical specialties',
+    )
+    .addTag('Catalogs - Order Types', 'Management of medical order types')
+    .addTag('Catalogs - Seed', 'Initialize catalog data with predefined values')
+    .addTag(
+      'Upload File',
+      'Utilities for uploading and storing files (images and PDF documents) using Cloudinary service',
+    )
+    .addTag(
+      'Roles',
+      'Role management and assignment operations for users, including permission management',
+    )
+    .addTag(
+      'Permission Updater',
+      'Utilities for updating and managing system-wide permission configurations',
+    )
     .setContact('SEGIMED Support', 'https://segimed.com', 'support@segimed.com')
     .setLicense('Private', '')
     .build();
@@ -74,7 +144,6 @@ async function bootstrap() {
     deepScanRoutes: true,
     operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
   });
-
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
@@ -99,7 +168,16 @@ async function bootstrap() {
     swaggerUrl: '/api-json',
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+
+  // Mensaje de bienvenida con link a Swagger
+  console.log('\n🎉 ¡Bienvenido a SEGIMED API!');
+  console.log('📋 Sistema integral de gestión médica');
+  console.log(`🚀 Servidor iniciado en: http://localhost:${port}`);
+  console.log(`📖 Documentación Swagger: http://localhost:${port}/api`);
+  console.log(`📊 API JSON: http://localhost:${port}/api-json`);
+  console.log('🏥 ¡Listo para gestionar datos médicos de forma segura!\n');
 }
 
 bootstrap();

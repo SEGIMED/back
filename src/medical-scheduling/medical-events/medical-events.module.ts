@@ -9,6 +9,8 @@ import { PhysicalExaminationModule } from '../modules/physical-examination-data/
 import { FileUploadService } from 'src/utils/file_upload/file_upload.service';
 import { FileUploadRepository } from 'src/utils/file_upload/file_upload.repository';
 import { CloudinaryConfig } from 'src/utils/cloudinary';
+import { PrescriptionModule } from '../modules/prescription/prescription.module';
+import { NotificationModule } from 'src/services/notification/notification.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { CloudinaryConfig } from 'src/utils/cloudinary';
     VitalSignsModule,
     PhysicalExplorationModule,
     PhysicalExaminationModule,
+    PrescriptionModule,
+    NotificationModule,
   ],
   controllers: [MedicalEventsController],
   providers: [

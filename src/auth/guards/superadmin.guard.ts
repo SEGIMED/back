@@ -18,7 +18,7 @@ export class SuperAdminGuard implements CanActivate {
     if (!userId) {
       throw new ForbiddenException('No autorizado');
     }
-
+    console.log('userId', userId);
     // Verificar si el usuario es superadmin
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

@@ -22,10 +22,18 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiHeader,
+  ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 
 @ApiTags('Patients')
 @ApiBearerAuth('access-token')
+@ApiHeader({
+  name: 'tenant-id',
+  description: 'ID del tenant al que pertenecen los pacientes',
+  required: true,
+})
 @Controller('patient')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class PatientController {
@@ -53,11 +61,28 @@ export class PatientController {
   create(@Body() medicalPatientDto: MedicalPatientDto): Promise<object> {
     return this.patientService.create(medicalPatientDto);
   }
-
   @Get()
   @ApiOperation({
     summary: 'Get all patients',
     description: 'Returns a list of all patients with pagination',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of records per page',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search query to filter patients',
+    type: String,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -75,11 +100,15 @@ export class PatientController {
   ) {
     return this.patientService.findAll(pagination, searchQuery);
   }
-
   @Get(':id')
   @ApiOperation({
     summary: 'Get patient by ID',
     description: 'Returns a single patient by ID',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the patient to retrieve',
+    type: String,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -98,11 +127,15 @@ export class PatientController {
   findOne(@Param('id') id: string) {
     return this.patientService.findOne(id);
   }
-
   @Patch(':id')
   @ApiOperation({
     summary: 'Update patient',
     description: 'Updates an existing patient by ID',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the patient to update',
+    type: String,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -128,11 +161,15 @@ export class PatientController {
   ) {
     return this.patientService.update(id, medicalPatientDto);
   }
-
   @Delete(':id')
   @ApiOperation({
     summary: 'Delete patient',
     description: 'Deletes a patient by ID',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID of the patient to delete',
+    type: String,
   })
   @ApiResponse({
     status: HttpStatus.OK,
