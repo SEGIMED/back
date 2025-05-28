@@ -1,0 +1,35 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['20.x'] # Coincidir con la versión en tu Dockerfile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        # Puedes usar 'npm run test:cov' si quieres reportes de cobertura
+        run: npm run test
+
+      - name: Build project
+        run: npm run build
+        env:
+          NODE_ENV: production
