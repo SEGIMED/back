@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { SubcatCieDiezService } from './subcat-cie-diez.service';
 import { CreateSubcatCieDiezDto } from './dto/create-subcat-cie-diez.dto';
-import { UpdateSubcatCieDiezDto } from './dto/update-subcat-cie-diez.dto';
 import { PaginationParams } from 'src/utils/pagination.helper';
+import { UpdateSubcatCieDiezDto } from 'src/catalogs/subcat-cie-diez/dto/update-subcat-cie-diez.dto';
 
 @Controller('subcat-cie-diez')
 export class SubcatCieDiezController {

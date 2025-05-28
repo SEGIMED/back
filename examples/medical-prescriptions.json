@@ -1,0 +1,89 @@
+[
+  {
+    "type": "medication",
+    "comment": "Ejemplo de prescripción médica en orden médica",
+    "body": {
+      "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+      "description_type": "Receta médica para control de dolor",
+      "medications": [
+        {
+          "monodrug": "Paracetamol",
+          "dose": "500",
+          "dose_units": "mg",
+          "frecuency": "Cada 8 horas",
+          "duration": "7",
+          "duration_units": "días",
+          "observations": "Tomar con alimentos"
+        },
+        {
+          "monodrug": "Ibuprofeno",
+          "dose": "400",
+          "dose_units": "mg",
+          "frecuency": "Cada 12 horas",
+          "duration": "5",
+          "duration_units": "días",
+          "observations": "Tomar después de las comidas para evitar irritación estomacal"
+        }
+      ]
+    }
+  },
+  {
+    "type": "medication-authorization",
+    "comment": "Ejemplo de autorización de medicamentos",
+    "body": {
+      "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+      "description_type": "Autorización para medicamentos de uso crónico",
+      "medications": [
+        {
+          "monodrug": "Losartán",
+          "dose": "50",
+          "dose_units": "mg",
+          "frecuency": "Una vez al día",
+          "duration": "30",
+          "duration_units": "días",
+          "observations": "Tomar por la mañana para control de hipertensión arterial"
+        },
+        {
+          "monodrug": "Atorvastatina",
+          "dose": "20",
+          "dose_units": "mg",
+          "frecuency": "Una vez al día",
+          "duration": "30",
+          "duration_units": "días",
+          "observations": "Tomar por la noche para control de colesterol"
+        }
+      ]
+    }
+  },
+  {
+    "type": "medication_in_consultation",
+    "comment": "Ejemplo para agregar medicación durante una consulta médica",
+    "body": {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "physician_comments": "Paciente con dolor en articulaciones",
+      "main_diagnostic_cie": "M25.5",
+      "treatment": "Reposo relativo, aplicación de frío local",
+      "consultation_ended": true,
+      "medications": [
+        {
+          "monodrug": "Diclofenaco",
+          "dose": "50",
+          "dose_units": "mg",
+          "frecuency": "Cada 8 horas",
+          "duration": "5",
+          "duration_units": "días",
+          "observations": "Tomar con alimentos"
+        },
+        {
+          "monodrug": "Meloxicam",
+          "dose": "15",
+          "dose_units": "mg",
+          "frecuency": "Una vez al día",
+          "duration": "7",
+          "duration_units": "días",
+          "observations": "Tomar después del desayuno"
+        }
+      ]
+    }
+  }
+]

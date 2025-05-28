@@ -1,0 +1,43 @@
+{
+  "autorizacionEstudio": {
+    "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+    "cat_study_type_id": 1,
+    "request_reason": "Se requiere resonancia magnética para evaluar lesión en rodilla",
+    "description_type": "Resonancia Magnética de Rodilla",
+    "application_date": "2023-12-01T10:00:00Z",
+    "url": "https://example.com/orders/estudio-123.pdf"
+  },
+  "certificado": {
+    "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+    "cat_certification_type_id": 2,
+    "category_cie_diez_id": 45,
+    "description_type": "Certificado médico para ausentismo laboral",
+    "application_date": "2023-12-01T10:00:00Z",
+    "url": "https://example.com/orders/certificado-123.pdf"
+  },
+  "certificadoPersonalizado": {
+    "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+    "cat_certification_type_id": 1,
+    "category_cie_diez_id": 45,
+    "description_type": "Certificado de aptitud para actividades deportivas",
+    "application_date": "2023-12-01T10:00:00Z",
+    "url": "https://example.com/orders/certificado-personalizado-123.pdf"
+  },
+  "solicitudHospitalizacion": {
+    "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+    "category_cie_diez_id": 78,
+    "hospitalization_reason": "Paciente requiere intervención quirúrgica programada",
+    "request_reason": "Hernia discal que requiere cirugía",
+    "description_type": "Internación para cirugía de columna",
+    "application_date": "2023-12-01T10:00:00Z",
+    "url": "https://example.com/orders/hospitalizacion-123.pdf"
+  },
+  "solicitudTurno": {
+    "patient_id": "123e4567-e89b-12d3-a456-426614174000",
+    "cat_speciality_id": 3,
+    "category_cie_diez_id": 52,
+    "description_type": "Derivación a traumatología por dolor en rodilla",
+    "application_date": "2023-12-01T10:00:00Z",
+    "url": "https://example.com/orders/turno-123.pdf"
+  }
+}
