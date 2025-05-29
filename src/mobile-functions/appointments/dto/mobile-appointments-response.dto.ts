@@ -17,7 +17,7 @@ export class PhysicianDto {
     description: 'Apellido del médico',
     example: 'Pérez',
   })
-  surname: string;
+  last_name: string;
 
   @ApiPropertyOptional({
     description: 'URL de la imagen/foto del médico',

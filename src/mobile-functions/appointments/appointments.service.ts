@@ -116,7 +116,7 @@ export class MobileAppointmentsService {
         physician: {
           id: nextAppointment.physician.id,
           name: nextAppointment.physician.name,
-          surname: nextAppointment.physician.last_name,
+          last_name: nextAppointment.physician.last_name,
           image: nextAppointment.physician.image,
           specialty: specialty,
         },
@@ -228,7 +228,7 @@ export class MobileAppointmentsService {
           physician: {
             id: appointment.physician.id,
             name: appointment.physician.name,
-            surname: appointment.physician.last_name,
+            last_name: appointment.physician.last_name,
             image: appointment.physician.image,
             specialty: specialty,
           },
