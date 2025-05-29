@@ -39,7 +39,8 @@ export class PatientService {
 
       const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
 
-      const existingUserWithSameTenant = await this.prisma.user.findFirst({
+      // Buscar si ya existe un usuario con ese email
+      const existingUser = await this.prisma.user.findFirst({
         where: {
           email: user.email,
         },
@@ -57,21 +58,108 @@ export class PatientService {
         },
       });
 
+      // Si el usuario ya existe y ya tiene este tenant asociado, devolver error
       if (
-        existingUserWithSameTenant &&
-        existingUserWithSameTenant.patient &&
-        existingUserWithSameTenant.patient.patient_tenant &&
-        existingUserWithSameTenant.patient.patient_tenant.length > 0
+        existingUser &&
+        existingUser.patient &&
+        existingUser.patient.patient_tenant &&
+        existingUser.patient.patient_tenant.length > 0
       ) {
         throw new BadRequestException(
           'El usuario ya existe para esta organización',
         );
       }
 
+      // Si el usuario existe pero NO tiene el tenant asociado, agregarlo
+      if (existingUser && existingUser.patient) {
+        console.log(
+          `🔗 Usuario existente encontrado: ${existingUser.email}. Asociando al tenant: ${tenant_id}`,
+        );
+
+        await this.prisma.$transaction(async (transaction) => {
+          // Crear la asociación patient_tenant
+          await transaction.patient_tenant.create({
+            data: {
+              patient_id: existingUser.patient.id,
+              tenant_id: tenant_id,
+            },
+          });
+
+          // Asignar el rol de paciente para este tenant
+          await this.userRoleManager.assignDefaultRoleToUser(
+            existingUser.id,
+            'patient',
+            tenant_id,
+          );
+        });
+
+        return {
+          message: 'Paciente asociado exitosamente a la organización',
+          userId: existingUser.id,
+          action: 'associated',
+        };
+      }
+
+      // Si el usuario existe pero NO es paciente, convertirlo en paciente
+      if (existingUser && !existingUser.patient) {
+        console.log(
+          `🔄 Usuario existente encontrado pero no es paciente: ${existingUser.email}. Creando registro de paciente.`,
+        );
+
+        let patientId: string;
+        await this.prisma.$transaction(async (transaction) => {
+          // Crear el registro de paciente
+          const newPatient = await transaction.patient.create({
+            data: {
+              ...patient,
+              user_id: existingUser.id,
+            },
+          });
+
+          patientId = newPatient.id;
+
+          // Crear la asociación patient_tenant
+          await transaction.patient_tenant.create({
+            data: {
+              patient_id: newPatient.id,
+              tenant_id: tenant_id,
+            },
+          });
+
+          // Actualizar el rol del usuario a paciente si es necesario
+          if (existingUser.role !== 'patient') {
+            await transaction.user.update({
+              where: { id: existingUser.id },
+              data: { role: 'patient' },
+            });
+          }
+        });
+
+        // Asignar el rol de paciente para este tenant
+        await this.userRoleManager.assignDefaultRoleToUser(
+          existingUser.id,
+          'patient',
+          tenant_id,
+        );
+
+        return {
+          message: 'Usuario convertido a paciente y asociado exitosamente',
+          userId: existingUser.id,
+          patientId: patientId,
+          action: 'converted',
+        };
+      }
+
+      // Si el usuario NO existe, crear todo desde cero (lógica original)
+      console.log(
+        `➕ Usuario nuevo: ${user.email}. Creando usuario y paciente desde cero.`,
+      );
+
       let newUserId: string;
       const saltRounds = parseInt(
         this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
       );
+
       await this.prisma.$transaction(async (transaction) => {
         const newUser = await transaction.user.create({
           data: {
@@ -97,6 +185,7 @@ export class PatientService {
           },
         });
 
+        // Enviar credenciales solo para usuarios nuevos
         await this.emailService.sendMail(
           user.email,
           'Credenciales Segimed',
@@ -110,7 +199,11 @@ export class PatientService {
         tenant_id,
       );
 
-      return { message: 'Paciente creado exitosamente' };
+      return {
+        message: 'Paciente creado exitosamente',
+        userId: newUserId,
+        action: 'created',
+      };
     } catch (error) {
       console.error('Error al crear paciente:', error);
       if (error instanceof BadRequestException) {

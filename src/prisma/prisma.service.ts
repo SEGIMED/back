@@ -10,9 +10,10 @@ export class PrismaService
   async onModuleInit() {
     await this.$connect();
 
+    // Middleware refactorizado con soporte multi-tenant
     this.$use(tenantPrismaMiddleware());
 
-    console.log('Prisma middleware registered');
+    console.log('Prisma middleware registered with multi-tenant support');
   }
 
   async onModuleDestroy() {

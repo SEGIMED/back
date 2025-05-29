@@ -29,6 +29,23 @@ export function tenantPrismaMiddleware() {
     try {
       const tenant_id = params.args?.tenant_id || global.tenant_id;
 
+      // Verificar si ya hay un filtro multi-tenant en el where
+      const hasMultiTenantFilter =
+        params.args?.where?.tenant_id &&
+        typeof params.args.where.tenant_id === 'object' &&
+        params.args.where.tenant_id.in;
+
+      // Si ya tiene filtro multi-tenant, permitir la consulta sin modificar
+      if (hasMultiTenantFilter) {
+        // Solo log en desarrollo para debugging
+        if (process.env.NODE_ENV === 'development') {
+          console.log(
+            `Multi-tenant query detected for ${params.model}, skipping middleware tenant filter`,
+          );
+        }
+        return next(params, params.args);
+      }
+
       if (modelRules.requireTenantId && !tenant_id) {
         throw new Error(
           `Tenant verification failed: missing tenant_id for ${params.model} in ${params.action} action.`,
