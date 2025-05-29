@@ -47,6 +47,7 @@ Directory Structure
 ================================================================
 .dockerignore
 .eslintrc.js
+.github/workflows/node-ci.yml
 .gitignore
 .prettierrc
 DockerFile
@@ -65,6 +66,7 @@ src/app.service.ts
 src/auth/controllers/permission-updater.controller.ts
 src/auth/controllers/roles.controller.ts
 src/auth/decorators/get-tenant.decorator.ts
+src/auth/decorators/get-tenants.decorator.ts
 src/auth/decorators/get-user.decorator.ts
 src/auth/decorators/require-permission.decorator.ts
 src/auth/guard-auth.module.ts
@@ -80,10 +82,8 @@ src/auth/permissions/permissions.service.ts
 src/auth/roles/roles.service.ts
 src/auth/roles/user-role-manager.service.ts
 src/auth/services/permission-updater.service.ts
-src/catalogs/cat-cie-diez/cat-cie-diez.controller.spec.ts
 src/catalogs/cat-cie-diez/cat-cie-diez.controller.ts
 src/catalogs/cat-cie-diez/cat-cie-diez.module.ts
-src/catalogs/cat-cie-diez/cat-cie-diez.service.spec.ts
 src/catalogs/cat-cie-diez/cat-cie-diez.service.ts
 src/catalogs/cat-cie-diez/dto/create-cat-cie-diez.dto.ts
 src/catalogs/cat-cie-diez/dto/update-cat-cie-diez.dto.ts
@@ -118,10 +118,8 @@ src/catalogs/seed/cie10B.json
 src/catalogs/subcat-cie-diez/dto/create-subcat-cie-diez.dto.ts
 src/catalogs/subcat-cie-diez/dto/update-subcat-cie-diez.dto.ts
 src/catalogs/subcat-cie-diez/entities/subcat-cie-diez.entity.ts
-src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.spec.ts
 src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.ts
 src/catalogs/subcat-cie-diez/subcat-cie-diez.module.ts
-src/catalogs/subcat-cie-diez/subcat-cie-diez.service.spec.ts
 src/catalogs/subcat-cie-diez/subcat-cie-diez.service.ts
 src/docs/appointments.md
 src/docs/auth.md
@@ -136,6 +134,8 @@ src/docs/Manual_de_Introducción_a_Segimed.md
 src/docs/medical_order.md
 src/docs/medical-events.md
 src/docs/medicine.md
+src/docs/mobile-latest-vital-signs.md
+src/docs/mobile-vital-sign-history.md
 src/docs/mood.md
 src/docs/notification-service.md
 src/docs/order-type.md
@@ -154,10 +154,8 @@ src/docs/SWAGGER_DOCUMENTATION_REPORT.md
 src/docs/user.md
 src/docs/vital-signs.md
 src/main.ts
-src/management/auth/auth.controller.spec.ts
 src/management/auth/auth.controller.ts
 src/management/auth/auth.module.ts
-src/management/auth/auth.service.spec.ts
 src/management/auth/auth.service.ts
 src/management/auth/dto/create-auth.dto.ts
 src/management/auth/dto/create-superadmin.dto.ts
@@ -170,10 +168,8 @@ src/management/patient/dto/get-patient.dto.ts
 src/management/patient/dto/medical-patient.dto.ts
 src/management/patient/dto/update-patient.dto.ts
 src/management/patient/entities/patient.interface.ts
-src/management/patient/patient.controller.spec.ts
 src/management/patient/patient.controller.ts
 src/management/patient/patient.module.ts
-src/management/patient/patient.service.spec.ts
 src/management/patient/patient.service.ts
 src/management/suscription/paypal/paypal.controller.ts
 src/management/suscription/paypal/paypal.module.ts
@@ -184,10 +180,8 @@ src/management/user/dto/onboarding-user.dto.ts
 src/management/user/dto/update-user.dto.ts
 src/management/user/entities/user.interface.ts
 src/management/user/roles.enum.ts
-src/management/user/user.controller.spec.ts
 src/management/user/user.controller.ts
 src/management/user/user.module.ts
-src/management/user/user.service.spec.ts
 src/management/user/user.service.ts
 src/medical_order/dto/create-medical_order.dto.ts
 src/medical_order/dto/medical-order-response.dto.ts
@@ -262,12 +256,20 @@ src/medical-scheduling/modules/vital-signs/dto/update-vital-sign.dto.ts
 src/medical-scheduling/modules/vital-signs/vital-signs.controller.ts
 src/medical-scheduling/modules/vital-signs/vital-signs.module.ts
 src/medical-scheduling/modules/vital-signs/vital-signs.service.ts
+src/mobile-functions/appointments/appointments.controller.spec.ts
+src/mobile-functions/appointments/appointments.controller.ts
+src/mobile-functions/appointments/appointments.module.ts
+src/mobile-functions/appointments/appointments.service.ts
+src/mobile-functions/appointments/dto/mobile-appointments-response.dto.ts
+src/mobile-functions/appointments/README.md
 src/mobile-functions/mobile-functions.module.ts
 src/mobile-functions/mood/dto/create-mood.dto.ts
 src/mobile-functions/mood/mood.controller.ts
 src/mobile-functions/mood/mood.module.ts
 src/mobile-functions/mood/mood.service.ts
 src/mobile-functions/self-evaluation-event/dto/create-self-evaluation-event.dto.ts
+src/mobile-functions/self-evaluation-event/dto/latest-vital-signs-response.dto.ts
+src/mobile-functions/self-evaluation-event/dto/vital-sign-history-response.dto.ts
 src/mobile-functions/self-evaluation-event/self-evaluation-event.controller.ts
 src/mobile-functions/self-evaluation-event/self-evaluation-event.module.ts
 src/mobile-functions/self-evaluation-event/self-evaluation-event.service.ts
@@ -340,6 +342,45 @@ module.exports = {
     'prettier/prettier': ['error', { endOfLine: 'auto' }],
   },
 };
+
+================
+File: .github/workflows/node-ci.yml
+================
+name: Node.js CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ['20.x'] # Coincidir con la versión en tu Dockerfile
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        # Puedes usar 'npm run test:cov' si quieres reportes de cobertura
+        run: npm run test
+
+      - name: Build project
+        run: npm run build
+        env:
+          NODE_ENV: production
 
 ================
 File: .gitignore
@@ -1573,12 +1614,17 @@ describe('AppController', () => {
 ================
 File: src/app.controller.ts
 ================
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
+
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
+  }
 }
 
 ================
@@ -2219,6 +2265,18 @@ export const GetTenant = createParamDecorator(
 );
 
 ================
+File: src/auth/decorators/get-tenants.decorator.ts
+================
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+
+export const GetTenants = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.userTenants;
+  },
+);
+
+================
 File: src/auth/decorators/get-user.decorator.ts
 ================
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
@@ -2374,7 +2432,7 @@ export class SuperAdminGuard implements CanActivate {
     if (!userId) {
       throw new ForbiddenException('No autorizado');
     }
-
+    console.log('userId', userId);
     // Verificar si el usuario es superadmin
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -3800,6 +3858,13 @@ export class PermissionUpdaterService {
         Permission.DELETE_MEDICAL_ORDERS,
         Permission.VIEW_MEDICAL_ORDERS,
         Permission.UPDATE_MEDICAL_ORDERS,
+        Permission.SCHEDULE_APPOINTMENTS,
+        Permission.EDIT_CANCEL_APPOINTMENTS,
+        Permission.CONFIRM_PATIENT_ATTENDANCE,
+        Permission.BLOCK_SCHEDULE,
+        Permission.AUTOMATIC_REMINDERS,
+        Permission.VIEW_STATISTICS,
+        Permission.SCHEDULE_OWN_APPOINTMENT,
       ];
 
       const patientPermissions = [
@@ -4003,30 +4068,6 @@ export class PermissionUpdaterService {
 }
 
 ================
-File: src/catalogs/cat-cie-diez/cat-cie-diez.controller.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { CatCieDiezController } from './cat-cie-diez.controller';
-import { CatCieDiezService } from './cat-cie-diez.service';
-
-describe('CatCieDiezController', () => {
-  let controller: CatCieDiezController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [CatCieDiezController],
-      providers: [CatCieDiezService],
-    }).compile();
-
-    controller = module.get<CatCieDiezController>(CatCieDiezController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
-
-================
 File: src/catalogs/cat-cie-diez/cat-cie-diez.controller.ts
 ================
 import {
@@ -4157,28 +4198,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
   providers: [CatCieDiezService, PrismaService],
 })
 export class CatCieDiezModule {}
-
-================
-File: src/catalogs/cat-cie-diez/cat-cie-diez.service.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { CatCieDiezService } from './cat-cie-diez.service';
-
-describe('CatCieDiezService', () => {
-  let service: CatCieDiezService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [CatCieDiezService],
-    }).compile();
-
-    service = module.get<CatCieDiezService>(CatCieDiezService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
 
 ================
 File: src/catalogs/cat-cie-diez/cat-cie-diez.service.ts
@@ -63384,30 +63403,6 @@ File: src/catalogs/subcat-cie-diez/entities/subcat-cie-diez.entity.ts
 export class SubcatCieDiez {}
 
 ================
-File: src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { SubcatCieDiezController } from './subcat-cie-diez.controller';
-import { SubcatCieDiezService } from './subcat-cie-diez.service';
-
-describe('SubcatCieDiezController', () => {
-  let controller: SubcatCieDiezController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [SubcatCieDiezController],
-      providers: [SubcatCieDiezService],
-    }).compile();
-
-    controller = module.get<SubcatCieDiezController>(SubcatCieDiezController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
-
-================
 File: src/catalogs/subcat-cie-diez/subcat-cie-diez.controller.ts
 ================
 import {
@@ -63627,28 +63622,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
   providers: [SubcatCieDiezService, PrismaService],
 })
 export class SubcatCieDiezModule {}
-
-================
-File: src/catalogs/subcat-cie-diez/subcat-cie-diez.service.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { SubcatCieDiezService } from './subcat-cie-diez.service';
-
-describe('SubcatCieDiezService', () => {
-  let service: SubcatCieDiezService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [SubcatCieDiezService],
-    }).compile();
-
-    service = module.get<SubcatCieDiezService>(SubcatCieDiezService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
 
 ================
 File: src/catalogs/subcat-cie-diez/subcat-cie-diez.service.ts
@@ -66857,19 +66830,18 @@ La integración con esta API permite al sistema acceder a una base de datos actu
 
 A continuación, se detallan los endpoints disponibles en el módulo de medicinas:
 
-### POST /medicine/searchMedicine
+### GET /medicine/searchMedicine
 
-Busca medicinas basadas en el principio activo y el nombre del producto.
+Busca medicamentos utilizando un texto que se aplica tanto al principio activo como al nombre del producto.
 
 **Parámetros de Query:**
 
-- `drug` (string, opcional): El principio activo del medicamento a buscar.
-- `product` (string, opcional): El nombre del producto del medicamento a buscar.
+- `query` (string, requerido): Texto a buscar en el principio activo y nombre del producto.
 
 **Ejemplo de Petición:**
 
 ```http
-POST /medicine/searchMedicine?drug=Amoxicilina&product=Amoxidal
+GET /medicine/searchMedicine?query=clon
 ```
 
 **Respuesta Exitosa (200 OK):**
@@ -66877,30 +66849,645 @@ POST /medicine/searchMedicine?drug=Amoxicilina&product=Amoxidal
 ```json
 [
   {
-    "id": 1,
-    "principioActivo": "Amoxicilina",
-    "producto": "Amoxidal",
-    "presentacion": "500mg",
-    "laboratorio": "Roemmers"
-    // ... otros campos relevantes
+    "id": "EXP123456",
+    "active_principle": "Clonazepam",
+    "product": "Clonazepam Genfar",
+    "presentation": "Tableta",
+    "administration_route": "Oral",
+    "quantity": "2",
+    "measurement_unit": "mg"
   }
 ]
 ```
 
-**Respuesta de Error (ej. 400 Bad Request):**
+**Respuesta de Error (400 Bad Request):**
 
 ```json
 {
   "statusCode": 400,
-  "message": "Parámetros de búsqueda inválidos",
+  "message": "El parámetro de búsqueda es requerido",
   "error": "Bad Request"
 }
 ```
 
 **Notas Adicionales:**
 
-- Al menos uno de los parámetros de query (`drug` o `product`) debe ser proporcionado.
-- La respuesta incluirá un arreglo de objetos, donde cada objeto representa un medicamento que coincide con los criterios de búsqueda.
+- El parámetro `query` es obligatorio y no puede estar vacío.
+- La búsqueda se aplica a ambos campos: principio activo Y producto.
+- La respuesta incluirá medicamentos que coincidan en cualquiera de los dos campos.
+
+================
+File: src/docs/mobile-latest-vital-signs.md
+================
+# API de Últimos Signos Vitales - Móvil
+
+Este endpoint permite a los pacientes obtener el último registro de todos los tipos de signos vitales del catálogo, independientemente de si fueron registrados durante una consulta médica o mediante autoevaluación.
+
+## Endpoint
+
+### Obtener Último Registro de Todos los Signos Vitales
+
+```http
+GET /mobile/self-evaluation-event/latest-vital-signs/all
+```
+
+Obtiene el último valor registrado para cada tipo de signo vital del catálogo para el paciente autenticado.
+
+#### Headers Requeridos
+
+| Header        | Requerido | Descripción                  |
+| ------------- | --------- | ---------------------------- |
+| Authorization | Sí        | Bearer {access_token}        |
+| tenant-id     | Sí        | UUID del tenant del paciente |
+
+#### Permisos Requeridos
+
+- **Autenticación**: Requerida (Paciente vía JWT)
+- **Permiso**: `VIEW_PATIENT_DETAILS`
+- **Acceso**: El paciente solo puede acceder a su propia información
+
+#### Lógica de Negocio
+
+1. **Extracción del paciente**: Se obtiene el `patient_id` del token JWT del usuario autenticado
+2. **Obtención del catálogo**: Se recuperan todos los tipos de signos vitales del catálogo (`cat_vital_signs`)
+3. **Búsqueda de registros**: Para cada tipo de signo vital del catálogo:
+   - Se busca el registro más reciente en la tabla `vital_signs` para el `patient_id` y el `vital_sign_id` actual
+   - Se consideran tanto los registros asociados a `medical_event_id` como a `self_evaluation_event_id`
+   - Se ordena por `created_at DESC` y se toma el primero
+4. **Construcción de respuesta**:
+   - Si se encuentra un registro: se incluye la medida, fecha de creación e información del catálogo
+   - Si no se encuentra: el valor de la medida es "Sin datos" y la fecha es `null`
+5. **Información incluida**: Se incluye toda la información del catálogo excepto el campo `specialties`
+
+#### Respuesta
+
+**Código de Estado**: 200 OK
+
+```json
+{
+  "data": [
+    {
+      "vital_sign": {
+        "id": 1,
+        "name": "Frecuencia Cardíaca",
+        "category": "Cardiovascular",
+        "color": "#FF5733",
+        "mini_icon": "heart-mini",
+        "icon": "heart-icon",
+        "background_icon": "heart-background",
+        "normal_min_value": 60,
+        "normal_max_value": 100,
+        "slightly_high_value": 120,
+        "high_max_value": 140,
+        "critical_max_value": 180
+      },
+      "measure": 98,
+      "created_at": "2024-01-15T10:30:00.000Z",
+      "cat_measure_unit": {
+        "id": 1,
+        "name": "bpm",
+        "description": "Latidos por minuto"
+      }
+    },
+    {
+      "vital_sign": {
+        "id": 2,
+        "name": "Temperatura",
+        "category": "General",
+        "color": "#FFA500",
+        "mini_icon": "temp-mini",
+        "icon": "temp-icon",
+        "background_icon": "temp-background",
+        "normal_min_value": 36.1,
+        "normal_max_value": 37.2,
+        "slightly_high_value": 37.5,
+        "high_max_value": 38.5,
+        "critical_max_value": 40.0
+      },
+      "measure": 36.8,
+      "created_at": "2024-01-14T15:45:00.000Z",
+      "cat_measure_unit": {
+        "id": 2,
+        "name": "°C",
+        "description": "Grados Celsius"
+      }
+    },
+    {
+      "vital_sign": {
+        "id": 3,
+        "name": "Presión Arterial",
+        "category": "Cardiovascular",
+        "color": "#FF0000",
+        "mini_icon": "pressure-mini",
+        "icon": "pressure-icon",
+        "background_icon": "pressure-background",
+        "normal_min_value": 90,
+        "normal_max_value": 140,
+        "slightly_high_value": 150,
+        "high_max_value": 180,
+        "critical_max_value": 200
+      },
+      "measure": "Sin datos",
+      "created_at": null,
+      "cat_measure_unit": {
+        "id": 3,
+        "name": "mmHg",
+        "description": "Milímetros de mercurio"
+      }
+    }
+  ]
+}
+```
+
+#### Estructura de la Respuesta
+
+| Campo                                   | Tipo                  | Descripción                                           |
+| --------------------------------------- | --------------------- | ----------------------------------------------------- |
+| `data`                                  | Array                 | Array de objetos con información de signos vitales    |
+| `data[].vital_sign`                     | Object                | Información del catálogo del signo vital              |
+| `data[].vital_sign.id`                  | number                | ID del signo vital en el catálogo                     |
+| `data[].vital_sign.name`                | string                | Nombre del signo vital                                |
+| `data[].vital_sign.category`            | string                | Categoría del signo vital                             |
+| `data[].vital_sign.color`               | string \| null        | Color asociado para la UI                             |
+| `data[].vital_sign.mini_icon`           | string \| null        | Identificador del mini icono                          |
+| `data[].vital_sign.icon`                | string \| null        | Identificador del icono                               |
+| `data[].vital_sign.background_icon`     | string \| null        | Identificador del icono de fondo                      |
+| `data[].vital_sign.normal_min_value`    | number \| null        | Valor mínimo normal                                   |
+| `data[].vital_sign.normal_max_value`    | number \| null        | Valor máximo normal                                   |
+| `data[].vital_sign.slightly_high_value` | number \| null        | Valor umbral ligeramente alto                         |
+| `data[].vital_sign.high_max_value`      | number \| null        | Valor máximo alto                                     |
+| `data[].vital_sign.critical_max_value`  | number \| null        | Valor máximo crítico                                  |
+| `data[].measure`                        | number \| "Sin datos" | Último valor medido o "Sin datos" si no hay registros |
+| `data[].created_at`                     | string \| null        | Fecha de creación del último registro (ISO 8601)      |
+| `data[].cat_measure_unit`               | Object \| null        | Información de la unidad de medida                    |
+| `data[].cat_measure_unit.id`            | number                | ID de la unidad de medida                             |
+| `data[].cat_measure_unit.name`          | string                | Nombre de la unidad de medida                         |
+| `data[].cat_measure_unit.description`   | string                | Descripción de la unidad de medida                    |
+
+#### Códigos de Error
+
+**Código de Estado**: 400 Bad Request
+
+```json
+{
+  "statusCode": 400,
+  "message": "Error al obtener los últimos signos vitales: [detalle del error]",
+  "error": "Bad Request"
+}
+```
+
+**Código de Estado**: 401 Unauthorized
+
+```json
+{
+  "statusCode": 401,
+  "message": "Usuario no autenticado",
+  "error": "Unauthorized"
+}
+```
+
+**Código de Estado**: 403 Forbidden
+
+```json
+{
+  "statusCode": 403,
+  "message": "No tiene acceso a esta organización",
+  "error": "Forbidden"
+}
+```
+
+**Código de Estado**: 404 Not Found
+
+```json
+{
+  "statusCode": 404,
+  "message": "Paciente no encontrado",
+  "error": "Not Found"
+}
+```
+
+## Características Técnicas
+
+### Fuentes de Datos
+
+El endpoint considera registros de signos vitales de ambas fuentes:
+
+1. **Consultas Médicas**: Registros asociados a `medical_event_id`
+2. **Autoevaluaciones**: Registros asociados a `self_evaluation_event_id`
+
+### Ordenamiento
+
+- Los signos vitales se devuelven ordenados alfabéticamente por nombre
+- Para cada tipo, se toma el registro más reciente basado en `created_at`
+
+### Filtros Aplicados
+
+- Solo se consideran registros no eliminados (`deleted = false`)
+- Solo se incluyen registros del paciente autenticado
+- **No se aplica filtro por tenant** en los resultados como se especifica en los requisitos
+
+### Optimización
+
+- Se utiliza una consulta por cada tipo de signo vital para obtener el más reciente
+- Se incluyen las relaciones necesarias en una sola consulta para evitar N+1 queries
+
+## Casos de Uso
+
+### Aplicación Móvil
+
+Este endpoint es ideal para:
+
+1. **Dashboard del paciente**: Mostrar un resumen de todos los signos vitales
+2. **Historial médico**: Proporcionar una vista completa del estado de salud
+3. **Seguimiento de salud**: Permitir al paciente ver qué signos vitales ha registrado
+4. **Interfaz de autoevaluación**: Mostrar valores previos como referencia
+
+### Integración con UI
+
+La información del catálogo incluye campos específicos para la interfaz:
+
+- `color`: Para códigos de color en gráficos y elementos visuales
+- `mini_icon`, `icon`, `background_icon`: Para diferentes contextos de visualización
+- Rangos de valores: Para validación y alertas visuales
+
+## Seguridad
+
+- **Autenticación obligatoria**: Solo usuarios autenticados pueden acceder
+- **Autorización por paciente**: Cada paciente solo ve sus propios datos
+- **Validación de tenant**: Se verifica el acceso al tenant especificado
+- **Permisos granulares**: Requiere permiso específico para ver detalles del paciente
+
+================
+File: src/docs/mobile-vital-sign-history.md
+================
+# API de Historial de Signos Vitales - Móvil
+
+Este endpoint permite a los pacientes obtener un historial detallado y estadísticas mensuales para un tipo de signo vital específico, con datos organizados por semanas.
+
+## Endpoint
+
+### Obtener Historial y Analítica de un Signo Vital Específico
+
+```http
+GET /mobile/self-evaluation-event/vital-signs/:vitalSignTypeId/history?month=YYYY-MM
+```
+
+Obtiene un historial detallado y estadísticas mensuales para un tipo de signo vital específico registrado por el paciente (o por un médico en consulta).
+
+#### Path Parameters
+
+| Parámetro       | Tipo   | Requerido | Descripción                                                  |
+| --------------- | ------ | --------- | ------------------------------------------------------------ |
+| vitalSignTypeId | number | Sí        | ID del tipo de signo vital del catálogo (cat_vital_signs.id) |
+
+#### Query Parameters
+
+| Parámetro | Tipo   | Requerido | Descripción                              | Ejemplo   |
+| --------- | ------ | --------- | ---------------------------------------- | --------- |
+| month     | string | Sí        | Mes en formato YYYY-MM para el historial | "2023-10" |
+
+#### Headers Requeridos
+
+| Header        | Requerido | Descripción                  |
+| ------------- | --------- | ---------------------------- |
+| Authorization | Sí        | Bearer {access_token}        |
+| tenant-id     | Sí        | UUID del tenant del paciente |
+
+#### Permisos Requeridos
+
+- **Autenticación**: Requerida (Paciente vía JWT)
+- **Permiso**: `VIEW_PATIENT_DETAILS`
+- **Acceso**: El paciente solo puede acceder a su propia información
+
+#### Lógica de Negocio
+
+1. **Validación de parámetros**:
+
+   - Validar que `vitalSignTypeId` sea un número válido
+   - Validar que `month` tenga formato YYYY-MM
+   - Verificar que el tipo de signo vital existe en el catálogo
+
+2. **Extracción del paciente**: Se obtiene el `patient_id` del token JWT
+
+3. **Filtrado de registros**: Se obtienen todos los registros de `vital_signs` para:
+
+   - El `patient_id` del usuario autenticado
+   - El `vitalSignTypeId` especificado
+   - El mes especificado en el parámetro `month`
+   - Considerando tanto `medical_event_id` como `self_evaluation_event_id`
+
+4. **Cálculo de estadísticas mensuales**:
+
+   - **Último valor**: Último registro del mes por fecha
+   - **Valor máximo**: Mayor valor registrado en el mes
+   - **Valor mínimo**: Menor valor registrado en el mes
+   - **Promedio**: Promedio de todos los valores del mes
+   - **Alertas**: Cantidad de registros que superaron `critical_max_value`
+
+5. **Organización semanal**:
+   - Agrupar registros por semanas (domingo a sábado)
+   - Para cada día: calcular promedio si hay múltiples registros
+   - Incluir todos los días del mes, marcando "Sin datos" cuando no hay registros
+
+#### Respuesta
+
+**Código de Estado**: 200 OK
+
+```json
+{
+  "vital_sign": {
+    "id": 1,
+    "name": "Frecuencia Cardíaca",
+    "category": "Cardiovascular",
+    "color": "#FF5733",
+    "mini_icon": "heart-mini",
+    "icon": "heart-icon",
+    "background_icon": "heart-background",
+    "normal_min_value": 60,
+    "normal_max_value": 100,
+    "slightly_high_value": 120,
+    "high_max_value": 140,
+    "critical_max_value": 180
+  },
+  "cat_measure_unit": {
+    "id": 1,
+    "name": "bpm",
+    "description": "Latidos por minuto"
+  },
+  "month": "2023-10",
+  "monthly_stats": {
+    "last_value": 102,
+    "last_value_date": "2023-10-28T14:30:00.000Z",
+    "max_value": 110,
+    "max_value_date": "2023-10-15T09:15:00.000Z",
+    "min_value": 85,
+    "min_value_date": "2023-10-03T07:45:00.000Z",
+    "average_value": 96.8,
+    "total_records": 25,
+    "alerts_count": 3
+  },
+  "weekly_data": [
+    {
+      "week_number": 1,
+      "week_start": "2023-10-01",
+      "week_end": "2023-10-07",
+      "days": [
+        {
+          "day": 1,
+          "average_measure": 95.5,
+          "records_count": 2
+        },
+        {
+          "day": 2,
+          "average_measure": "Sin datos",
+          "records_count": 0
+        },
+        {
+          "day": 3,
+          "average_measure": 85,
+          "records_count": 1
+        },
+        {
+          "day": 4,
+          "average_measure": 92.3,
+          "records_count": 3
+        },
+        {
+          "day": 5,
+          "average_measure": "Sin datos",
+          "records_count": 0
+        },
+        {
+          "day": 6,
+          "average_measure": 98,
+          "records_count": 1
+        },
+        {
+          "day": 7,
+          "average_measure": 94.5,
+          "records_count": 2
+        }
+      ]
+    },
+    {
+      "week_number": 2,
+      "week_start": "2023-10-08",
+      "week_end": "2023-10-14",
+      "days": [
+        {
+          "day": 8,
+          "average_measure": 96,
+          "records_count": 1
+        }
+        // ... más días
+      ]
+    }
+    // ... más semanas
+  ]
+}
+```
+
+#### Estructura de la Respuesta
+
+| Campo                                  | Tipo                  | Descripción                                           |
+| -------------------------------------- | --------------------- | ----------------------------------------------------- |
+| `vital_sign`                           | Object                | Información del catálogo del signo vital              |
+| `vital_sign.id`                        | number                | ID del signo vital en el catálogo                     |
+| `vital_sign.name`                      | string                | Nombre del signo vital                                |
+| `vital_sign.category`                  | string                | Categoría del signo vital                             |
+| `vital_sign.color`                     | string \| null        | Color asociado para la UI                             |
+| `vital_sign.mini_icon`                 | string \| null        | Identificador del mini icono                          |
+| `vital_sign.icon`                      | string \| null        | Identificador del icono                               |
+| `vital_sign.background_icon`           | string \| null        | Identificador del icono de fondo                      |
+| `vital_sign.normal_min_value`          | number \| null        | Valor mínimo normal                                   |
+| `vital_sign.normal_max_value`          | number \| null        | Valor máximo normal                                   |
+| `vital_sign.slightly_high_value`       | number \| null        | Valor umbral ligeramente alto                         |
+| `vital_sign.high_max_value`            | number \| null        | Valor máximo alto                                     |
+| `vital_sign.critical_max_value`        | number \| null        | Valor máximo crítico                                  |
+| `cat_measure_unit`                     | Object \| null        | Información de la unidad de medida                    |
+| `cat_measure_unit.id`                  | number                | ID de la unidad de medida                             |
+| `cat_measure_unit.name`                | string                | Nombre de la unidad de medida                         |
+| `cat_measure_unit.description`         | string                | Descripción de la unidad de medida                    |
+| `month`                                | string                | Mes solicitado en formato YYYY-MM                     |
+| `monthly_stats`                        | Object                | Estadísticas del mes                                  |
+| `monthly_stats.last_value`             | number \| null        | Último valor registrado en el mes                     |
+| `monthly_stats.last_value_date`        | string \| null        | Fecha del último valor (ISO 8601)                     |
+| `monthly_stats.max_value`              | number \| null        | Valor máximo del mes                                  |
+| `monthly_stats.max_value_date`         | string \| null        | Fecha del valor máximo (ISO 8601)                     |
+| `monthly_stats.min_value`              | number \| null        | Valor mínimo del mes                                  |
+| `monthly_stats.min_value_date`         | string \| null        | Fecha del valor mínimo (ISO 8601)                     |
+| `monthly_stats.average_value`          | number \| null        | Promedio de valores del mes                           |
+| `monthly_stats.total_records`          | number                | Total de registros en el mes                          |
+| `monthly_stats.alerts_count`           | number                | Cantidad de registros que superaron umbrales críticos |
+| `weekly_data`                          | Array                 | Datos organizados por semanas                         |
+| `weekly_data[].week_number`            | number                | Número de semana en el mes (1-6)                      |
+| `weekly_data[].week_start`             | string                | Fecha de inicio de semana (domingo) YYYY-MM-DD        |
+| `weekly_data[].week_end`               | string                | Fecha de fin de semana (sábado) YYYY-MM-DD            |
+| `weekly_data[].days`                   | Array                 | Datos de cada día de la semana                        |
+| `weekly_data[].days[].day`             | number                | Día del mes (1-31)                                    |
+| `weekly_data[].days[].average_measure` | number \| "Sin datos" | Promedio de medidas del día o "Sin datos"             |
+| `weekly_data[].days[].records_count`   | number                | Cantidad de registros para ese día                    |
+
+#### Códigos de Error
+
+**Código de Estado**: 400 Bad Request
+
+```json
+{
+  "statusCode": 400,
+  "message": "El formato del mes debe ser YYYY-MM (ej. 2023-10)",
+  "error": "Bad Request"
+}
+```
+
+```json
+{
+  "statusCode": 400,
+  "message": "El parámetro month es requerido",
+  "error": "Bad Request"
+}
+```
+
+**Código de Estado**: 401 Unauthorized
+
+```json
+{
+  "statusCode": 401,
+  "message": "Usuario no autenticado",
+  "error": "Unauthorized"
+}
+```
+
+**Código de Estado**: 403 Forbidden
+
+```json
+{
+  "statusCode": 403,
+  "message": "No tiene acceso a esta organización",
+  "error": "Forbidden"
+}
+```
+
+**Código de Estado**: 404 Not Found
+
+```json
+{
+  "statusCode": 404,
+  "message": "Tipo de signo vital no encontrado",
+  "error": "Not Found"
+}
+```
+
+```json
+{
+  "statusCode": 404,
+  "message": "Paciente no encontrado",
+  "error": "Not Found"
+}
+```
+
+## Características Técnicas
+
+### Fuentes de Datos
+
+El endpoint considera registros de signos vitales de ambas fuentes:
+
+1. **Consultas Médicas**: Registros asociados a `medical_event_id`
+2. **Autoevaluaciones**: Registros asociados a `self_evaluation_event_id`
+
+### Organización Temporal
+
+#### Estadísticas Mensuales
+
+- **Último valor**: Basado en `created_at` más reciente
+- **Máximo/Mínimo**: Valores extremos con sus fechas correspondientes
+- **Promedio**: Calculado sobre todos los registros del mes
+- **Alertas**: Conteo de valores que superan `critical_max_value`
+
+#### Organización Semanal
+
+- **Semanas**: De domingo a sábado
+- **Cobertura completa**: Incluye todos los días del mes solicitado
+- **Promedio diario**: Si hay múltiples registros por día, se calcula el promedio
+- **Días sin datos**: Se marcan explícitamente como "Sin datos"
+
+### Filtros Aplicados
+
+- Solo registros no eliminados (`deleted = false`)
+- Solo registros del paciente autenticado
+- Solo registros del tipo de signo vital especificado
+- Solo registros dentro del rango de fechas del mes solicitado
+
+### Optimización
+
+- Una sola consulta para obtener todos los registros del mes
+- Procesamiento en memoria para estadísticas y agrupación semanal
+- Redondeo a 2 decimales para promedios
+
+## Casos de Uso
+
+### Aplicación Móvil
+
+Este endpoint es ideal para:
+
+1. **Gráficos de tendencias**: Mostrar evolución temporal de un signo vital
+2. **Análisis de patrones**: Identificar días/semanas con mejores/peores valores
+3. **Alertas de salud**: Mostrar cuántas veces se superaron umbrales críticos
+4. **Seguimiento médico**: Proporcionar datos detallados para consultas
+5. **Motivación del paciente**: Mostrar progreso y estadísticas de mejora
+
+### Integración con UI
+
+#### Gráficos y Visualizaciones
+
+- **Gráfico de líneas**: Usar datos semanales para mostrar tendencias
+- **Gráfico de barras**: Mostrar promedios semanales o diarios
+- **Indicadores**: Usar colores del catálogo para rangos de valores
+- **Alertas visuales**: Destacar días con valores críticos
+
+#### Dashboard de Salud
+
+- **Resumen mensual**: Mostrar estadísticas principales
+- **Comparación temporal**: Comparar con meses anteriores
+- **Objetivos de salud**: Comparar con rangos normales del catálogo
+
+## Seguridad
+
+- **Autenticación obligatoria**: Solo usuarios autenticados pueden acceder
+- **Autorización por paciente**: Cada paciente solo ve sus propios datos
+- **Validación de parámetros**: Formato de fecha y ID de signo vital
+- **Validación de tenant**: Se verifica el acceso al tenant especificado
+- **Permisos granulares**: Requiere permiso específico para ver detalles del paciente
+
+## Ejemplos de Uso
+
+### Solicitud Básica
+
+```bash
+GET /mobile/self-evaluation-event/vital-signs/1/history?month=2023-10
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+tenant-id: 123e4567-e89b-12d3-a456-426614174000
+```
+
+### Casos de Respuesta
+
+#### Mes con Datos Completos
+
+- Todas las estadísticas mensuales pobladas
+- Múltiples semanas con datos variados
+- Algunos días con múltiples registros (promediados)
+
+#### Mes con Pocos Datos
+
+- Estadísticas mensuales limitadas
+- Muchos días marcados como "Sin datos"
+- Alertas pueden ser cero
+
+#### Mes sin Datos
+
+- Todas las estadísticas mensuales en `null` o `0`
+- Todos los días marcados como "Sin datos"
+- Estructura semanal completa pero vacía
 
 ================
 File: src/docs/mood.md
@@ -70498,30 +71085,6 @@ async function bootstrap() {
 bootstrap();
 
 ================
-File: src/management/auth/auth.controller.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-
-describe('AuthController', () => {
-  let controller: AuthController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
-      providers: [AuthService],
-    }).compile();
-
-    controller = module.get<AuthController>(AuthController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
-
-================
 File: src/management/auth/auth.controller.ts
 ================
 import { Controller, Post, Body, Req, HttpStatus } from '@nestjs/common';
@@ -70727,28 +71290,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
   providers: [AuthService, PrismaService],
 })
 export class AuthModule {}
-
-================
-File: src/management/auth/auth.service.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-
-describe('AuthService', () => {
-  let service: AuthService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthService],
-    }).compile();
-
-    service = module.get<AuthService>(AuthService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
 
 ================
 File: src/management/auth/auth.service.ts
@@ -71666,30 +72207,6 @@ export interface Patient {
 }
 
 ================
-File: src/management/patient/patient.controller.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { PatientController } from './patient.controller';
-import { PatientService } from './patient.service';
-
-describe('PatientController', () => {
-  let controller: PatientController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [PatientController],
-      providers: [PatientService],
-    }).compile();
-
-    controller = module.get<PatientController>(PatientController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
-
-================
 File: src/management/patient/patient.controller.ts
 ================
 import {
@@ -71902,28 +72419,6 @@ import { GuardAuthModule } from '../../auth/guard-auth.module';
 export class PatientModule {}
 
 ================
-File: src/management/patient/patient.service.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { PatientService } from './patient.service';
-
-describe('PatientService', () => {
-  let service: PatientService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [PatientService],
-    }).compile();
-
-    service = module.get<PatientService>(PatientService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
-
-================
 File: src/management/patient/patient.service.ts
 ================
 import {
@@ -71967,7 +72462,8 @@ export class PatientService {
 
       const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
 
-      const existingUserWithSameTenant = await this.prisma.user.findFirst({
+      // Buscar si ya existe un usuario con ese email
+      const existingUser = await this.prisma.user.findFirst({
         where: {
           email: user.email,
         },
@@ -71985,21 +72481,108 @@ export class PatientService {
         },
       });
 
+      // Si el usuario ya existe y ya tiene este tenant asociado, devolver error
       if (
-        existingUserWithSameTenant &&
-        existingUserWithSameTenant.patient &&
-        existingUserWithSameTenant.patient.patient_tenant &&
-        existingUserWithSameTenant.patient.patient_tenant.length > 0
+        existingUser &&
+        existingUser.patient &&
+        existingUser.patient.patient_tenant &&
+        existingUser.patient.patient_tenant.length > 0
       ) {
         throw new BadRequestException(
           'El usuario ya existe para esta organización',
         );
       }
 
+      // Si el usuario existe pero NO tiene el tenant asociado, agregarlo
+      if (existingUser && existingUser.patient) {
+        console.log(
+          `🔗 Usuario existente encontrado: ${existingUser.email}. Asociando al tenant: ${tenant_id}`,
+        );
+
+        await this.prisma.$transaction(async (transaction) => {
+          // Crear la asociación patient_tenant
+          await transaction.patient_tenant.create({
+            data: {
+              patient_id: existingUser.patient.id,
+              tenant_id: tenant_id,
+            },
+          });
+
+          // Asignar el rol de paciente para este tenant
+          await this.userRoleManager.assignDefaultRoleToUser(
+            existingUser.id,
+            'patient',
+            tenant_id,
+          );
+        });
+
+        return {
+          message: 'Paciente asociado exitosamente a la organización',
+          userId: existingUser.id,
+          action: 'associated',
+        };
+      }
+
+      // Si el usuario existe pero NO es paciente, convertirlo en paciente
+      if (existingUser && !existingUser.patient) {
+        console.log(
+          `🔄 Usuario existente encontrado pero no es paciente: ${existingUser.email}. Creando registro de paciente.`,
+        );
+
+        let patientId: string;
+        await this.prisma.$transaction(async (transaction) => {
+          // Crear el registro de paciente
+          const newPatient = await transaction.patient.create({
+            data: {
+              ...patient,
+              user_id: existingUser.id,
+            },
+          });
+
+          patientId = newPatient.id;
+
+          // Crear la asociación patient_tenant
+          await transaction.patient_tenant.create({
+            data: {
+              patient_id: newPatient.id,
+              tenant_id: tenant_id,
+            },
+          });
+
+          // Actualizar el rol del usuario a paciente si es necesario
+          if (existingUser.role !== 'patient') {
+            await transaction.user.update({
+              where: { id: existingUser.id },
+              data: { role: 'patient' },
+            });
+          }
+        });
+
+        // Asignar el rol de paciente para este tenant
+        await this.userRoleManager.assignDefaultRoleToUser(
+          existingUser.id,
+          'patient',
+          tenant_id,
+        );
+
+        return {
+          message: 'Usuario convertido a paciente y asociado exitosamente',
+          userId: existingUser.id,
+          patientId: patientId,
+          action: 'converted',
+        };
+      }
+
+      // Si el usuario NO existe, crear todo desde cero (lógica original)
+      console.log(
+        `➕ Usuario nuevo: ${user.email}. Creando usuario y paciente desde cero.`,
+      );
+
       let newUserId: string;
       const saltRounds = parseInt(
         this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
       );
+
       await this.prisma.$transaction(async (transaction) => {
         const newUser = await transaction.user.create({
           data: {
@@ -72025,6 +72608,7 @@ export class PatientService {
           },
         });
 
+        // Enviar credenciales solo para usuarios nuevos
         await this.emailService.sendMail(
           user.email,
           'Credenciales Segimed',
@@ -72038,7 +72622,11 @@ export class PatientService {
         tenant_id,
       );
 
-      return { message: 'Paciente creado exitosamente' };
+      return {
+        message: 'Paciente creado exitosamente',
+        userId: newUserId,
+        action: 'created',
+      };
     } catch (error) {
       console.error('Error al crear paciente:', error);
       if (error instanceof BadRequestException) {
@@ -72991,30 +73579,6 @@ export enum Rol {
 }
 
 ================
-File: src/management/user/user.controller.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
-
-describe('UserController', () => {
-  let controller: UserController;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [UserController],
-      providers: [UserService],
-    }).compile();
-
-    controller = module.get<UserController>(UserController);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
-
-================
 File: src/management/user/user.controller.ts
 ================
 import {
@@ -73160,28 +73724,6 @@ import { GuardAuthModule } from '../../auth/guard-auth.module';
   providers: [UserService, PrismaService],
 })
 export class UserModule {}
-
-================
-File: src/management/user/user.service.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { UserService } from './user.service';
-
-describe('UserService', () => {
-  let service: UserService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService],
-    }).compile();
-
-    service = module.get<UserService>(UserService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
 
 ================
 File: src/management/user/user.service.ts
@@ -77299,179 +77841,165 @@ export class MedicalEventsService {
         }
       }
 
-      // Actualizar el evento médico en una transacción
-      return await this.prisma.$transaction(async (tx) => {
-        // 1. Actualizar datos básicos del evento médico
-        await tx.medical_event.update({
-          where: { id },
-          data: {
-            ...basicData,
-            main_diagnostic_cie,
-            updated_at: new Date(),
-          },
-        });
-
-        // 2. Actualizar signos vitales si se proporcionaron
-        if (vital_signs && vital_signs.length > 0) {
-          await this.vitalSignsService.create({
-            patient_id: medicalEvent.patient_id,
-            tenant_id,
-            medical_event_id: id,
-            vital_signs,
-          });
-        }
-
-        // 3. Actualizar las subcategorías CIE-10 si se proporcionaron
-        if (subcategory_cie_ids && subcategory_cie_ids.length > 0) {
-          // Obtener las subcategorías actuales
-          const currentSubcategories =
-            await tx.subcategory_medical_event.findMany({
-              where: { medical_eventId: id },
-            });
-
-          // Determinar subcategorías a eliminar
-          const currentSubcategoryIds = currentSubcategories.map(
-            (sub) => sub.subCategoryId,
-          );
-          const subcategoryIdsToDelete = currentSubcategoryIds.filter(
-            (currentId) => !subcategory_cie_ids.includes(currentId),
-          );
-
-          // Determinar subcategorías a crear
-          const subcategoryIdsToCreate = subcategory_cie_ids.filter(
-            (newId) => !currentSubcategoryIds.includes(newId),
-          );
-
-          // Eliminar subcategorías que ya no están en la lista
-          if (subcategoryIdsToDelete.length > 0) {
-            await tx.subcategory_medical_event.deleteMany({
-              where: {
-                medical_eventId: id,
-                subCategoryId: { in: subcategoryIdsToDelete },
-              },
-            });
-          }
-
-          // Crear nuevas subcategorías
-          for (const subCategoryId of subcategoryIdsToCreate) {
-            await tx.subcategory_medical_event.create({
-              data: {
-                medical_eventId: id,
-                subCategoryId,
-              },
-            });
-          }
-        }
-
-        // 4. Actualizar exploraciones físicas si se proporcionaron
-        if (physical_explorations && physical_explorations.length > 0) {
-          // La exploración física es única por evento médico, así que actualizamos o creamos una
-          const exploration = physical_explorations[0]; // Tomamos la primera
-          await this.physicalExplorationService.createPhysicalExploration({
-            patient_id: medicalEvent.patient_id,
-            physician_id: medicalEvent.physician_id,
-            medical_event_id: id,
-            tenant_id,
-            description: exploration.description,
-            physical_exploration_area_id:
-              exploration.physical_exploration_area_id,
-          });
-        }
-
-        // 5. Actualizar exámenes físicos si se proporcionaron
-        if (physical_examinations && physical_examinations.length > 0) {
-          // Transformar los datos para que sean compatibles con el servicio de examen físico
-          const formattedExaminations = physical_examinations.map((exam) => ({
-            patient_id: medicalEvent.patient_id,
-            description: exam.description,
-            medical_event_id: id,
-            tenant_id,
-            physical_subsystem_id: exam.physical_subsystem_id,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }));
-          console.log('formattedExaminations', formattedExaminations);
-          await this.physicalExaminationService.create(formattedExaminations);
-        }
-
-        // 6. Si se proporcionaron medicaciones, procesarlas
-        if (medications && medications.length > 0) {
-          await this.prescriptionService.processMedications(
-            tx,
-            medications,
-            medicalEvent.patient_id,
-            userId,
-            tenant_id,
-            id,
-            undefined, // No hay medical_order_id en este caso
-            true, // Las medicaciones en consultas están autorizadas
-          );
-
-          // Si la consulta está siendo finalizada, enviar notificación
-          if (consultation_ended) {
-            const patient = await tx.user.findUnique({
-              where: { id: medicalEvent.patient_id },
-            });
-
-            const physician = await tx.user.findUnique({
-              where: { id: userId },
-            });
-
-            // Buscar si hay alguna orden médica asociada para obtener la URL del archivo
-            let prescriptionFileUrl: string | undefined;
-            try {
-              const medicalOrder = await tx.medical_order.findFirst({
-                where: {
-                  patient_id: medicalEvent.patient_id,
-                  physician_id: userId,
-                  medical_order_type: {
-                    name: {
-                      in: ['medication', 'medication-authorization'],
-                    },
-                  },
-                },
-                orderBy: {
-                  request_date: 'desc',
-                },
-              });
-
-              if (medicalOrder?.url) {
-                prescriptionFileUrl = medicalOrder.url;
-              }
-            } catch (error) {
-              console.error(
-                'Error al buscar orden médica para obtener URL:',
-                error,
-              );
-              // Continuar sin URL si hay error
-            }
-
-            if (patient) {
-              this._sendMedicationNotification(
-                patient,
-                medications,
-                physician?.name,
-                prescriptionFileUrl,
-              );
-            }
-          }
-        }
-
-        // 7. Si se indicó finalizar la consulta, actualizar el estado de la cita
-        if (consultation_ended) {
-          await tx.appointment.update({
-            where: { id: medicalEvent.appointment_id },
+      await this.prisma.$transaction(
+        async (tx) => {
+          await tx.medical_event.update({
+            where: { id },
             data: {
-              status: 'atendida',
+              ...basicData,
+              main_diagnostic_cie,
               updated_at: new Date(),
             },
           });
+
+          if (vital_signs && vital_signs.length > 0) {
+            await this.vitalSignsService.create({
+              patient_id: medicalEvent.patient_id,
+              tenant_id,
+              medical_event_id: id,
+              vital_signs,
+            });
+          }
+
+          if (subcategory_cie_ids && subcategory_cie_ids.length > 0) {
+            const currentSubcategories =
+              await tx.subcategory_medical_event.findMany({
+                where: { medical_eventId: id },
+              });
+            const currentSubcategoryIds = currentSubcategories.map(
+              (sub) => sub.subCategoryId,
+            );
+            const subcategoryIdsToDelete = currentSubcategoryIds.filter(
+              (currentId) => !subcategory_cie_ids.includes(currentId),
+            );
+            const subcategoryIdsToCreate = subcategory_cie_ids.filter(
+              (newId) => !currentSubcategoryIds.includes(newId),
+            );
+
+            if (subcategoryIdsToDelete.length > 0) {
+              await tx.subcategory_medical_event.deleteMany({
+                where: {
+                  medical_eventId: id,
+                  subCategoryId: { in: subcategoryIdsToDelete },
+                },
+              });
+            }
+            for (const subCategoryId of subcategoryIdsToCreate) {
+              await tx.subcategory_medical_event.create({
+                data: { medical_eventId: id, subCategoryId },
+              });
+            }
+          }
+
+          if (physical_explorations && physical_explorations.length > 0) {
+            const exploration = physical_explorations[0];
+            await this.physicalExplorationService.createPhysicalExploration({
+              patient_id: medicalEvent.patient_id,
+              physician_id: userId,
+              medical_event_id: id,
+              tenant_id,
+              description: exploration.description,
+              physical_exploration_area_id:
+                exploration.physical_exploration_area_id,
+            });
+          }
+
+          if (physical_examinations && physical_examinations.length > 0) {
+            const formattedExaminations = physical_examinations.map((exam) => ({
+              patient_id: medicalEvent.patient_id,
+              description: exam.description,
+              medical_event_id: id,
+              tenant_id,
+              physical_subsystem_id: exam.physical_subsystem_id,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }));
+            console.log('formattedExaminations', formattedExaminations);
+            await this.physicalExaminationService.create(formattedExaminations);
+          }
+
+          if (medications && medications.length > 0) {
+            await this.prescriptionService.processMedications(
+              tx,
+              medications,
+              medicalEvent.patient_id,
+              userId,
+              tenant_id,
+              id,
+              undefined,
+              true,
+            );
+          }
+
+          if (consultation_ended) {
+            await tx.appointment.update({
+              where: { id: medicalEvent.appointment_id },
+              data: {
+                status: 'atendida',
+                updated_at: new Date(),
+              },
+            });
+          }
+        },
+        {
+          maxWait: 15000,
+          timeout: 30000,
+        },
+      );
+
+      if (consultation_ended && medications && medications.length > 0) {
+        const patientForNotification = await this.prisma.user.findUnique({
+          where: { id: medicalEvent.patient_id },
+          select: {
+            id: true,
+            name: true,
+            last_name: true,
+            email: true,
+            phone: true,
+            is_phone_verified: true,
+          },
+        });
+
+        const physicianNameForNotification = user.name
+          ? `${user.name} ${user.last_name || ''}`.trim()
+          : user.email;
+
+        let prescriptionFileUrl: string | undefined;
+        try {
+          const relatedMedicalOrder = await this.prisma.medical_order.findFirst(
+            {
+              where: {
+                patient_id: medicalEvent.patient_id,
+                physician_id: userId,
+                medical_order_type: {
+                  name: { in: ['medication', 'medication-authorization'] },
+                },
+              },
+              orderBy: { request_date: 'desc' },
+              select: { url: true },
+            },
+          );
+          if (relatedMedicalOrder?.url) {
+            prescriptionFileUrl = relatedMedicalOrder.url;
+          }
+        } catch (error) {
+          console.error(
+            'Error al buscar orden médica para URL de notificación:',
+            error,
+          );
         }
 
-        return {
-          message: 'Consulta médica actualizada exitosamente',
-        };
-      });
+        if (patientForNotification) {
+          await this._sendMedicationNotification(
+            patientForNotification,
+            medications,
+            physicianNameForNotification,
+            prescriptionFileUrl,
+          );
+        }
+      }
+
+      return { message: 'Consulta médica actualizada exitosamente' };
     } catch (error) {
       if (
         error instanceof NotFoundException ||
@@ -77480,6 +78008,7 @@ export class MedicalEventsService {
       ) {
         throw error;
       }
+      console.error('Error completo al atender consulta:', error);
       throw new BadRequestException(
         `Error al atender consulta: ${error.message}`,
       );
@@ -77728,7 +78257,7 @@ export class CreateBackgroundDto {
 ================
 File: src/medical-scheduling/modules/medicine/medicine.controller.ts
 ================
-import { Controller, Post, Query } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { MedicineService } from './medicine.service';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 
@@ -77737,28 +78266,20 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 export class MedicineController {
   constructor(private readonly medicineService: MedicineService) {}
 
-  @Post('searchMedicine')
+  @Get('searchMedicine')
   @ApiOperation({
-    summary:
-      'Search for medicines based on active ingredient and product name.',
+    summary: 'Buscar medicamentos por texto',
+    description:
+      'Busca medicamentos utilizando un texto que se aplicará tanto al principio activo como al nombre del producto.',
   })
   @ApiQuery({
-    name: 'drug',
-    required: false,
-    description: 'The active ingredient of the medicine to search for.',
-    example: 'Amoxicilina',
+    name: 'query',
+    required: true,
+    description: 'Texto a buscar en principio activo y producto',
+    example: 'clon',
   })
-  @ApiQuery({
-    name: 'product',
-    required: false,
-    description: 'The product name of the medicine to search for.',
-    example: 'Amoxidal',
-  })
-  searchMedicine(
-    @Query('drug') principioActivo: string,
-    @Query('product') product: string,
-  ) {
-    return this.medicineService.searchMedicine(principioActivo, product);
+  searchMedicine(@Query('query') query: string) {
+    return this.medicineService.searchMedicine(query);
   }
 }
 
@@ -77789,27 +78310,20 @@ export class MedicineService {
   private readonly apiUrl = 'https://www.datos.gov.co/resource/i7cb-raxc.json';
 
   constructor(private readonly httpService: HttpService) {}
-
-  async searchMedicine(principioActivo: string, producto: string) {
-    const prActivo = principioActivo
-      ? `principioactivo%20like%20%27%25${principioActivo.toUpperCase()}%25%27`
-      : undefined;
-    const pr = producto
-      ? `producto%20like%20%27%25${producto.toUpperCase()}%25%27`
-      : undefined;
-    let query = '';
-    if (pr && prActivo) {
-      query = `${this.apiUrl}?$where=${pr}OR%20${prActivo}`;
-    } else if (pr) {
-      query = `${this.apiUrl}?$where=${pr}`;
-    } else if (prActivo) {
-      query = `${this.apiUrl}?$where=${prActivo}`;
-    } else {
-      query = this.apiUrl;
+  async searchMedicine(query: string) {
+    if (!query || query.trim() === '') {
+      throw new HttpException('El parámetro de búsqueda es requerido', 400);
     }
 
+    const searchTerm = query.toUpperCase();
+    const principioActivoQuery = `principioactivo%20like%20%27%25${searchTerm}%25%27`;
+    const productoQuery = `producto%20like%20%27%25${searchTerm}%25%27`;
+
+    // Búsqueda que incluye tanto principio activo como producto
+    const apiQuery = `${this.apiUrl}?$where=${principioActivoQuery}%20OR%20${productoQuery}`;
+
     try {
-      const medicines = await firstValueFrom(this.httpService.get(query));
+      const medicines = await firstValueFrom(this.httpService.get(apiQuery));
       return medicines.data.map((medicine) => ({
         id: medicine.expediente,
         active_principle: medicine.principio_activo,
@@ -82112,14 +82626,743 @@ export class VitalSignsService {
 }
 
 ================
+File: src/mobile-functions/appointments/appointments.controller.spec.ts
+================
+import { Test, TestingModule } from '@nestjs/testing';
+import { MobileAppointmentsController } from './appointments.controller';
+import { MobileAppointmentsService } from './appointments.service';
+import { PrismaService } from '../../prisma/prisma.service';
+
+describe('MobileAppointmentsController', () => {
+  let controller: MobileAppointmentsController;
+  let service: MobileAppointmentsService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [MobileAppointmentsController],
+      providers: [
+        MobileAppointmentsService,
+        {
+          provide: PrismaService,
+          useValue: {
+            user: {
+              findUnique: jest.fn(),
+            },
+            appointment: {
+              findFirst: jest.fn(),
+              findMany: jest.fn(),
+            },
+            patient_tenant: {
+              findMany: jest.fn(),
+            },
+          },
+        },
+      ],
+    }).compile();
+
+    controller = module.get<MobileAppointmentsController>(
+      MobileAppointmentsController,
+    );
+    service = module.get<MobileAppointmentsService>(MobileAppointmentsService);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
+  it('should be defined service', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+================
+File: src/mobile-functions/appointments/appointments.controller.ts
+================
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  HttpStatus,
+  BadRequestException,
+  Request,
+} from '@nestjs/common';
+import { MobileAppointmentsService } from './appointments.service';
+import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import { PermissionGuard } from '../../auth/guards/permission.guard';
+import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
+import { Permission } from '../../auth/permissions/permission.enum';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
+import {
+  NextAppointmentResponseDto,
+  AllAppointmentsResponseDto,
+} from './dto/mobile-appointments-response.dto';
+
+@ApiTags('Mobile - Appointments')
+@ApiBearerAuth('access-token')
+@Controller('mobile/appointments')
+@UseGuards(TenantAccessGuard, PermissionGuard)
+export class MobileAppointmentsController {
+  constructor(
+    private readonly mobileAppointmentsService: MobileAppointmentsService,
+  ) {}
+
+  @Get()
+  @RequirePermission(Permission.VIEW_OWN_APPOINTMENTS)
+  @ApiOperation({
+    summary: 'Obtener turnos del paciente',
+    description:
+      'Obtiene los turnos del paciente. Si home=true, devuelve solo la próxima cita pendiente. Si home=false o no se especifica, devuelve todas las citas agrupadas por estado.',
+  })
+  @ApiQuery({
+    name: 'home',
+    required: false,
+    type: Boolean,
+    description:
+      'Si es true, devuelve solo la próxima cita pendiente. Si es false o no se especifica, devuelve todas las citas.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Turnos obtenidos exitosamente',
+    type: 'object',
+    schema: {
+      oneOf: [
+        {
+          $ref: '#/components/schemas/NextAppointmentResponseDto',
+        },
+        {
+          $ref: '#/components/schemas/AllAppointmentsResponseDto',
+        },
+      ],
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Solicitud inválida',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Prohibido - No tiene permisos para ver las citas',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Paciente no encontrado',
+  })
+  async getAppointments(
+    @Query('home') home?: string,
+    @Request() req?: any,
+  ): Promise<NextAppointmentResponseDto | AllAppointmentsResponseDto> {
+    try {
+      // Verificar que el usuario esté autenticado
+      if (!req.user || !req.user.id) {
+        throw new BadRequestException('Usuario no autenticado');
+      }
+
+      // Verificar que sea un paciente
+      if (req.user.role !== 'patient') {
+        throw new BadRequestException(
+          'Esta funcionalidad es solo para pacientes',
+        );
+      }
+
+      const patientId = req.user.id;
+      const userTenants = req.userTenants; // Tenants del JWT
+
+      // Determinar si se solicita solo la próxima cita o todas
+      const isHomeRequest = home === 'true';
+
+      if (isHomeRequest) {
+        // Obtener solo la próxima cita pendiente
+        return await this.mobileAppointmentsService.getNextAppointment(
+          patientId,
+          userTenants,
+        );
+      } else {
+        // Obtener todas las citas agrupadas
+        return await this.mobileAppointmentsService.getAllAppointments(
+          patientId,
+          userTenants,
+        );
+      }
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error.status === HttpStatus.NOT_FOUND
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener los turnos: ${error.message}`,
+      );
+    }
+  }
+}
+
+================
+File: src/mobile-functions/appointments/appointments.module.ts
+================
+import { Module } from '@nestjs/common';
+import { MobileAppointmentsController } from './appointments.controller';
+import { MobileAppointmentsService } from './appointments.service';
+import { PrismaModule } from '../../prisma/prisma.module';
+import { GuardAuthModule } from '../../auth/guard-auth.module';
+
+@Module({
+  imports: [PrismaModule, GuardAuthModule],
+  controllers: [MobileAppointmentsController],
+  providers: [MobileAppointmentsService],
+  exports: [MobileAppointmentsService],
+})
+export class MobileAppointmentsModule {}
+
+================
+File: src/mobile-functions/appointments/appointments.service.ts
+================
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import {
+  NextAppointmentResponseDto,
+  AllAppointmentsResponseDto,
+  AppointmentDto,
+  GroupedAppointmentsDto,
+} from './dto/mobile-appointments-response.dto';
+
+@Injectable()
+export class MobileAppointmentsService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Obtiene el próximo turno pendiente del paciente según sus tenants asociados
+   * @param patientId ID del paciente
+   * @param userTenants Tenants asociados al paciente desde el token JWT
+   * @returns Próximo turno pendiente o mensaje si no hay
+   */
+  async getNextAppointment(
+    patientId: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<NextAppointmentResponseDto> {
+    try {
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patientId },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient || patient.role !== 'patient') {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Obtener IDs de tenants asociados al paciente
+      let tenantIds: string[] = [];
+
+      if (userTenants && userTenants.length > 0) {
+        tenantIds = userTenants.map((tenant) => tenant.id);
+      } else {
+        const patientTenants = await this.prisma.patient_tenant.findMany({
+          where: {
+            patient_id: patient.patient.id,
+            deleted: false,
+          },
+          select: { tenant_id: true },
+        });
+        tenantIds = patientTenants.map((pt) => pt.tenant_id);
+      }
+
+      if (tenantIds.length === 0) {
+        return {
+          next_appointment: undefined,
+          message: 'No se encontraron organizaciones asociadas al paciente',
+        };
+      }
+
+      // Buscar el próximo turno pendiente
+      const now = new Date();
+      const nextAppointment = await this.prisma.appointment.findFirst({
+        where: {
+          patient_id: patientId,
+          tenant_id: { in: tenantIds },
+          status: 'pendiente',
+          start: { gte: now },
+          deleted: false,
+        },
+        orderBy: { start: 'asc' },
+        select: {
+          id: true,
+          start: true,
+          status: true,
+          physician: {
+            select: {
+              id: true,
+              name: true,
+              last_name: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      if (!nextAppointment) {
+        return {
+          next_appointment: undefined,
+          message: 'No se encontraron citas pendientes',
+        };
+      }
+
+      // Obtener la especialidad del médico
+      const physicianSpecialty = await this.prisma.physician.findUnique({
+        where: { user_id: nextAppointment.physician.id },
+        select: {
+          physician_speciality: {
+            select: {
+              speciality: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+            take: 1, // Solo la primera especialidad
+          },
+        },
+      });
+
+      const specialty =
+        physicianSpecialty?.physician_speciality?.[0]?.speciality?.name ||
+        'Medicina General';
+
+      const formattedAppointment = {
+        id: nextAppointment.id,
+        start: nextAppointment.start,
+        status: nextAppointment.status,
+        physician: {
+          id: nextAppointment.physician.id,
+          name: nextAppointment.physician.name,
+          surname: nextAppointment.physician.last_name,
+          image: nextAppointment.physician.image,
+          specialty: specialty,
+        },
+      };
+
+      return {
+        next_appointment: formattedAppointment,
+        message: 'Próxima cita encontrada exitosamente',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener el próximo turno: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Obtiene todos los turnos del paciente agrupados entre pendientes y pasados
+   * @param patientId ID del paciente
+   * @param userTenants Tenants asociados al paciente desde el token JWT
+   * @returns Turnos agrupados por estado
+   */
+  async getAllAppointments(
+    patientId: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<AllAppointmentsResponseDto> {
+    try {
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patientId },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient || patient.role !== 'patient') {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Obtener IDs de tenants asociados al paciente
+      let tenantIds: string[] = [];
+
+      if (userTenants && userTenants.length > 0) {
+        tenantIds = userTenants.map((tenant) => tenant.id);
+      } else {
+        const patientTenants = await this.prisma.patient_tenant.findMany({
+          where: {
+            patient_id: patient.patient.id,
+            deleted: false,
+          },
+          select: { tenant_id: true },
+        });
+        tenantIds = patientTenants.map((pt) => pt.tenant_id);
+      }
+
+      if (tenantIds.length === 0) {
+        const emptyResponse: GroupedAppointmentsDto = {
+          pending: [],
+          past: [],
+          pending_count: 0,
+          past_count: 0,
+        };
+        return {
+          appointments: emptyResponse,
+          message: 'No se encontraron organizaciones asociadas al paciente',
+        };
+      }
+
+      // Obtener todas las citas del paciente
+      const allAppointments = await this.prisma.appointment.findMany({
+        where: {
+          patient_id: patientId,
+          tenant_id: { in: tenantIds },
+          deleted: false,
+        },
+        orderBy: { start: 'desc' },
+        select: {
+          id: true,
+          start: true,
+          status: true,
+          physician: {
+            select: {
+              id: true,
+              name: true,
+              last_name: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      // Obtener especialidades de todos los médicos únicos
+      const uniquePhysicianIds = [
+        ...new Set(allAppointments.map((apt) => apt.physician.id)),
+      ];
+      const physicianSpecialtyMap = new Map();
+
+      for (const physicianId of uniquePhysicianIds) {
+        const physicianSpecialty = await this.prisma.physician.findUnique({
+          where: { user_id: physicianId },
+          select: {
+            physician_speciality: {
+              select: {
+                speciality: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+              take: 1, // Solo la primera especialidad
+            },
+          },
+        });
+
+        const specialty =
+          physicianSpecialty?.physician_speciality?.[0]?.speciality?.name ||
+          'Medicina General';
+        physicianSpecialtyMap.set(physicianId, specialty);
+      }
+
+      // Agrupar las citas entre pendientes y pasadas
+      const now = new Date();
+      const pending: AppointmentDto[] = [];
+      const past: AppointmentDto[] = [];
+
+      allAppointments.forEach((appointment) => {
+        const specialty =
+          physicianSpecialtyMap.get(appointment.physician.id) ||
+          'Medicina General';
+
+        const formattedAppointment: AppointmentDto = {
+          id: appointment.id,
+          start: appointment.start,
+          status: appointment.status,
+          physician: {
+            id: appointment.physician.id,
+            name: appointment.physician.name,
+            surname: appointment.physician.last_name,
+            image: appointment.physician.image,
+            specialty: specialty,
+          },
+        };
+
+        if (appointment.status === 'pendiente' && appointment.start >= now) {
+          pending.push(formattedAppointment);
+        } else {
+          past.push(formattedAppointment);
+        }
+      });
+
+      // Ordenar: pendientes por fecha ascendente, pasadas por fecha descendente
+      pending.sort(
+        (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+      );
+      past.sort(
+        (a, b) => new Date(b.start).getTime() - new Date(a.start).getTime(),
+      );
+
+      const groupedAppointments: GroupedAppointmentsDto = {
+        pending,
+        past,
+        pending_count: pending.length,
+        past_count: past.length,
+      };
+
+      return {
+        appointments: groupedAppointments,
+        message: 'Citas obtenidas exitosamente',
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener las citas: ${error.message}`,
+      );
+    }
+  }
+}
+
+================
+File: src/mobile-functions/appointments/dto/mobile-appointments-response.dto.ts
+================
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class AppointmentDto {
+  @ApiProperty({ description: 'ID de la cita' })
+  id: string;
+
+  @ApiProperty({ description: 'Fecha y hora de inicio de la cita' })
+  start: Date;
+
+  @ApiProperty({
+    description: 'Estado de la cita',
+    enum: ['pendiente', 'atendida', 'cancelada'],
+  })
+  status: string;
+
+  @ApiProperty({ description: 'Información del médico' })
+  physician: {
+    id: string;
+    name: string;
+    surname: string;
+    image?: string;
+    specialty: string;
+  };
+}
+
+export class NextAppointmentResponseDto {
+  @ApiPropertyOptional({
+    description: 'Próxima cita pendiente del paciente',
+    type: AppointmentDto,
+  })
+  next_appointment?: AppointmentDto;
+
+  @ApiProperty({ description: 'Mensaje descriptivo' })
+  message: string;
+}
+
+export class GroupedAppointmentsDto {
+  @ApiProperty({
+    description: 'Lista de citas pendientes',
+    type: [AppointmentDto],
+  })
+  pending: AppointmentDto[];
+
+  @ApiProperty({
+    description: 'Lista de citas pasadas',
+    type: [AppointmentDto],
+  })
+  past: AppointmentDto[];
+
+  @ApiProperty({ description: 'Cantidad de citas pendientes' })
+  pending_count: number;
+
+  @ApiProperty({ description: 'Cantidad de citas pasadas' })
+  past_count: number;
+}
+
+export class AllAppointmentsResponseDto {
+  @ApiProperty({
+    description: 'Citas agrupadas por estado',
+    type: GroupedAppointmentsDto,
+  })
+  appointments: GroupedAppointmentsDto;
+
+  @ApiProperty({ description: 'Mensaje descriptivo' })
+  message: string;
+}
+
+================
+File: src/mobile-functions/appointments/README.md
+================
+# Mobile Appointments API
+
+Este módulo proporciona endpoints optimizados para aplicaciones móviles para gestionar las citas de pacientes.
+
+## Endpoints
+
+### GET `/mobile/appointments`
+
+Obtiene las citas del paciente autenticado según el parámetro `home`.
+
+#### Parámetros Query
+
+- `home` (boolean, opcional):
+  - `true`: Devuelve solo la próxima cita pendiente del paciente
+  - `false` o no especificado: Devuelve todas las citas agrupadas por estado (pendientes/pasadas)
+
+#### Autenticación
+
+- Requiere Bearer token en el header `Authorization`
+- Solo funciona para usuarios con rol `patient`
+- Automáticamente considera todos los tenants asociados al paciente según su JWT
+
+#### Headers
+
+- `Authorization: Bearer <token>` (requerido)
+- `x-tenant-id: <tenant_id>` (opcional, para especificar un tenant específico)
+
+#### Respuestas
+
+##### Cuando `home=true` - Próxima cita
+
+```json
+{
+  "next_appointment": {
+    "id": "uuid",
+    "start": "2024-01-15T10:00:00Z",
+    "end": "2024-01-15T11:00:00Z",
+    "status": "pendiente",
+    "physician": {
+      "id": "uuid",
+      "name": "Dr. Juan",
+      "surname": "Pérez",
+      "specialties": ["Cardiología"]
+    },
+    "tenant": {
+      "id": "uuid",
+      "name": "Hospital Central"
+    },
+    "notes": "Revisión mensual"
+  },
+  "message": "Próxima cita encontrada exitosamente"
+}
+```
+
+##### Cuando `home=false` - Todas las citas
+
+```json
+{
+  "appointments": {
+    "pending": [
+      {
+        "id": "uuid",
+        "start": "2024-01-15T10:00:00Z",
+        "end": "2024-01-15T11:00:00Z",
+        "status": "pendiente",
+        "physician": {
+          "id": "uuid",
+          "name": "Dr. Juan",
+          "surname": "Pérez",
+          "specialties": ["Cardiología"]
+        },
+        "tenant": {
+          "id": "uuid",
+          "name": "Hospital Central"
+        },
+        "notes": "Revisión mensual"
+      }
+    ],
+    "past": [
+      {
+        "id": "uuid",
+        "start": "2024-01-01T10:00:00Z",
+        "end": "2024-01-01T11:00:00Z",
+        "status": "atendida",
+        "physician": {
+          "id": "uuid",
+          "name": "Dr. María",
+          "surname": "González",
+          "specialties": ["Medicina General"]
+        },
+        "tenant": {
+          "id": "uuid",
+          "name": "Clínica Norte"
+        }
+      }
+    ],
+    "pending_count": 1,
+    "past_count": 1
+  },
+  "message": "Citas obtenidas exitosamente"
+}
+```
+
+#### Códigos de Estado
+
+- `200 OK`: Operación exitosa
+- `400 Bad Request`: Error en la solicitud o datos inválidos
+- `401 Unauthorized`: Token inválido o faltante
+- `403 Forbidden`: No tiene permisos para acceder
+- `404 Not Found`: Paciente no encontrado
+
+## Lógica de Multi-Tenant para Pacientes
+
+El sistema maneja automáticamente pacientes asociados a múltiples organizaciones (tenants):
+
+1. **JWT Token**: El token JWT del paciente incluye un array `tenants` con todas las organizaciones asociadas
+2. **Tenant Específico**: Si se envía el header `x-tenant-id`, se filtran solo las citas de esa organización (si el paciente tiene acceso)
+3. **Todos los Tenants**: Si no se especifica tenant, se obtienen citas de todas las organizaciones asociadas al paciente
+4. **Validación**: El sistema verifica que el paciente tenga acceso a los tenants solicitados
+
+## Permisos Requeridos
+
+- `VIEW_OWN_APPOINTMENTS`: Permiso para ver las citas propias del paciente
+
+## Ejemplo de Uso
+
+### Obtener próxima cita (para pantalla de inicio)
+
+```bash
+curl -X GET "https://api.example.com/mobile/appointments?home=true" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Obtener todas las citas (para pantalla de historial)
+
+```bash
+curl -X GET "https://api.example.com/mobile/appointments" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Obtener citas de una organización específica
+
+```bash
+curl -X GET "https://api.example.com/mobile/appointments" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "x-tenant-id: <tenant_uuid>"
+```
+
+================
 File: src/mobile-functions/mobile-functions.module.ts
 ================
 import { Module } from '@nestjs/common';
 import { SelfEvaluationEventModule } from './self-evaluation-event/self-evaluation-event.module';
 import { MoodModule } from './mood/mood.module';
+import { MobileAppointmentsModule } from './appointments/appointments.module';
 
 @Module({
-  imports: [SelfEvaluationEventModule, MoodModule],
+  imports: [SelfEvaluationEventModule, MoodModule, MobileAppointmentsModule],
 })
 export class MobileFunctionsModule {}
 
@@ -82417,6 +83660,303 @@ export class CreateSelfEvaluationEventDto {
 }
 
 ================
+File: src/mobile-functions/self-evaluation-event/dto/latest-vital-signs-response.dto.ts
+================
+import { ApiProperty } from '@nestjs/swagger';
+
+export class MeasureUnitDto {
+  @ApiProperty({
+    description: 'ID of the measure unit',
+    example: 1,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: 'Name of the measure unit',
+    example: 'bpm',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Description of the measure unit',
+    example: 'Latidos por minuto',
+  })
+  description: string;
+}
+
+export class VitalSignCatalogDto {
+  @ApiProperty({
+    description: 'ID of the vital sign catalog',
+    example: 1,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: 'Name of the vital sign',
+    example: 'Frecuencia Cardíaca',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Category of the vital sign',
+    example: 'Cardiovascular',
+  })
+  category: string;
+
+  @ApiProperty({
+    description: 'Color associated with the vital sign',
+    example: '#FF5733',
+    nullable: true,
+  })
+  color?: string;
+
+  @ApiProperty({
+    description: 'Mini icon identifier',
+    example: 'heart-mini',
+    nullable: true,
+  })
+  mini_icon?: string;
+
+  @ApiProperty({
+    description: 'Icon identifier',
+    example: 'heart-icon',
+    nullable: true,
+  })
+  icon?: string;
+
+  @ApiProperty({
+    description: 'Background icon identifier',
+    example: 'heart-background',
+    nullable: true,
+  })
+  background_icon?: string;
+
+  @ApiProperty({
+    description: 'Normal minimum value',
+    example: 60,
+    nullable: true,
+  })
+  normal_min_value?: number;
+
+  @ApiProperty({
+    description: 'Normal maximum value',
+    example: 100,
+    nullable: true,
+  })
+  normal_max_value?: number;
+
+  @ApiProperty({
+    description: 'Slightly high value threshold',
+    example: 120,
+    nullable: true,
+  })
+  slightly_high_value?: number;
+
+  @ApiProperty({
+    description: 'High maximum value',
+    example: 140,
+    nullable: true,
+  })
+  high_max_value?: number;
+
+  @ApiProperty({
+    description: 'Critical maximum value',
+    example: 180,
+    nullable: true,
+  })
+  critical_max_value?: number;
+}
+
+export class LatestVitalSignDto {
+  @ApiProperty({
+    description: 'Vital sign catalog information',
+    type: VitalSignCatalogDto,
+  })
+  vital_sign: VitalSignCatalogDto;
+
+  @ApiProperty({
+    description: 'Latest measured value or "Sin datos" if no data available',
+    example: 98,
+    oneOf: [{ type: 'number' }, { type: 'string', enum: ['Sin datos'] }],
+  })
+  measure: number | 'Sin datos';
+
+  @ApiProperty({
+    description: 'Date when the measurement was recorded',
+    example: '2024-01-15T10:30:00.000Z',
+    nullable: true,
+  })
+  created_at?: Date;
+
+  @ApiProperty({
+    description: 'Measure unit information',
+    type: MeasureUnitDto,
+    nullable: true,
+  })
+  cat_measure_unit?: MeasureUnitDto;
+}
+
+export class LatestVitalSignsResponseDto {
+  @ApiProperty({
+    description: 'Array of latest vital signs for all catalog types',
+    type: [LatestVitalSignDto],
+  })
+  data: LatestVitalSignDto[];
+}
+
+================
+File: src/mobile-functions/self-evaluation-event/dto/vital-sign-history-response.dto.ts
+================
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  VitalSignCatalogDto,
+  MeasureUnitDto,
+} from './latest-vital-signs-response.dto';
+
+export class DayDataDto {
+  @ApiProperty({
+    description: 'Day of the month (1-31)',
+    example: 15,
+  })
+  day: number;
+
+  @ApiProperty({
+    description: 'Average measure for the day or "Sin datos" if no records',
+    example: 98.5,
+    oneOf: [{ type: 'number' }, { type: 'string', enum: ['Sin datos'] }],
+  })
+  average_measure: number | 'Sin datos';
+
+  @ApiProperty({
+    description: 'Number of records for this day',
+    example: 3,
+  })
+  records_count: number;
+}
+
+export class WeekDataDto {
+  @ApiProperty({
+    description: 'Week number in the month (1-6)',
+    example: 2,
+  })
+  week_number: number;
+
+  @ApiProperty({
+    description: 'Start date of the week (Sunday)',
+    example: '2023-10-08',
+  })
+  week_start: string;
+
+  @ApiProperty({
+    description: 'End date of the week (Saturday)',
+    example: '2023-10-14',
+  })
+  week_end: string;
+
+  @ApiProperty({
+    description: 'Data for each day of the week (Sunday to Saturday)',
+    type: [DayDataDto],
+  })
+  days: DayDataDto[];
+}
+
+export class MonthlyStatsDto {
+  @ApiProperty({
+    description: 'Last recorded value in the month',
+    example: 102,
+    nullable: true,
+  })
+  last_value?: number;
+
+  @ApiProperty({
+    description: 'Date of the last recorded value',
+    example: '2023-10-28T14:30:00.000Z',
+    nullable: true,
+  })
+  last_value_date?: Date;
+
+  @ApiProperty({
+    description: 'Maximum value recorded in the month',
+    example: 110,
+    nullable: true,
+  })
+  max_value?: number;
+
+  @ApiProperty({
+    description: 'Date of the maximum value',
+    example: '2023-10-15T09:15:00.000Z',
+    nullable: true,
+  })
+  max_value_date?: Date;
+
+  @ApiProperty({
+    description: 'Minimum value recorded in the month',
+    example: 85,
+    nullable: true,
+  })
+  min_value?: number;
+
+  @ApiProperty({
+    description: 'Date of the minimum value',
+    example: '2023-10-03T07:45:00.000Z',
+    nullable: true,
+  })
+  min_value_date?: Date;
+
+  @ApiProperty({
+    description: 'Average of all values recorded in the month',
+    example: 96.8,
+    nullable: true,
+  })
+  average_value?: number;
+
+  @ApiProperty({
+    description: 'Total number of records in the month',
+    example: 25,
+  })
+  total_records: number;
+
+  @ApiProperty({
+    description: 'Number of records that exceeded critical thresholds (alerts)',
+    example: 3,
+  })
+  alerts_count: number;
+}
+
+export class VitalSignHistoryResponseDto {
+  @ApiProperty({
+    description: 'Vital sign catalog information',
+    type: VitalSignCatalogDto,
+  })
+  vital_sign: VitalSignCatalogDto;
+
+  @ApiProperty({
+    description: 'Measure unit information',
+    type: MeasureUnitDto,
+    nullable: true,
+  })
+  cat_measure_unit?: MeasureUnitDto;
+
+  @ApiProperty({
+    description: 'Requested month in YYYY-MM format',
+    example: '2023-10',
+  })
+  month: string;
+
+  @ApiProperty({
+    description: 'Monthly statistics and analytics',
+    type: MonthlyStatsDto,
+  })
+  monthly_stats: MonthlyStatsDto;
+
+  @ApiProperty({
+    description: 'Weekly data organization (Sunday to Saturday)',
+    type: [WeekDataDto],
+  })
+  weekly_data: WeekDataDto[];
+}
+
+================
 File: src/mobile-functions/self-evaluation-event/self-evaluation-event.controller.ts
 ================
 import {
@@ -82426,6 +83966,10 @@ import {
   Request,
   UseGuards,
   BadRequestException,
+  Get,
+  Param,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SelfEvaluationEventService } from './self-evaluation-event.service';
 import { CreateSelfEvaluationEventDto } from './dto/create-self-evaluation-event.dto';
@@ -82433,6 +83977,9 @@ import { RequirePermission } from '../../auth/decorators/require-permission.deco
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
+import { GetUser } from '../../auth/decorators/get-user.decorator';
+import { LatestVitalSignsResponseDto } from './dto/latest-vital-signs-response.dto';
+import { VitalSignHistoryResponseDto } from './dto/vital-sign-history-response.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -82440,12 +83987,14 @@ import {
   ApiBody,
   ApiSecurity,
   ApiHeader,
+  ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 
 @ApiTags('Mobile - Self-Evaluation Events')
 @ApiSecurity('access-token')
 @ApiHeader({
-  name: 'tenant_id',
+  name: 'tenant-id',
   description: 'ID del tenant',
   required: true,
 })
@@ -82500,6 +84049,99 @@ export class SelfEvaluationEventController {
 
     return this.selfEvaluationEventService.create(createSelfEvaluationEventDto);
   }
+
+  @Get('latest-vital-signs/all')
+  @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
+  @ApiOperation({
+    summary: 'Obtener último registro de todos los signos vitales',
+    description:
+      'Obtiene el último valor registrado para cada tipo de signo vital del catálogo, sin importar si fue registrado por el paciente (a través de un SelfEvaluationEvent) o por un médico durante una consulta (MedicalEvent). Si un signo vital del catálogo nunca ha sido registrado para el paciente, se indica "Sin datos".',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Últimos signos vitales obtenidos exitosamente.',
+    type: LatestVitalSignsResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Solicitud inválida.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - No tiene permisos para ver esta información.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Paciente no encontrado.',
+  })
+  async getLatestVitalSignsForAllCatalog(
+    @GetUser() user,
+  ): Promise<LatestVitalSignsResponseDto> {
+    return this.selfEvaluationEventService.getLatestVitalSignsForAllCatalog(
+      user.id,
+    );
+  }
+
+  @Get('vital-signs/:vitalSignTypeId/history')
+  @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
+  @ApiOperation({
+    summary: 'Obtener historial y analítica de un signo vital específico',
+    description:
+      'Obtiene un historial detallado y estadísticas mensuales para un tipo de signo vital específico registrado por el paciente (o por un médico en consulta). Los datos están organizados por semanas (de domingo a sábado) para el mes solicitado.',
+  })
+  @ApiParam({
+    name: 'vitalSignTypeId',
+    type: 'number',
+    description: 'ID del tipo de signo vital del catálogo (cat_vital_signs.id)',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'month',
+    type: 'string',
+    description: 'Mes para el cual se solicita el historial en formato YYYY-MM',
+    example: '2023-10',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Historial y estadísticas obtenidas exitosamente.',
+    type: VitalSignHistoryResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Solicitud inválida (formato de mes incorrecto o parámetros faltantes).',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - No tiene permisos para ver esta información.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Paciente o tipo de signo vital no encontrado.',
+  })
+  async getVitalSignHistory(
+    @Param('vitalSignTypeId', ParseIntPipe) vitalSignTypeId: number,
+    @Query('month') month: string,
+    @GetUser() user,
+  ): Promise<VitalSignHistoryResponseDto> {
+    if (!month) {
+      throw new BadRequestException('El parámetro month es requerido');
+    }
+
+    return this.selfEvaluationEventService.getVitalSignHistory(
+      user.id,
+      vitalSignTypeId,
+      month,
+    );
+  }
 }
 
 ================
@@ -82530,6 +84172,16 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSelfEvaluationEventDto } from './dto/create-self-evaluation-event.dto';
 import { VitalSignsService } from '../../medical-scheduling/modules/vital-signs/vital-signs.service';
+import {
+  LatestVitalSignsResponseDto,
+  LatestVitalSignDto,
+} from './dto/latest-vital-signs-response.dto';
+import {
+  VitalSignHistoryResponseDto,
+  MonthlyStatsDto,
+  WeekDataDto,
+  DayDataDto,
+} from './dto/vital-sign-history-response.dto';
 
 @Injectable()
 export class SelfEvaluationEventService {
@@ -82624,6 +84276,384 @@ export class SelfEvaluationEventService {
       );
     }
   }
+
+  /**
+   * Obtiene el último registro de todos los signos vitales del catálogo para un paciente
+   * @param patientId ID del paciente
+   * @returns Array con el último valor de cada tipo de signo vital del catálogo
+   */
+  async getLatestVitalSignsForAllCatalog(
+    patientId: string,
+  ): Promise<LatestVitalSignsResponseDto> {
+    try {
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patientId },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Obtener todos los tipos de signos vitales del catálogo
+      const vitalSignsCatalog = await this.prisma.cat_vital_signs.findMany({
+        include: {
+          cat_measure_unit: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      });
+
+      const latestVitalSigns: LatestVitalSignDto[] = [];
+
+      // Para cada tipo de signo vital del catálogo, buscar el registro más reciente
+      for (const catalogItem of vitalSignsCatalog) {
+        const latestRecord = await this.prisma.vital_signs.findFirst({
+          where: {
+            patient_id: patientId,
+            vital_sign_id: catalogItem.id,
+            deleted: false,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          include: {
+            vital_sign: {
+              include: {
+                cat_measure_unit: true,
+              },
+            },
+          },
+        });
+
+        // Preparar la información del catálogo (excluyendo specialties como se especifica)
+        const vitalSignCatalogInfo = {
+          id: catalogItem.id,
+          name: catalogItem.name,
+          category: catalogItem.category,
+          color: catalogItem.color,
+          mini_icon: catalogItem.mini_icon,
+          icon: catalogItem.icon,
+          background_icon: catalogItem.background_icon,
+          normal_min_value: catalogItem.normal_min_value,
+          normal_max_value: catalogItem.normal_max_value,
+          slightly_high_value: catalogItem.slightly_high_value,
+          high_max_value: catalogItem.high_max_value,
+          critical_max_value: catalogItem.critical_max_value,
+        };
+
+        if (latestRecord) {
+          // Si se encontró un registro, incluir los datos
+          latestVitalSigns.push({
+            vital_sign: vitalSignCatalogInfo,
+            measure: latestRecord.measure,
+            created_at: latestRecord.created_at,
+            cat_measure_unit: catalogItem.cat_measure_unit
+              ? {
+                  id: catalogItem.cat_measure_unit.id,
+                  name: catalogItem.cat_measure_unit.name,
+                  description: catalogItem.cat_measure_unit.description,
+                }
+              : undefined,
+          });
+        } else {
+          // Si no se encontró registro, marcar como "Sin datos"
+          latestVitalSigns.push({
+            vital_sign: vitalSignCatalogInfo,
+            measure: 'Sin datos',
+            created_at: undefined,
+            cat_measure_unit: catalogItem.cat_measure_unit
+              ? {
+                  id: catalogItem.cat_measure_unit.id,
+                  name: catalogItem.cat_measure_unit.name,
+                  description: catalogItem.cat_measure_unit.description,
+                }
+              : undefined,
+          });
+        }
+      }
+
+      return {
+        data: latestVitalSigns,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener los últimos signos vitales: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Obtiene el historial y analítica de un signo vital específico para un mes determinado
+   * @param patientId ID del paciente
+   * @param vitalSignTypeId ID del tipo de signo vital del catálogo
+   * @param month Mes en formato YYYY-MM
+   * @returns Historial detallado con estadísticas mensuales y datos semanales
+   */
+  async getVitalSignHistory(
+    patientId: string,
+    vitalSignTypeId: number,
+    month: string,
+  ): Promise<VitalSignHistoryResponseDto> {
+    try {
+      // Validar formato del mes
+      const monthRegex = /^\d{4}-\d{2}$/;
+      if (!monthRegex.test(month)) {
+        throw new BadRequestException(
+          'El formato del mes debe ser YYYY-MM (ej. 2023-10)',
+        );
+      }
+
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patientId },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Verificar que el tipo de signo vital existe
+      const vitalSignType = await this.prisma.cat_vital_signs.findUnique({
+        where: { id: vitalSignTypeId },
+        include: {
+          cat_measure_unit: true,
+        },
+      });
+
+      if (!vitalSignType) {
+        throw new NotFoundException('Tipo de signo vital no encontrado');
+      }
+
+      // Calcular fechas del mes
+      const [year, monthNum] = month.split('-').map(Number);
+      const startDate = new Date(year, monthNum - 1, 1);
+      const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999);
+
+      // Obtener todos los registros del mes para este tipo de signo vital
+      const monthlyRecords = await this.prisma.vital_signs.findMany({
+        where: {
+          patient_id: patientId,
+          vital_sign_id: vitalSignTypeId,
+          deleted: false,
+          created_at: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: {
+          created_at: 'asc',
+        },
+      });
+
+      // Calcular estadísticas mensuales
+      const monthlyStats = this.calculateMonthlyStats(
+        monthlyRecords,
+        vitalSignType,
+      );
+
+      // Organizar datos por semanas
+      const weeklyData = this.organizeWeeklyData(
+        monthlyRecords,
+        year,
+        monthNum - 1,
+      );
+
+      // Preparar información del catálogo
+      const vitalSignCatalogInfo = {
+        id: vitalSignType.id,
+        name: vitalSignType.name,
+        category: vitalSignType.category,
+        color: vitalSignType.color,
+        mini_icon: vitalSignType.mini_icon,
+        icon: vitalSignType.icon,
+        background_icon: vitalSignType.background_icon,
+        normal_min_value: vitalSignType.normal_min_value,
+        normal_max_value: vitalSignType.normal_max_value,
+        slightly_high_value: vitalSignType.slightly_high_value,
+        high_max_value: vitalSignType.high_max_value,
+        critical_max_value: vitalSignType.critical_max_value,
+      };
+
+      return {
+        vital_sign: vitalSignCatalogInfo,
+        cat_measure_unit: vitalSignType.cat_measure_unit
+          ? {
+              id: vitalSignType.cat_measure_unit.id,
+              name: vitalSignType.cat_measure_unit.name,
+              description: vitalSignType.cat_measure_unit.description,
+            }
+          : undefined,
+        month,
+        monthly_stats: monthlyStats,
+        weekly_data: weeklyData,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al obtener el historial del signo vital: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Calcula las estadísticas mensuales de los registros
+   */
+  private calculateMonthlyStats(
+    records: any[],
+    vitalSignType: any,
+  ): MonthlyStatsDto {
+    if (records.length === 0) {
+      return {
+        last_value: undefined,
+        last_value_date: undefined,
+        max_value: undefined,
+        max_value_date: undefined,
+        min_value: undefined,
+        min_value_date: undefined,
+        average_value: undefined,
+        total_records: 0,
+        alerts_count: 0,
+      };
+    }
+
+    // Ordenar por fecha para obtener el último
+    const sortedRecords = [...records].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+
+    const lastRecord = sortedRecords[0];
+    const measures = records.map((r) => r.measure);
+
+    // Calcular estadísticas básicas
+    const maxValue = Math.max(...measures);
+    const minValue = Math.min(...measures);
+    const averageValue =
+      measures.reduce((sum, val) => sum + val, 0) / measures.length;
+
+    // Encontrar registros con valores máximo y mínimo
+    const maxRecord = records.find((r) => r.measure === maxValue);
+    const minRecord = records.find((r) => r.measure === minValue);
+
+    // Contar alertas (valores que superan el umbral crítico)
+    let alertsCount = 0;
+    if (vitalSignType.critical_max_value !== null) {
+      alertsCount = records.filter(
+        (r) => r.measure > vitalSignType.critical_max_value,
+      ).length;
+    }
+
+    return {
+      last_value: lastRecord.measure,
+      last_value_date: lastRecord.created_at,
+      max_value: maxValue,
+      max_value_date: maxRecord.created_at,
+      min_value: minValue,
+      min_value_date: minRecord.created_at,
+      average_value: Math.round(averageValue * 100) / 100, // Redondear a 2 decimales
+      total_records: records.length,
+      alerts_count: alertsCount,
+    };
+  }
+
+  /**
+   * Organiza los datos por semanas (domingo a sábado)
+   */
+  private organizeWeeklyData(
+    records: any[],
+    year: number,
+    month: number,
+  ): WeekDataDto[] {
+    const weeks: WeekDataDto[] = [];
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    // Agrupar registros por día
+    const recordsByDay = new Map<number, any[]>();
+    records.forEach((record) => {
+      const day = new Date(record.created_at).getDate();
+      if (!recordsByDay.has(day)) {
+        recordsByDay.set(day, []);
+      }
+      recordsByDay.get(day)!.push(record);
+    });
+
+    // Encontrar el primer domingo del mes o anterior
+    let currentDate: Date = new Date(firstDay);
+    while (currentDate.getDay() !== 0) {
+      currentDate = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000); // Restar un día
+    }
+
+    let weekNumber = 1;
+
+    while (currentDate <= lastDay || currentDate.getMonth() === month) {
+      const weekStart = new Date(currentDate);
+      const weekEnd = new Date(currentDate);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+
+      const days: DayDataDto[] = [];
+
+      // Generar datos para cada día de la semana (domingo a sábado)
+      for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(weekStart);
+        dayDate.setDate(dayDate.getDate() + i);
+        const day = dayDate.getDate();
+
+        // Solo incluir días que pertenecen al mes solicitado
+        if (dayDate.getMonth() === month) {
+          const dayRecords = recordsByDay.get(day) || [];
+
+          let averageMeasure: number | 'Sin datos' = 'Sin datos';
+          if (dayRecords.length > 0) {
+            const sum = dayRecords.reduce(
+              (acc, record) => acc + record.measure,
+              0,
+            );
+            averageMeasure = Math.round((sum / dayRecords.length) * 100) / 100;
+          }
+
+          days.push({
+            day,
+            average_measure: averageMeasure,
+            records_count: dayRecords.length,
+          });
+        }
+      }
+
+      // Solo agregar la semana si tiene días del mes solicitado
+      if (days.length > 0) {
+        weeks.push({
+          week_number: weekNumber,
+          week_start: weekStart.toISOString().split('T')[0],
+          week_end: weekEnd.toISOString().split('T')[0],
+          days,
+        });
+        weekNumber++;
+      }
+
+      // Avanzar a la siguiente semana
+      currentDate = new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000); // Avanzar 7 días
+
+      // Salir si ya pasamos el mes y no hay más días del mes en la semana actual
+      if (currentDate.getMonth() > month) {
+        break;
+      }
+    }
+
+    return weeks;
+  }
 }
 
 ================
@@ -82643,7 +84673,7 @@ File: src/prisma/prisma.service.ts
 ================
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { tenantPrismaMiddleware } from 'src/utils/middlewares/tenantPrismaMiddleware';
+// import { tenantPrismaMiddleware } from 'src/utils/middlewares/tenantPrismaMiddleware';
 
 @Injectable()
 export class PrismaService
@@ -82653,9 +84683,10 @@ export class PrismaService
   async onModuleInit() {
     await this.$connect();
 
-    this.$use(tenantPrismaMiddleware());
+    // TODO: Revisar y refactorizar tenantPrismaMiddleware para soporte multi-tenant
+    // this.$use(tenantPrismaMiddleware());
 
-    console.log('Prisma middleware registered');
+    console.log('Prisma connected without tenant middleware');
   }
 
   async onModuleDestroy() {
@@ -84364,12 +86395,6 @@ export class TenantMiddleware implements NestMiddleware {
       if (isSwaggerRequest || req.headers['referer']?.includes('/api')) {
         return next();
       }
-
-      // Debug headers para identificar problemas
-      console.log('Request path:', req.path);
-      console.log('Request originalUrl:', req.originalUrl);
-      console.log('Request method:', req.method);
-      console.log('Request headers:', JSON.stringify(req.headers));
 
       const authorization = req.headers['authorization'];
       if (!authorization) {
