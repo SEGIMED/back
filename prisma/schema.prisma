@@ -388,6 +388,7 @@ model pres_mod_history {
   frecuency        String
   duration         String
   duration_units   String
+  commercial_name  String?
 }
 
 model self_evaluation_event {
