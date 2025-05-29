@@ -1,0 +1,23 @@
+-- Datos semilla para el catálogo de razones de omisión de medicación
+INSERT INTO medication_skip_reason_catalog (reason_text, category) VALUES
+('No necesito la medicación', 'No necesito'),
+('Me siento mejor', 'No necesito'),
+('El medicamento es muy caro', 'Cobertura'),
+('No tengo cobertura médica', 'Cobertura'),
+('Mi seguro no lo cubre', 'Cobertura'),
+('Náuseas', 'Efectos adversos'),
+('Mareos', 'Efectos adversos'),
+('Dolor de cabeza', 'Efectos adversos'),
+('Somnolencia', 'Efectos adversos'),
+('Reacción alérgica', 'Efectos adversos'),
+('Malestar estomacal', 'Efectos adversos'),
+('Se me olvidó', 'Olvido'),
+('Estaba ocupado/a', 'Olvido'),
+('No tenía la medicación conmigo', 'Logística'),
+('Se terminó la medicación', 'Logística'),
+('No pude ir a la farmacia', 'Logística'),
+('Problemas de transporte', 'Logística'),
+('Miedo a los efectos secundarios', 'Preocupaciones'),
+('No confío en el medicamento', 'Preocupaciones'),
+('Prefiero remedios naturales', 'Preocupaciones'),
+('Otro motivo', 'Otros');

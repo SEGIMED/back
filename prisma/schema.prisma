@@ -63,12 +63,12 @@ model user {
   tenant_id String?
   patient   patient?
   tenant    tenant?  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-
   physicianAppointment appointment[]      @relation(name: "physician")
   patientAppointments  appointment[]      @relation(name: "patient")
   physician            physician[]
   prescription         prescription[]
   pres_mod_history     pres_mod_history[]
+  medication_dose_logs medication_dose_log[]
   background           background[]
 
   self_evaluation_event self_evaluation_event[]
@@ -118,22 +118,24 @@ model organization_physician {
 }
 
 model patient {
-  id                 String    @id @default(uuid())
-  direction          String?
-  country            String?
-  province           String?
-  city               String?
-  postal_code        String?
-  direction_number   String?
-  apartment          String?
-  health_care_number String?
-  notes              String?
-  created_at         DateTime  @default(now())
-  updated_at         DateTime  @updatedAt
-  deleted            Boolean   @default(false)
-  deleted_at         DateTime?
-  user_id            String    @unique
-  user               user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  id                                    String    @id @default(uuid())
+  direction                             String?
+  country                               String?
+  province                              String?
+  city                                  String?
+  postal_code                           String?
+  direction_number                      String?
+  apartment                             String?
+  health_care_number                    String?
+  notes                                 String?
+  medication_reminder_interval_minutes  Int?      @default(30)
+  medication_reminder_max_retries       Int?      @default(3)
+  created_at                            DateTime  @default(now())
+  updated_at                            DateTime  @updatedAt
+  deleted                               Boolean   @default(false)
+  deleted_at                            DateTime?
+  user_id                               String    @unique
+  user                                  user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   patient_tenant patient_tenant[]
 }
@@ -353,22 +355,33 @@ model subcategory_medical_event {
 }
 
 model prescription {
-  id                               String             @id @default(uuid())
-  start_timestamp                  DateTime           @default(now())
+  id                               String                        @id @default(uuid())
+  start_timestamp                  DateTime                      @default(now())
   end_timestamp                    DateTime?
   description                      String?
-  active                           Boolean            @default(true)
+  active                           Boolean                       @default(true)
   patient_id                       String?
-  user                             user?              @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  user                             user?                         @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   monodrug                         String
-  show_in_calendar                 Boolean            @default(false)
-  authorized                       Boolean            @default(false)
-  patient_stopped_treatment        Boolean            @default(false)
+  show_in_calendar                 Boolean                       @default(false)
+  authorized                       Boolean                       @default(false)
+  patient_stopped_treatment        Boolean                       @default(false)
   patient_stopped_treatment_date   DateTime?
   patient_stopped_treatment_reason String?
+  created_by_patient               Boolean                       @default(false)
+  is_tracking_active               Boolean                       @default(false)
+  reminder_enabled                 Boolean                       @default(true)
+  first_dose_taken_at              DateTime?
+  time_of_day_slots                String[]
+  last_reminder_sent_at            DateTime?
+  reminders_sent_count             Int                           @default(0)
+  skip_reason_id                   Int?
+  skip_reason                      medication_skip_reason_catalog? @relation(fields: [skip_reason_id], references: [id])
+  skip_reason_details              String?
   tenant_id                        String?
-  tenant                           tenant?            @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant                           tenant?                       @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   pres_mod_history                 pres_mod_history[]
+  medication_dose_logs             medication_dose_log[]
 }
 
 model pres_mod_history {
@@ -388,6 +401,34 @@ model pres_mod_history {
   frecuency        String
   duration         String
   duration_units   String
+}
+
+model medication_dose_log {
+  id                    String                         @id @default(uuid())
+  prescription_id       String
+  prescription          prescription                   @relation(fields: [prescription_id], references: [id], onDelete: Cascade)
+  user_id               String
+  user                  user                           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  scheduled_time        DateTime
+  actual_taken_time     DateTime?
+  status                medication_dose_status
+  reported_at           DateTime                       @default(now())
+  skip_reason_id        Int?
+  skip_reason           medication_skip_reason_catalog? @relation(fields: [skip_reason_id], references: [id])
+  skip_reason_details   String?
+  created_at            DateTime                       @default(now())
+  updated_at            DateTime                       @updatedAt
+}
+
+model medication_skip_reason_catalog {
+  id                    Int                     @id @default(autoincrement())
+  reason_text           String
+  category              String
+  created_at            DateTime                @default(now())
+  updated_at            DateTime                @updatedAt
+  
+  prescriptions         prescription[]
+  medication_dose_logs  medication_dose_log[]
 }
 
 model self_evaluation_event {
@@ -580,6 +621,13 @@ enum gender {
   masculino
   femenino
   otro
+}
+
+enum medication_dose_status {
+  TAKEN
+  MISSED_AUTOMATIC
+  MISSED_REPORTED
+  SKIPPED_BY_USER
 }
 
 model role {
