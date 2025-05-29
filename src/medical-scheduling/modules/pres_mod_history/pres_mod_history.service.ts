@@ -18,6 +18,7 @@ export class PresModHistoryService {
             ],
           },
         });
+
         if (!prescription) {
           prescription = await op.prescription.create({
             data: { monodrug: createPresHistoryDto.monodrug },
@@ -31,6 +32,7 @@ export class PresModHistoryService {
         delete createPresHistoryDto.patient_id;
         delete createPresHistoryDto.monodrug;
         delete createPresHistoryDto.tenant_id; // Corrected typo here
+        // Note: commercial_name is preserved and will be saved to pres_mod_history
 
         createPresHistoryDto.prescription_id = prescription.id;
 

@@ -166,7 +166,6 @@ export class CreatePresHistoryDto {
   })
   @IsString()
   duration: string;
-
   @ApiProperty({
     description: 'Unidades de duración (días, semanas, etc.)',
     type: String,
@@ -175,4 +174,14 @@ export class CreatePresHistoryDto {
   })
   @IsString()
   duration_units: string;
+
+  @ApiProperty({
+    description: 'Nombre comercial del medicamento',
+    type: String,
+    required: false,
+    example: 'Tylenol',
+  })
+  @IsString()
+  @IsOptional()
+  commercial_name?: string;
 }
