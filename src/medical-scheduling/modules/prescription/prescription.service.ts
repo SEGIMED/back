@@ -13,13 +13,38 @@ export interface MedicationItemInterface {
   observations?: string;
 }
 
+// Extended interface for medication items with tracking capabilities
+export interface MedicationItemWithTrackingInterface
+  extends MedicationItemInterface {
+  // Tracking fields (optional for backward compatibility)
+  created_by_patient?: boolean;
+  is_tracking_active?: boolean;
+  reminder_enabled?: boolean;
+  first_dose_taken_at?: Date;
+  time_of_day_slots?: string[];
+  skip_reason_id?: number;
+  skip_reason_details?: string;
+}
+
 @Injectable()
 export class PrescriptionService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createPrescriptionDto: CreatePrescriptionDto) {
     try {
+      // Preparar los datos para la creación
+      const prescriptionData = { ...createPrescriptionDto };
+
+      // Si es creada por un médico (created_by_patient = false o undefined)
+      if (!prescriptionData.created_by_patient) {
+        prescriptionData.created_by_patient = false;
+        prescriptionData.is_tracking_active = false;
+        prescriptionData.reminder_enabled = true;
+        prescriptionData.first_dose_taken_at = undefined;
+        prescriptionData.time_of_day_slots = [];
+      }
+
       await this.prisma.prescription.create({
-        data: { ...createPrescriptionDto },
+        data: prescriptionData,
       });
       return { message: 'La prescripción ha sido correctamente generada' };
     } catch (error) {
@@ -131,6 +156,10 @@ export class PrescriptionService {
             active: true,
             authorized: isAuthorized,
             tenant_id: tenantId,
+            created_by_patient: false,
+            is_tracking_active: false,
+            reminder_enabled: true,
+            time_of_day_slots: [],
           },
         });
 
