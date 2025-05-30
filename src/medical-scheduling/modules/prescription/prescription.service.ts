@@ -13,6 +13,19 @@ export interface MedicationItemInterface {
   observations?: string;
 }
 
+// Extended interface for medication items with tracking capabilities
+export interface MedicationItemWithTrackingInterface
+  extends MedicationItemInterface {
+  // Tracking fields (optional for backward compatibility)
+  created_by_patient?: boolean;
+  is_tracking_active?: boolean;
+  reminder_enabled?: boolean;
+  first_dose_taken_at?: Date;
+  time_of_day_slots?: string[];
+  skip_reason_id?: number;
+  skip_reason_details?: string;
+}
+
 @Injectable()
 export class PrescriptionService {
   constructor(private readonly prisma: PrismaService) {}
