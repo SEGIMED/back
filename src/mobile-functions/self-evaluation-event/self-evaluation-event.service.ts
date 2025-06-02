@@ -29,7 +29,7 @@ export class SelfEvaluationEventService {
    * @param createSelfEvaluationEventDto Datos para crear el evento
    */
   async create(createSelfEvaluationEventDto: CreateSelfEvaluationEventDto) {
-    const { patient_id, medical_event_id, tenant_id, vital_signs } =
+    const { patient_id, medical_event_id, vital_signs } =
       createSelfEvaluationEventDto;
 
     try {
@@ -61,18 +61,11 @@ export class SelfEvaluationEventService {
         );
       }
 
-      if (medicalEvent.tenant_id !== tenant_id) {
-        throw new BadRequestException(
-          'El tenant no coincide con el evento médico',
-        );
-      }
-
       return this.prisma.$transaction(async (tx) => {
         const selfEvaluationEvent = await tx.self_evaluation_event.create({
           data: {
             patient_id,
             medical_event_id,
-            tenant_id,
           },
         });
 
@@ -80,7 +73,6 @@ export class SelfEvaluationEventService {
         if (vital_signs && vital_signs.length > 0) {
           await this.vitalSignsService.create({
             patient_id,
-            tenant_id,
             self_evaluation_event_id: selfEvaluationEvent.id,
             vital_signs,
           });
@@ -144,6 +136,9 @@ export class SelfEvaluationEventService {
 
       // Para cada tipo de signo vital del catálogo, buscar el registro más reciente
       for (const catalogItem of vitalSignsCatalog) {
+        // NOTA: No filtramos por tenant_id intencionalmente
+        // Los signos vitales propios del paciente (self-evaluation) no tienen tenant_id
+        // y deben ser incluidos junto con los de consultas médicas
         const latestRecord = await this.prisma.vital_signs.findFirst({
           where: {
             patient_id: patientId,
@@ -271,6 +266,9 @@ export class SelfEvaluationEventService {
       const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999);
 
       // Obtener todos los registros del mes para este tipo de signo vital
+      // NOTA: No filtramos por tenant_id intencionalmente
+      // Los signos vitales propios del paciente (self-evaluation) no tienen tenant_id
+      // y deben ser incluidos junto con los de consultas médicas
       const monthlyRecords = await this.prisma.vital_signs.findMany({
         where: {
           patient_id: patientId,

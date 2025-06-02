@@ -46,7 +46,7 @@ export class VitalSignsController {
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
-    required: true,
+    required: false,
   })
   @RequirePermission(Permission.VIEW_PATIENT_DETAILS) // Should this be CREATE_VITAL_SIGNS or similar?
   async create(
@@ -81,7 +81,7 @@ export class VitalSignsController {
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
-    required: true,
+    required: false,
   })
   @ApiParam({
     name: 'patientId',
@@ -116,7 +116,7 @@ export class VitalSignsController {
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
-    required: true,
+    required: false,
   })
   @ApiParam({
     name: 'id',

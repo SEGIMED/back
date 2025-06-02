@@ -1,10 +1,10 @@
 import {
-  IsString,
   IsNotEmpty,
   IsUUID,
   IsArray,
   ValidateNested,
   ArrayNotEmpty,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { VitalSignDto } from '../../../medical-scheduling/modules/vital-signs/dto/create-vital-sign.dto';
@@ -30,13 +30,15 @@ export class CreateSelfEvaluationEventDto {
   medical_event_id: string;
 
   @ApiProperty({
-    description: 'ID del inquilino (tenant) en el sistema',
+    description:
+      'ID del inquilino (tenant) en el sistema (opcional para signos vitales propios del paciente)',
     example: 'tid_12345-6789-abcd-ef0123456789',
     format: 'uuid',
+    required: false,
   })
+  @IsOptional()
   @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
-  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
-  tenant_id: string;
+  tenant_id?: string;
 
   @ApiProperty({
     description: 'Array de signos vitales registrados en la autoevaluación',

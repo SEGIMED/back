@@ -4,7 +4,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
   ApiParam,
 } from '@nestjs/swagger';
 import { PrescriptionService } from './prescription.service';
@@ -26,11 +25,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
     return this.prescriptionService.create(createPrescriptionDto);
   }
@@ -48,11 +42,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Patient not found.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   @ApiParam({
     name: 'id',
     type: 'string',
@@ -76,11 +65,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: false,
-  })
   findAll() {
     return this.prescriptionService.findAll();
   }
@@ -96,11 +80,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Prescription not found.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   @ApiParam({
     name: 'id',
     type: 'string',

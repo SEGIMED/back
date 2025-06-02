@@ -93,7 +93,12 @@ export class VitalSignsService {
         }
 
         // Verificar que el tenant del evento de autoevaluación coincide con el tenant proporcionado
-        if (selfEvaluationEvent.tenant_id !== tenant_id) {
+        // Solo validar si ambos tienen tenant_id (para signos vitales propios del paciente puede ser null)
+        if (
+          selfEvaluationEvent.tenantId &&
+          tenant_id &&
+          selfEvaluationEvent.tenantId !== tenant_id
+        ) {
           throw new BadRequestException(
             'El tenant no coincide con el evento de autoevaluación',
           );
@@ -273,11 +278,12 @@ export class VitalSignsService {
       });
 
       // Obtener todos los eventos de autoevaluación del paciente
+      // NOTA: No filtramos por tenantId porque los eventos de autoevaluación
+      // pueden no tener tenant asociado cuando son signos vitales propios del paciente
       const selfEvaluationEvents =
         await this.prisma.self_evaluation_event.findMany({
           where: {
             patient_id,
-            tenant_id,
           },
           select: {
             id: true,

@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -127,9 +128,9 @@ export class AttendMedicalEventDto {
     example: 'J00',
     required: false,
   })
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  main_diagnostic_cie?: string;
+  main_diagnostic_cie_id?: number;
 
   @ApiProperty({
     description: 'Optional description of the patient_s evolution',

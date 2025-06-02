@@ -49,7 +49,7 @@ export class SelfEvaluationEventController {
   @ApiOperation({
     summary: 'Crear un evento de autoevaluación',
     description:
-      'Crea un nuevo evento de autoevaluación con los signos vitales registrados por el paciente mediante la aplicación móvil.',
+      'Crea un nuevo evento de autoevaluación con los signos vitales registrados por el paciente mediante la aplicación móvil. El tenant_id es opcional para signos vitales propios del paciente.',
   })
   @ApiBody({ type: CreateSelfEvaluationEventDto })
   @ApiResponse({
@@ -70,8 +70,12 @@ export class SelfEvaluationEventController {
     @Body() createSelfEvaluationEventDto: CreateSelfEvaluationEventDto,
     @Request() req,
   ) {
-    // Verificar que el tenant_id en el DTO coincide con el tenant del request
-    if (createSelfEvaluationEventDto.tenant_id !== req.tenant?.id) {
+    // Verificar que el tenant_id en el DTO coincide con el tenant del request (solo si se proporciona)
+    // Los signos vitales propios del paciente pueden no tener tenant_id asociado
+    if (
+      createSelfEvaluationEventDto.tenant_id &&
+      createSelfEvaluationEventDto.tenant_id !== req.tenant?.id
+    ) {
       throw new BadRequestException(
         'El tenant_id no coincide con el tenant del usuario',
       );
