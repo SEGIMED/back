@@ -31,8 +31,20 @@ export class PrescriptionService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createPrescriptionDto: CreatePrescriptionDto) {
     try {
+      // Preparar los datos para la creación
+      const prescriptionData = { ...createPrescriptionDto };
+
+      // Si es creada por un médico (created_by_patient = false o undefined)
+      if (!prescriptionData.created_by_patient) {
+        prescriptionData.created_by_patient = false;
+        prescriptionData.is_tracking_active = false;
+        prescriptionData.reminder_enabled = true;
+        prescriptionData.first_dose_taken_at = undefined;
+        prescriptionData.time_of_day_slots = [];
+      }
+
       await this.prisma.prescription.create({
-        data: { ...createPrescriptionDto },
+        data: prescriptionData,
       });
       return { message: 'La prescripción ha sido correctamente generada' };
     } catch (error) {
@@ -144,6 +156,10 @@ export class PrescriptionService {
             active: true,
             authorized: isAuthorized,
             tenant_id: tenantId,
+            created_by_patient: false,
+            is_tracking_active: false,
+            reminder_enabled: true,
+            time_of_day_slots: [],
           },
         });
 
