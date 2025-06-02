@@ -22,18 +22,12 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
   ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
 
 @ApiTags('Patients')
 @ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant-id',
-  description: 'ID del tenant al que pertenecen los pacientes',
-  required: true,
-})
 @Controller('patient')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class PatientController {

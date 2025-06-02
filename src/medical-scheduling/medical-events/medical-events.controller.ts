@@ -14,16 +14,10 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
-  ApiHeader,
 } from '@nestjs/swagger';
 
 @ApiTags('Medical Events')
 @ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'X-Tenant-ID',
-  description: 'ID del tenant (organización)',
-  required: true,
-})
 @Controller('medical-events')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class MedicalEventsController {

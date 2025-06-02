@@ -3,13 +3,15 @@ export class GetPatientsDto {
   name: string;
   last_name: string;
   image: string;
-  birth_date: Date;
+  age: number;
   gender: string;
   email: string;
   phone: string;
   prefix: string;
-  dni: string;
+  identification_number: string;
+  identification_type: string;
   health_care_number: string;
+  main_diagnostic_cie: string;
 }
 
 export class GetPatientDto {
@@ -18,6 +20,7 @@ export class GetPatientDto {
   last_name: string;
   image: string;
   birth_date: Date;
+  age: number;
   email: string;
   notes: string;
   vital_signs: VitalSignDto[];

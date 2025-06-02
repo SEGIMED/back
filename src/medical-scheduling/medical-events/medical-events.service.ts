@@ -38,7 +38,7 @@ export class MedicalEventsService {
           patient_id: data.patient_id,
           physician_id: data.physician_id,
           physician_comments: data.physician_comments ?? '',
-          main_diagnostic_cie: data.main_diagnostic_cie ?? '',
+          main_diagnostic_cie_id: data.main_diagnostic_cie,
           evolution: data.evolution ?? '',
           procedure: data.procedure ?? '',
           treatment: data.treatment ?? '',
@@ -97,7 +97,7 @@ export class MedicalEventsService {
         physical_explorations,
         physical_examinations,
         subcategory_cie_ids,
-        main_diagnostic_cie,
+        main_diagnostic_cie_id,
         consultation_ended,
         medications,
         ...basicData
@@ -152,14 +152,14 @@ export class MedicalEventsService {
         );
       }
 
-      if (main_diagnostic_cie) {
+      if (main_diagnostic_cie_id) {
         const subcategoryCodes = medicalEvent.subcategory_medical_event.map(
           (subCat) => subCat.subcategories_cie_diez.code,
         );
 
         if (
           subcategoryCodes.length > 0 &&
-          !subcategoryCodes.includes(main_diagnostic_cie)
+          !subcategoryCodes.includes(main_diagnostic_cie_id.toString())
         ) {
           throw new BadRequestException(
             'El diagnóstico principal debe ser una de las subcategorías CIE-10 asociadas al evento',
@@ -173,7 +173,7 @@ export class MedicalEventsService {
             where: { id },
             data: {
               ...basicData,
-              main_diagnostic_cie,
+              main_diagnostic_cie_id,
               updated_at: new Date(),
             },
           });

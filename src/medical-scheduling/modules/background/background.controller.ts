@@ -10,7 +10,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
 } from '@nestjs/swagger';
 import { BackgroundService } from './background.service';
 import { CreateBackgroundDto } from './dto/create-background.dto';
@@ -29,11 +28,6 @@ export class BackgroundController {
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   async createBackground(@Body() data: CreateBackgroundDto) {
     try {
       return await this.backgroundService.createBackground(data);

@@ -17,6 +17,7 @@ import { UserRoleManagerService } from '../../auth/roles/user-role-manager.servi
 import { Prisma } from '@prisma/client';
 import { AuthHelper } from 'src/utils/auth.helper';
 import { ConfigService } from '@nestjs/config';
+import { calculateAge } from 'src/utils/fuctions';
 
 @Injectable()
 export class PatientService {
@@ -58,152 +59,39 @@ export class PatientService {
         },
       });
 
-      // Si el usuario ya existe y ya tiene este tenant asociado, devolver error
+      // Determinar escenario y ejecutar lógica correspondiente
       if (
         existingUser &&
         existingUser.patient &&
         existingUser.patient.patient_tenant &&
         existingUser.patient.patient_tenant.length > 0
       ) {
+        // Caso 1: Usuario existe y ya está asociado a este tenant -> Error
         throw new BadRequestException(
           'El usuario ya existe para esta organización',
         );
-      }
-
-      // Si el usuario existe pero NO tiene el tenant asociado, agregarlo
-      if (existingUser && existingUser.patient) {
-        console.log(
-          `🔗 Usuario existente encontrado: ${existingUser.email}. Asociando al tenant: ${tenant_id}`,
-        );
-
-        await this.prisma.$transaction(async (transaction) => {
-          // Crear la asociación patient_tenant
-          await transaction.patient_tenant.create({
-            data: {
-              patient_id: existingUser.patient.id,
-              tenant_id: tenant_id,
-            },
-          });
-
-          // Asignar el rol de paciente para este tenant
-          await this.userRoleManager.assignDefaultRoleToUser(
-            existingUser.id,
-            'patient',
-            tenant_id,
-          );
-        });
-
-        return {
-          message: 'Paciente asociado exitosamente a la organización',
-          userId: existingUser.id,
-          action: 'associated',
-        };
-      }
-
-      // Si el usuario existe pero NO es paciente, convertirlo en paciente
-      if (existingUser && !existingUser.patient) {
-        console.log(
-          `🔄 Usuario existente encontrado pero no es paciente: ${existingUser.email}. Creando registro de paciente.`,
-        );
-
-        let patientId: string;
-        await this.prisma.$transaction(async (transaction) => {
-          // Crear el registro de paciente
-          const newPatient = await transaction.patient.create({
-            data: {
-              ...patient,
-              user_id: existingUser.id,
-            },
-          });
-
-          patientId = newPatient.id;
-
-          // Crear la asociación patient_tenant
-          await transaction.patient_tenant.create({
-            data: {
-              patient_id: newPatient.id,
-              tenant_id: tenant_id,
-            },
-          });
-
-          // Actualizar el rol del usuario a paciente si es necesario
-          if (existingUser.role !== 'patient') {
-            await transaction.user.update({
-              where: { id: existingUser.id },
-              data: { role: 'patient' },
-            });
-          }
-        });
-
-        // Asignar el rol de paciente para este tenant
-        await this.userRoleManager.assignDefaultRoleToUser(
-          existingUser.id,
-          'patient',
+      } else if (existingUser && existingUser.patient) {
+        // Caso 2: Usuario existe como paciente pero no asociado a este tenant -> Asociar
+        return await this._handleExistingPatientInTenant(
+          existingUser,
           tenant_id,
         );
-
-        return {
-          message: 'Usuario convertido a paciente y asociado exitosamente',
-          userId: existingUser.id,
-          patientId: patientId,
-          action: 'converted',
-        };
-      }
-
-      // Si el usuario NO existe, crear todo desde cero (lógica original)
-      console.log(
-        `➕ Usuario nuevo: ${user.email}. Creando usuario y paciente desde cero.`,
-      );
-
-      let newUserId: string;
-      const saltRounds = parseInt(
-        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
-      );
-
-      await this.prisma.$transaction(async (transaction) => {
-        const newUser = await transaction.user.create({
-          data: {
-            ...user,
-            role: 'patient',
-            password: await AuthHelper.hashPassword(newPassword, saltRounds),
-          },
-        });
-
-        newUserId = newUser.id;
-
-        const newPatient = await transaction.patient.create({
-          data: {
-            ...patient,
-            user_id: newUser.id,
-          },
-        });
-
-        await transaction.patient_tenant.create({
-          data: {
-            patient_id: newPatient.id,
-            tenant_id: tenant_id,
-          },
-        });
-
-        // Enviar credenciales solo para usuarios nuevos
-        await this.emailService.sendMail(
-          user.email,
-          'Credenciales Segimed',
-          sendCredentialsHtml(user.email, newPassword),
+      } else if (existingUser && !existingUser.patient) {
+        // Caso 3: Usuario existe pero no es paciente -> Convertir
+        return await this._convertExistingUserToPatient(
+          existingUser,
+          patient,
+          tenant_id,
         );
-      });
-
-      await this.userRoleManager.assignDefaultRoleToUser(
-        newUserId,
-        'patient',
-        tenant_id,
-      );
-
-      return {
-        message: 'Paciente creado exitosamente',
-        userId: newUserId,
-        action: 'created',
-      };
+      } else {
+        // Caso 4: Usuario no existe -> Crear nuevo
+        return await this._createNewUserAndPatient(
+          user,
+          patient,
+          tenant_id,
+          newPassword,
+        );
+      }
     } catch (error) {
       console.error('Error al crear paciente:', error);
       if (error instanceof BadRequestException) {
@@ -213,6 +101,153 @@ export class PatientService {
         'Error al crear el paciente: ' + error.message,
       );
     }
+  }
+
+  private async _handleExistingPatientInTenant(
+    existingUser: any,
+    tenant_id: string,
+  ): Promise<object> {
+    console.log(
+      `🔗 Usuario existente encontrado: ${existingUser.email}. Asociando al tenant: ${tenant_id}`,
+    );
+
+    await this.prisma.$transaction(async (transaction) => {
+      // Crear la asociación patient_tenant
+      await transaction.patient_tenant.create({
+        data: {
+          patient_id: existingUser.patient.id,
+          tenant_id: tenant_id,
+        },
+      });
+    });
+
+    // Asignar el rol de paciente para este tenant
+    await this.userRoleManager.assignDefaultRoleToUser(
+      existingUser.id,
+      'patient',
+      tenant_id,
+    );
+
+    return {
+      message: 'Paciente asociado exitosamente a la organización',
+      userId: existingUser.id,
+      action: 'associated',
+    };
+  }
+
+  private async _convertExistingUserToPatient(
+    existingUser: any,
+    patientData: any,
+    tenant_id: string,
+  ): Promise<object> {
+    console.log(
+      `🔄 Usuario existente encontrado pero no es paciente: ${existingUser.email}. Creando registro de paciente.`,
+    );
+
+    let patientId: string;
+    await this.prisma.$transaction(async (transaction) => {
+      // Crear el registro de paciente
+      const newPatient = await transaction.patient.create({
+        data: {
+          ...patientData,
+          user_id: existingUser.id,
+        },
+      });
+
+      patientId = newPatient.id;
+
+      // Crear la asociación patient_tenant
+      await transaction.patient_tenant.create({
+        data: {
+          patient_id: newPatient.id,
+          tenant_id: tenant_id,
+        },
+      });
+
+      // Actualizar el rol del usuario a paciente si es necesario
+      if (existingUser.role !== 'patient') {
+        await transaction.user.update({
+          where: { id: existingUser.id },
+          data: { role: 'patient' },
+        });
+      }
+    });
+
+    // Asignar el rol de paciente para este tenant
+    await this.userRoleManager.assignDefaultRoleToUser(
+      existingUser.id,
+      'patient',
+      tenant_id,
+    );
+
+    return {
+      message: 'Usuario convertido a paciente y asociado exitosamente',
+      userId: existingUser.id,
+      patientId: patientId,
+      action: 'converted',
+    };
+  }
+
+  private async _createNewUserAndPatient(
+    userData: any,
+    patientData: any,
+    tenant_id: string,
+    newPassword: string,
+  ): Promise<object> {
+    console.log(
+      `➕ Usuario nuevo: ${userData.email}. Creando usuario y paciente desde cero.`,
+    );
+
+    let newUserId: string;
+    const saltRounds = parseInt(
+      this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+    );
+
+    await this.prisma.$transaction(async (transaction) => {
+      const newUser = await transaction.user.create({
+        data: {
+          ...userData,
+          role: 'patient',
+          password: await AuthHelper.hashPassword(newPassword, saltRounds),
+        },
+      });
+
+      newUserId = newUser.id;
+
+      const newPatient = await transaction.patient.create({
+        data: {
+          ...patientData,
+          user_id: newUser.id,
+        },
+      });
+
+      await transaction.patient_tenant.create({
+        data: {
+          patient_id: newPatient.id,
+          tenant_id: tenant_id,
+        },
+      });
+    });
+
+    // Asignar el rol de paciente para este tenant
+    await this.userRoleManager.assignDefaultRoleToUser(
+      newUserId,
+      'patient',
+      tenant_id,
+    );
+
+    // Enviar credenciales por email para usuarios nuevos
+    await this.emailService.sendMail(
+      userData.email,
+      'Credenciales Segimed',
+      sendCredentialsHtml(userData.email, newPassword),
+    );
+
+    return {
+      message: 'Paciente creado exitosamente',
+      userId: newUserId,
+      action: 'created',
+    };
   }
 
   async findAll(
@@ -230,7 +265,6 @@ export class PatientService {
       }
 
       let searchFilter: Prisma.patientWhereInput = {};
-      console.log('searchQuery', searchQuery);
       if (searchQuery) {
         searchFilter = {
           OR: [
@@ -240,7 +274,14 @@ export class PatientService {
                 last_name: { contains: searchQuery, mode: 'insensitive' },
               },
             },
-            { user: { dni: { contains: searchQuery, mode: 'insensitive' } } },
+            {
+              user: {
+                identification_number: {
+                  contains: searchQuery,
+                  mode: 'insensitive',
+                },
+              },
+            },
             {
               health_care_number: {
                 contains: searchQuery,
@@ -265,7 +306,26 @@ export class PatientService {
           ...searchFilter,
         },
         include: {
-          user: true,
+          user: {
+            include: {
+              identification_type: true,
+              medical_event_patient: {
+                select: {
+                  main_diagnostic_cie: true,
+                },
+                where: {
+                  deleted: false,
+                  appointment: {
+                    status: 'atendida',
+                  },
+                },
+                orderBy: {
+                  updated_at: 'desc',
+                },
+                take: 1,
+              },
+            },
+          },
         },
         skip,
         take,
@@ -289,13 +349,17 @@ export class PatientService {
           name: user.name,
           last_name: user.last_name || '',
           image: user.image,
-          birth_date: user.birth_date,
+          age: calculateAge(user.birth_date),
           gender: user.gender || '',
           email: user.email,
           phone: user.phone || '',
           prefix: user.phone_prefix || '',
-          dni: user.dni || '',
+          identification_number: user.identification_number || '',
+          identification_type: user.identification_type?.name || '',
           health_care_number: patient.health_care_number || '',
+          main_diagnostic_cie:
+            user.medical_event_patient[0]?.main_diagnostic_cie.description ||
+            '',
         };
       });
     } catch (error) {
@@ -334,54 +398,39 @@ export class PatientService {
         throw new NotFoundException('Paciente no encontrado en este tenant');
       }
 
-      // Get patient files (studies)
-      const files = await this.prisma.patient_study.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          is_deleted: false,
-        },
-        select: {
-          id: true,
-          title: true,
-          url: true,
-        },
-      });
-
-      const formattedFiles = files.map((file) => ({
-        id: file.id,
-        name: file.title,
-        url: file.url || '',
-      }));
-
-      // Get the latest medical event with status COMPLETED
-      const latestMedicalEvent = await this.prisma.medical_event.findFirst({
-        where: {
-          patient_id: id,
-          tenant_id,
-          deleted: false,
-          appointment: {
-            status: 'atendida',
-          },
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-        include: {
-          vital_signs: {
-            include: {
-              vital_sign: true,
-            },
-          },
-        },
-      });
-
-      // Get the latest self evaluation
-      const latestSelfEvaluation =
-        await this.prisma.self_evaluation_event.findFirst({
+      // Ejecutar todas las queries independientes en paralelo
+      const [
+        files,
+        latestMedicalEvent,
+        latestSelfEvaluation,
+        background,
+        medications,
+        futureMedicalEvents,
+        pastMedicalEvents,
+      ] = await Promise.all([
+        // Get patient files (studies)
+        this.prisma.patient_study.findMany({
           where: {
             patient_id: id,
             tenant_id,
+            is_deleted: false,
+          },
+          select: {
+            id: true,
+            title: true,
+            url: true,
+          },
+        }),
+
+        // Get the latest medical event with status COMPLETED
+        this.prisma.medical_event.findFirst({
+          where: {
+            patient_id: id,
+            tenant_id,
+            deleted: false,
+            appointment: {
+              status: 'atendida',
+            },
           },
           orderBy: {
             created_at: 'desc',
@@ -393,13 +442,116 @@ export class PatientService {
               },
             },
           },
-        });
+        }),
 
-      // Determine which vital signs to use (from most recent source)
+        // Get the latest self evaluation
+        this.prisma.self_evaluation_event.findFirst({
+          where: {
+            patient_id: id,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          include: {
+            vital_signs: {
+              include: {
+                vital_sign: true,
+              },
+            },
+          },
+        }),
+
+        // Get the latest patient background
+        this.prisma.background.findFirst({
+          where: {
+            patient_id: id,
+            tenant_id,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        }),
+
+        // Get active medications
+        this.prisma.prescription.findMany({
+          where: {
+            patient_id: id,
+            tenant_id,
+            active: true,
+          },
+          include: {
+            pres_mod_history: {
+              orderBy: {
+                mod_timestamp: 'desc',
+              },
+              take: 1,
+            },
+          },
+        }),
+
+        // Get future medical events (upcoming appointments)
+        this.prisma.appointment.findMany({
+          where: {
+            patient_id: id,
+            tenant_id,
+            status: {
+              in: ['pendiente'],
+            },
+            deleted: false,
+          },
+          orderBy: {
+            start: 'asc',
+          },
+          include: {
+            physician: true,
+          },
+        }),
+
+        // Get past medical events (past appointments)
+        this.prisma.appointment.findMany({
+          where: {
+            patient_id: id,
+            tenant_id,
+            start: {
+              lt: new Date(),
+            },
+            status: {
+              in: ['atendida', 'cancelada'],
+            },
+            deleted: false,
+          },
+          orderBy: {
+            start: 'desc',
+          },
+          include: {
+            physician: true,
+          },
+        }),
+      ]);
+
+      const formattedFiles = files.map((file) => ({
+        id: file.id,
+        name: file.title,
+        url: file.url || '',
+      }));
+
+      // Determine which vital signs to use based on business logic:
+      // 1. Priorizar medical events atendidos que tengan signos vitales guardados
+      // 2. Si no, usar el dato de signo vital más reciente independientemente de la fuente
       let vitalSignsData = [];
       let vitalSignsSource = null;
 
-      if (latestMedicalEvent && latestSelfEvaluation) {
+      // Verificar si el latest medical event tiene signos vitales y está atendido
+      const medicalEventHasVitalSigns =
+        latestMedicalEvent &&
+        latestMedicalEvent.vital_signs &&
+        latestMedicalEvent.vital_signs.length > 0;
+
+      if (medicalEventHasVitalSigns) {
+        // Priorizar el medical event atendido con signos vitales
+        vitalSignsSource = latestMedicalEvent;
+      } else if (latestMedicalEvent && latestSelfEvaluation) {
+        // Si el medical event no tiene signos vitales, comparar fechas
         const medicalEventDate = new Date(latestMedicalEvent.created_at);
         const selfEvalDate = new Date(latestSelfEvaluation.created_at);
 
@@ -418,118 +570,68 @@ export class PatientService {
         vitalSignsSource.vital_signs &&
         vitalSignsSource.vital_signs.length > 0
       ) {
-        // For each vital sign, get the measure unit
-        const vitalSignPromises = vitalSignsSource.vital_signs.map(
-          async (vs) => {
-            if (!vs.vital_sign) return null;
+        // Paso 1: Extraer IDs de Signos Vitales únicos
+        const vitalSignIds: number[] = [];
+        const seenIds = new Set<number>();
 
-            const measureUnit = await this.prisma.cat_measure_unit.findFirst({
-              where: {
-                cat_vital_signs: {
-                  some: {
-                    id: vs.vital_sign_id,
-                  },
+        vitalSignsSource.vital_signs.forEach((vs) => {
+          if (
+            vs.vital_sign_id != null &&
+            typeof vs.vital_sign_id === 'number' &&
+            !seenIds.has(vs.vital_sign_id)
+          ) {
+            vitalSignIds.push(vs.vital_sign_id);
+            seenIds.add(vs.vital_sign_id);
+          }
+        });
+
+        // Paso 2: Query única para Unidades de Medida
+        const measureUnitsMap = new Map<number, string>();
+        if (vitalSignIds.length > 0) {
+          const measureUnits = await this.prisma.cat_measure_unit.findMany({
+            where: {
+              cat_vital_signs: {
+                some: {
+                  id: { in: vitalSignIds },
                 },
               },
+            },
+            include: {
+              cat_vital_signs: {
+                where: {
+                  id: { in: vitalSignIds },
+                },
+                select: {
+                  id: true,
+                },
+              },
+            },
+          });
+
+          // Paso 3: Crear mapa para búsqueda rápida
+          measureUnits.forEach((measureUnit) => {
+            measureUnit.cat_vital_signs.forEach((vitalSign) => {
+              measureUnitsMap.set(vitalSign.id, measureUnit.name);
             });
+          });
+        }
+
+        // Paso 4: Modificar el mapeo original (ya no asíncrono)
+        vitalSignsData = vitalSignsSource.vital_signs
+          .map((vs) => {
+            if (!vs.vital_sign) return null;
+
+            const measureUnitName = measureUnitsMap.get(vs.vital_sign_id) || '';
 
             return {
               id: vs.id,
               vital_sign_category: vs.vital_sign.name,
               measure: vs.measure,
-              vital_sign_measure_unit: measureUnit ? measureUnit.name : '',
+              vital_sign_measure_unit: measureUnitName,
             };
-          },
-        );
-
-        const results = await Promise.all(vitalSignPromises);
-        vitalSignsData = results.filter((item) => item !== null);
+          })
+          .filter((item) => item !== null);
       }
-
-      // Get the latest patient background
-      const background = await this.prisma.background.findFirst({
-        where: {
-          patient_id: id,
-          tenant_id,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-      });
-
-      // Get active medications
-      const medications = await this.prisma.prescription.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          active: true,
-        },
-        include: {
-          pres_mod_history: {
-            orderBy: {
-              mod_timestamp: 'desc',
-            },
-            take: 1,
-          },
-        },
-      });
-
-      const formattedMedications = medications.map((med) => {
-        const lastModification =
-          med.pres_mod_history && med.pres_mod_history.length > 0
-            ? med.pres_mod_history[0]
-            : null;
-        return {
-          id: med.id,
-          name: med.monodrug,
-          dosage: lastModification
-            ? `${lastModification.dose} ${lastModification.dose_units}`
-            : '',
-          instructions: lastModification
-            ? `${lastModification.frecuency}, durante ${lastModification.duration} ${lastModification.duration_units}`
-            : '',
-          active: med.active,
-        };
-      });
-
-      // Get future medical events (upcoming appointments)
-      const futureMedicalEvents = await this.prisma.appointment.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          status: {
-            in: ['pendiente'],
-          },
-          deleted: false,
-        },
-        orderBy: {
-          start: 'asc',
-        },
-        include: {
-          physician: true,
-        },
-      });
-
-      // Get past medical events (past appointments)
-      const pastMedicalEvents = await this.prisma.appointment.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          start: {
-            lt: new Date(),
-          },
-          status: {
-            in: ['atendida', 'cancelada'],
-          },
-          deleted: false,
-        },
-        orderBy: {
-          start: 'desc',
-        },
-        include: {
-          physician: true,
-        },
-      });
 
       // Format evaluation from latest medical event
       const evaluation = latestMedicalEvent
@@ -584,6 +686,7 @@ export class PatientService {
         name: user.name,
         last_name: user.last_name || '',
         image: user.image,
+        age: calculateAge(user.birth_date),
         birth_date: user.birth_date,
         email: user.email,
         notes: patient.notes || '',
@@ -591,7 +694,23 @@ export class PatientService {
         files: formattedFiles,
         evaluation: evaluation,
         background: backgroundData,
-        current_medication: formattedMedications,
+        current_medication: medications.map((med) => {
+          const lastModification =
+            med.pres_mod_history && med.pres_mod_history.length > 0
+              ? med.pres_mod_history[0]
+              : null;
+          return {
+            id: med.id,
+            name: med.monodrug,
+            dosage: lastModification
+              ? `${lastModification.dose} ${lastModification.dose_units}`
+              : '',
+            instructions: lastModification
+              ? `${lastModification.frecuency}, durante ${lastModification.duration} ${lastModification.duration_units}`
+              : '',
+            active: med.active,
+          };
+        }),
         future_medical_events: formatMedicalEvents(futureMedicalEvents),
         past_medical_events: formatMedicalEvents(pastMedicalEvents),
       };
