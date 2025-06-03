@@ -290,25 +290,55 @@ export class PrescriptionsService {
     patientId: string,
     toggleDto: ToggleReminderDto,
   ) {
-    const prescription = await this.prisma.prescription.findFirst({
-      where: {
-        id: prescriptionId,
-        patient_id: patientId,
-      },
-    });
+    try {
+      // Find the prescription for the patient
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: prescriptionId,
+          patient_id: patientId,
+        },
+      });
 
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
+      // Verify the prescription exists
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      // Verify tracking is active - we only allow reminder toggle for active prescriptions
+      if (!prescription.is_tracking_active) {
+        throw new BadRequestException(
+          'Cannot toggle reminders for prescriptions without active tracking',
+        );
+      }
+
+      // Update the reminder setting
+      const updatedPrescription = await this.prisma.prescription.update({
+        where: {
+          id: prescriptionId,
+        },
+        data: {
+          reminder_enabled: toggleDto.reminder_enabled,
+        },
+      });
+
+      // Return the updated prescription with a success message
+      return {
+        ...updatedPrescription,
+        message: toggleDto.reminder_enabled
+          ? 'Reminders enabled successfully'
+          : 'Reminders disabled successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error toggling reminders: ' + error.message,
+      );
     }
-
-    return this.prisma.prescription.update({
-      where: {
-        id: prescriptionId,
-      },
-      data: {
-        reminder_enabled: toggleDto.reminder_enabled,
-      },
-    });
   }
 
   // Helper methods

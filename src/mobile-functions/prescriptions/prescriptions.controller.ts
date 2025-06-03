@@ -127,6 +127,15 @@ export class PrescriptionsController {
     status: 200,
     description: 'Reminder setting updated successfully',
   })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad Request - Cannot toggle reminders for non-active tracking prescriptions',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Prescription not found',
+  })
   @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
   async toggleReminder(
     @Request() req,
