@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsOptional, IsString } from 'class-validator';
+import { BadRequestException } from '@nestjs/common';
+import { IsDate, IsOptional, IsString, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class TrackingQueryDto {
@@ -18,7 +19,15 @@ export class ActivateTrackingDto {
     example: '2025-06-01T08:00:00.000Z',
   })
   @IsDate()
-  @Transform(({ value }) => new Date(value))
+  @Transform(({ value }) => {
+    const date = new Date(value);
+    if (isNaN(date.getTime())) {
+      throw new BadRequestException(
+        'Invalid date format for first_dose_taken_at',
+      );
+    }
+    return date;
+  })
   first_dose_taken_at: Date;
 }
 
@@ -27,5 +36,6 @@ export class ToggleReminderDto {
     description: 'Whether reminders should be enabled',
     example: true,
   })
+  @IsBoolean()
   reminder_enabled: boolean;
 }

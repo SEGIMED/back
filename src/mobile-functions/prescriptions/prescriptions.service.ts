@@ -195,72 +195,94 @@ export class PrescriptionsService {
     patientId: string,
     activateDto: ActivateTrackingDto,
   ) {
-    const prescription = await this.prisma.prescription.findFirst({
-      where: {
-        id: prescriptionId,
-        patient_id: patientId,
-      },
-      include: {
-        pres_mod_history: {
-          orderBy: {
-            mod_timestamp: 'desc',
-          },
-          take: 1,
+    try {
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: prescriptionId,
+          patient_id: patientId,
         },
-      },
-    });
+        include: {
+          pres_mod_history: {
+            orderBy: {
+              mod_timestamp: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
 
-    if (!prescription) {
-      throw new NotFoundException('Prescription not found');
-    }
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
 
-    if (prescription.is_tracking_active) {
+      if (prescription.is_tracking_active) {
+        throw new BadRequestException(
+          'Tracking is already active for this prescription',
+        );
+      }
+
+      const latestModHistory = prescription.pres_mod_history[0];
+      if (!latestModHistory) {
+        throw new BadRequestException('No prescription details found');
+      }
+
+      // Validate that the first dose time is a valid date
+      if (isNaN(activateDto.first_dose_taken_at.getTime())) {
+        throw new BadRequestException('Invalid first dose date format');
+      }
+
+      // Parse frequency to determine time slots
+      const { frequencyType, frequencyValue } = this.parseFrequency(
+        latestModHistory.frecuency,
+      );
+
+      // Calculate time slots based on first dose and frequency
+      const timeOfDaySlots = this.calculateTimeSlots(
+        frequencyType,
+        frequencyValue,
+        activateDto.first_dose_taken_at,
+      );
+
+      // Update the prescription
+      const updatedPrescription = await this.prisma.prescription.update({
+        where: {
+          id: prescriptionId,
+        },
+        data: {
+          is_tracking_active: true,
+          first_dose_taken_at: activateDto.first_dose_taken_at,
+          time_of_day_slots: timeOfDaySlots,
+        },
+      });
+
+      // Create the first dose log as "TAKEN"
+      await this.prisma.medication_dose_log.create({
+        data: {
+          prescription_id: prescriptionId,
+          user_id: patientId,
+          scheduled_time: activateDto.first_dose_taken_at,
+          actual_taken_time: activateDto.first_dose_taken_at,
+          status: 'TAKEN',
+          reported_at: new Date(), // Explicitly set the reported time to now
+        },
+      });
+
+      return {
+        ...updatedPrescription,
+        timeOfDaySlots,
+        message: 'Tracking activated successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
       throw new BadRequestException(
-        'Tracking is already active for this prescription',
+        'Error activating tracking: ' + error.message,
       );
     }
-
-    const latestModHistory = prescription.pres_mod_history[0];
-    if (!latestModHistory) {
-      throw new BadRequestException('No prescription details found');
-    }
-
-    // Parse frequency to determine time slots
-    const { frequencyType, frequencyValue } = this.parseFrequency(
-      latestModHistory.frecuency,
-    );
-
-    // Calculate time slots based on first dose and frequency
-    const timeOfDaySlots = this.calculateTimeSlots(
-      frequencyType,
-      frequencyValue,
-      activateDto.first_dose_taken_at,
-    );
-
-    // Update the prescription
-    const updatedPrescription = await this.prisma.prescription.update({
-      where: {
-        id: prescriptionId,
-      },
-      data: {
-        is_tracking_active: true,
-        first_dose_taken_at: activateDto.first_dose_taken_at,
-        time_of_day_slots: timeOfDaySlots,
-      },
-    });
-
-    // Create the first dose log as "TAKEN"
-    await this.prisma.medication_dose_log.create({
-      data: {
-        prescription_id: prescriptionId,
-        user_id: patientId,
-        scheduled_time: activateDto.first_dose_taken_at,
-        actual_taken_time: activateDto.first_dose_taken_at,
-        status: 'TAKEN',
-      },
-    });
-
-    return updatedPrescription;
   }
 
   async toggleReminder(

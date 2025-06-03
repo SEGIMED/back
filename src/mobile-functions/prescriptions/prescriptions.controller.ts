@@ -95,6 +95,14 @@ export class PrescriptionsController {
     status: 200,
     description: 'Tracking activated successfully',
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input or tracking already active',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Prescription not found',
+  })
   @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
   async activateTracking(
     @Request() req,
