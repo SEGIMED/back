@@ -107,9 +107,7 @@ export class PrescriptionsService {
             },
           },
         },
-      });
-
-      // For each prescription, calculate the scheduled doses for the date
+      }); // For each prescription, calculate the scheduled doses for the date
       const result = prescriptions.map((prescription) => {
         const latestModHistory = prescription.pres_mod_history[0];
 
@@ -136,7 +134,10 @@ export class PrescriptionsService {
 
         // Map actual medication logs to the scheduled doses where they exist
         const dosesWithStatus = scheduledDoses.map((scheduledDose) => {
-          const matchingLog = prescription.medication_dose_logs.find(
+          // Handle case where medication_dose_logs might be undefined
+          const medicationLogs = prescription.medication_dose_logs || [];
+
+          const matchingLog = medicationLogs.find(
             (log) =>
               log.scheduled_time.getTime() ===
               scheduledDose.scheduledTime?.getTime(),
