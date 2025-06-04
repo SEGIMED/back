@@ -41,6 +41,7 @@ export class PermissionUpdaterService {
         Permission.VIEW_PATIENTS_LIST,
         Permission.VIEW_PATIENT_DETAILS,
         Permission.EDIT_PATIENT_INFO,
+        Permission.DELETE_PATIENTS,
         Permission.VIEW_DOCTORS_LIST,
         Permission.VIEW_DOCTOR_DETAILS,
         Permission.SCHEDULE_APPOINTMENTS,
@@ -69,6 +70,7 @@ export class PermissionUpdaterService {
         Permission.AUTOMATIC_REMINDERS,
         Permission.VIEW_STATISTICS,
         Permission.SCHEDULE_OWN_APPOINTMENT,
+        Permission.MANAGE_CATALOGS,
       ];
 
       const patientPermissions = [

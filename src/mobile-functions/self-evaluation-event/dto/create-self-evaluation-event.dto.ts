@@ -54,3 +54,22 @@ export class CreateSelfEvaluationEventDto {
   @Type(() => VitalSignDto)
   vital_signs: VitalSignDto[];
 }
+
+// DTO simplificado para autoevaluaciones móviles (solo signos vitales propios)
+export class CreateMobileSelfEvaluationDto {
+  @ApiProperty({
+    description: 'Array de signos vitales registrados por el paciente',
+    type: [VitalSignDto],
+    example: [
+      { vital_sign_id: 1, measure: 36.5 }, // Temperatura corporal en °C
+      { vital_sign_id: 2, measure: 120 }, // Presión sistólica en mmHg
+      { vital_sign_id: 3, measure: 80 }, // Presión diastólica en mmHg
+      { vital_sign_id: 4, measure: 75 }, // Frecuencia cardíaca en bpm
+    ],
+  })
+  @IsArray({ message: 'vital_signs debe ser un array' })
+  @ArrayNotEmpty({ message: 'Debe proporcionar al menos un signo vital' })
+  @ValidateNested({ each: true })
+  @Type(() => VitalSignDto)
+  vital_signs: VitalSignDto[];
+}

@@ -84,9 +84,11 @@ export class PrescriptionsController {
     @Query() query: TrackingQueryDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.getPrescriptionsForTracking(
       patientId,
       query.date,
+      userTenants,
     );
   }
   @Patch(':prescription_id/activate-tracking')
@@ -115,10 +117,12 @@ export class PrescriptionsController {
     @Body() activateDto: ActivateTrackingDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.activateTracking(
       prescriptionId,
       patientId,
       activateDto,
+      userTenants,
     );
   }
   @Patch(':prescription_id/toggle-reminder')
@@ -148,10 +152,12 @@ export class PrescriptionsController {
     @Body() toggleDto: ToggleReminderDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.toggleReminder(
       prescriptionId,
       patientId,
       toggleDto,
+      userTenants,
     );
   }
 
@@ -176,9 +182,11 @@ export class PrescriptionsController {
     @Body() createDto: CreateMedicationDoseLogDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.createMedicationDoseLog(
       patientId,
       createDto,
+      userTenants,
     );
   }
 

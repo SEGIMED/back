@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSelfEvaluationEventDto } from './dto/create-self-evaluation-event.dto';
+import { CreateMobileSelfEvaluationDto } from './dto/create-self-evaluation-event.dto';
 import { VitalSignsService } from '../../medical-scheduling/modules/vital-signs/vital-signs.service';
 import {
   LatestVitalSignsResponseDto,
@@ -99,6 +100,124 @@ export class SelfEvaluationEventService {
       }
       throw new BadRequestException(
         `Error al crear evento de autoevaluación: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Crea una autoevaluación móvil con signos vitales propios del paciente
+   * Este método no requiere medical_event_id ni tenant_id ya que son signos vitales independientes
+   * @param patientId ID del paciente extraído del JWT
+   * @param createMobileSelfEvaluationDto Datos de signos vitales
+   */
+  async createMobileSelfEvaluation(
+    patientId: string,
+    createMobileSelfEvaluationDto: CreateMobileSelfEvaluationDto,
+  ) {
+    try {
+      // Verificar que el paciente existe
+      const patient = await this.prisma.user.findUnique({
+        where: { id: patientId },
+        include: { patient: true },
+      });
+
+      if (!patient || !patient.patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      const { vital_signs } = createMobileSelfEvaluationDto;
+
+      // Verificar que todos los vital_sign_id existen en el catálogo
+      const vitalSignIds = vital_signs.map((vs) => vs.vital_sign_id);
+      const existingVitalSigns = await this.prisma.cat_vital_signs.findMany({
+        where: {
+          id: { in: vitalSignIds },
+        },
+        select: { id: true, name: true },
+      });
+
+      const foundIds = existingVitalSigns.map((vs) => vs.id);
+      const missingIds = vitalSignIds.filter((id) => !foundIds.includes(id));
+
+      if (missingIds.length > 0) {
+        // Obtener todos los signos vitales disponibles para mostrar en el error
+        const allVitalSigns = await this.prisma.cat_vital_signs.findMany({
+          select: { id: true, name: true },
+          orderBy: { id: 'asc' },
+        });
+
+        throw new BadRequestException(
+          `Los siguientes vital_sign_id no existen: ${missingIds.join(', ')}. ` +
+            `IDs disponibles: ${allVitalSigns.map((vs) => `${vs.id} (${vs.name})`).join(', ')}`,
+        );
+      }
+
+      return this.prisma.$transaction(async (tx) => {
+        // Crear el evento de autoevaluación sin medical_event_id ni tenant_id
+        // Esto representa signos vitales propios del paciente, no de una consulta médica
+        const selfEvaluationEvent = await tx.self_evaluation_event.create({
+          data: {
+            patient_id: patientId,
+            medical_event_id: null, // Campo opcional para autoevaluaciones
+            tenant_id: null, // Campo opcional para signos vitales propios del paciente
+          },
+        });
+        console.log('selfEvaluationEvent', selfEvaluationEvent);
+        // Crear los signos vitales asociados directamente en la transacción
+        if (vital_signs && vital_signs.length > 0) {
+          for (const vs of vital_signs) {
+            await tx.vital_signs.create({
+              data: {
+                patient_id: patientId,
+                self_evaluation_event_id: selfEvaluationEvent.id,
+                vital_sign_id: vs.vital_sign_id,
+                measure: vs.measure,
+                // tenant_id se omite (queda como null para signos vitales propios del paciente)
+              },
+            });
+          }
+        }
+
+        // Obtener el evento completo con los signos vitales
+        const result = await tx.self_evaluation_event.findUnique({
+          where: { id: selfEvaluationEvent.id },
+          include: {
+            vital_signs: {
+              include: {
+                vital_sign: {
+                  include: {
+                    cat_measure_unit: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        return {
+          id: result.id,
+          patient_id: result.patient_id,
+          medical_event_id: result.medical_event_id,
+          created_at: result.created_at,
+          vital_signs: result.vital_signs.map((vs) => ({
+            id: vs.id,
+            measure: vs.measure,
+            vital_sign_name: vs.vital_sign.name,
+            measure_unit: vs.vital_sign.cat_measure_unit?.name,
+            created_at: vs.created_at,
+          })),
+          message: 'Signos vitales registrados exitosamente',
+        };
+      });
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al registrar signos vitales: ${error.message}`,
       );
     }
   }

@@ -398,6 +398,24 @@ export class PatientService {
         throw new NotFoundException('Paciente no encontrado en este tenant');
       }
 
+      // Obtener tenant IDs del paciente
+      const patientTenants = await this.prisma.patient_tenant.findMany({
+        where: {
+          patient: {
+            user_id: id,
+          },
+          deleted: false,
+        },
+        select: { tenant_id: true },
+      });
+
+      const tenantIds = patientTenants.map((pt) => pt.tenant_id);
+
+      // Si no hay organizaciones asociadas, incluir el tenant actual como fallback
+      if (!tenantIds.includes(tenant_id)) {
+        tenantIds.push(tenant_id);
+      }
+
       // Ejecutar todas las queries independientes en paralelo
       const [
         files,
@@ -408,11 +426,11 @@ export class PatientService {
         futureMedicalEvents,
         pastMedicalEvents,
       ] = await Promise.all([
-        // Get patient files (studies)
+        // Get patient files (studies) - Multitenant support
         this.prisma.patient_study.findMany({
           where: {
             patient_id: id,
-            tenant_id,
+            tenant_id: { in: tenantIds }, // Buscar en todas las organizaciones del paciente
             is_deleted: false,
           },
           select: {
