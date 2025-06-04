@@ -29,6 +29,7 @@ import { PresModHistoryModule } from './medical-scheduling/modules/pres_mod_hist
 import { TenantMiddleware } from './utils/middlewares/tenantMiddleware';
 import { TenantExtractorMiddleware } from './auth/middlewares/tenant-extractor.middleware';
 import { JwtUserExtractorMiddleware } from './auth/middlewares/jwt-user-extractor.middleware';
+import { SwaggerTenantExtractorMiddleware } from './auth/middlewares/swagger-tenant-extractor.middleware';
 import { CatVitalSignsModule } from './catalogs/cat-vital-signs/cat-vital-signs.module';
 import { CatMeasureUnitModule } from './catalogs/cat-measure-unit/cat-measure-unit.module';
 import { GuardAuthModule } from './auth/guard-auth.module';
@@ -100,6 +101,14 @@ config({ path: '.env' });
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
+    // Middleware específico para Swagger que extrae tenant del JWT
+    consumer
+      .apply(SwaggerTenantExtractorMiddleware)
+      .forRoutes(
+        { path: 'api', method: RequestMethod.ALL },
+        { path: 'api/*', method: RequestMethod.ALL },
+      );
+
     consumer
       .apply(TenantMiddleware)
       .exclude(
