@@ -10,6 +10,11 @@ import {
   FrequencyType,
 } from './dto/create-self-assigned-prescription.dto';
 import { ActivateTrackingDto, ToggleReminderDto } from './dto/tracking.dto';
+import {
+  CreateMedicationDoseLogDto,
+  SkipMedicationDoseDto,
+  AdjustDoseTimeDto,
+} from './dto/medication-dose-log.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -337,6 +342,259 @@ export class PrescriptionsService {
       }
       throw new BadRequestException(
         'Error toggling reminders: ' + error.message,
+      );
+    }
+  }
+  /**
+   * Create a new medication dose log entry
+   */
+  async createMedicationDoseLog(
+    patientId: string,
+    createDto: CreateMedicationDoseLogDto,
+  ) {
+    try {
+      // Verify the prescription belongs to the patient
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: createDto.prescription_id,
+          patient_id: patientId,
+          is_tracking_active: true,
+        },
+      });
+
+      if (!prescription) {
+        throw new NotFoundException(
+          'Active prescription not found for this patient',
+        );
+      }
+
+      // If scheduled_time is not provided, we need to infer it from current time and time slots
+      let scheduledTime = createDto.scheduled_time;
+      if (!scheduledTime && prescription.time_of_day_slots?.length > 0) {
+        scheduledTime = this.inferScheduledTime(prescription.time_of_day_slots);
+      }
+
+      if (!scheduledTime) {
+        throw new BadRequestException(
+          'scheduled_time is required when prescription has no time slots',
+        );
+      }
+
+      // Validate that actual_taken_time is provided if status is TAKEN
+      if (createDto.status === 'TAKEN' && !createDto.actual_taken_time) {
+        throw new BadRequestException(
+          'actual_taken_time is required when status is TAKEN',
+        );
+      }
+
+      // Create the medication dose log
+      const doseLog = await this.prisma.medication_dose_log.create({
+        data: {
+          prescription_id: createDto.prescription_id,
+          user_id: patientId,
+          scheduled_time: scheduledTime,
+          actual_taken_time: createDto.actual_taken_time,
+          status: createDto.status,
+          reported_at: new Date(),
+        },
+        include: {
+          skip_reason: true,
+        },
+      });
+
+      // If status is TAKEN, reset reminders_sent_count to 0
+      if (createDto.status === 'TAKEN') {
+        await this.prisma.prescription.update({
+          where: { id: createDto.prescription_id },
+          data: { reminders_sent_count: 0 },
+        });
+      }
+
+      return {
+        id: doseLog.id,
+        prescription_id: doseLog.prescription_id,
+        user_id: doseLog.user_id,
+        status: doseLog.status,
+        scheduled_time: doseLog.scheduled_time,
+        actual_taken_time: doseLog.actual_taken_time,
+        reported_at: doseLog.reported_at,
+        skip_reason: doseLog.skip_reason,
+        skip_reason_details: doseLog.skip_reason_details,
+        created_at: doseLog.created_at,
+        updated_at: doseLog.updated_at,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error creating medication dose log: ' + error.message,
+      );
+    }
+  }
+
+  /**
+   * Infer scheduled time from current time and time slots
+   */
+  private inferScheduledTime(timeSlots: string[]): Date {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes
+
+    // Find the closest time slot
+    let closestSlot = timeSlots[0];
+    let minDifference = Infinity;
+
+    for (const slot of timeSlots) {
+      const [hours, minutes] = slot.split(':').map(Number);
+      const slotTime = hours * 60 + minutes;
+      const difference = Math.abs(currentTime - slotTime);
+
+      if (difference < minDifference) {
+        minDifference = difference;
+        closestSlot = slot;
+      }
+    }
+
+    // Create the scheduled time for today
+    const [hours, minutes] = closestSlot.split(':').map(Number);
+    const scheduledTime = new Date(now);
+    scheduledTime.setHours(hours, minutes, 0, 0);
+
+    return scheduledTime;
+  }
+  /**
+   * Skip a medication dose by marking it as SKIPPED_BY_USER
+   */
+  async skipMedicationDose(
+    patientId: string,
+    logId: string,
+    skipDto: SkipMedicationDoseDto,
+  ) {
+    try {
+      // Find the dose log and verify it belongs to the patient
+      const doseLog = await this.prisma.medication_dose_log.findFirst({
+        where: {
+          id: logId,
+          user_id: patientId,
+        },
+        include: {
+          prescription: true,
+        },
+      });
+
+      if (!doseLog) {
+        throw new NotFoundException('Dose log not found for this patient');
+      }
+
+      // Update the dose log with skip information
+      const updatedDoseLog = await this.prisma.medication_dose_log.update({
+        where: { id: logId },
+        data: {
+          status: 'SKIPPED_BY_USER',
+          skip_reason_id: skipDto.skip_reason_id,
+          skip_reason_details: skipDto.skip_reason_details,
+          reported_at: new Date(),
+        },
+        include: {
+          skip_reason: true,
+        },
+      });
+
+      // Reset reminders_sent_count to 0 in the prescription
+      await this.prisma.prescription.update({
+        where: { id: doseLog.prescription_id },
+        data: { reminders_sent_count: 0 },
+      });
+
+      return {
+        id: updatedDoseLog.id,
+        prescription_id: updatedDoseLog.prescription_id,
+        user_id: updatedDoseLog.user_id,
+        status: updatedDoseLog.status,
+        scheduled_time: updatedDoseLog.scheduled_time,
+        actual_taken_time: updatedDoseLog.actual_taken_time,
+        reported_at: updatedDoseLog.reported_at,
+        skip_reason: updatedDoseLog.skip_reason,
+        skip_reason_details: updatedDoseLog.skip_reason_details,
+        created_at: updatedDoseLog.created_at,
+        updated_at: updatedDoseLog.updated_at,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error skipping medication dose: ' + error.message,
+      );
+    }
+  }
+  /**
+   * Adjust the actual taken time for a dose
+   */
+  async adjustDoseTime(
+    patientId: string,
+    logId: string,
+    adjustDto: AdjustDoseTimeDto,
+  ) {
+    try {
+      // Find the dose log and verify it belongs to the patient
+      const doseLog = await this.prisma.medication_dose_log.findFirst({
+        where: {
+          id: logId,
+          user_id: patientId,
+          status: 'TAKEN', // Only allow adjusting taken doses
+        },
+      });
+
+      if (!doseLog) {
+        throw new NotFoundException(
+          'Taken dose log not found for this patient',
+        );
+      }
+
+      // Update the actual taken time
+      const updatedDoseLog = await this.prisma.medication_dose_log.update({
+        where: { id: logId },
+        data: {
+          actual_taken_time: adjustDto.actual_taken_time,
+          updated_at: new Date(),
+        },
+        include: {
+          skip_reason: true,
+        },
+      });
+
+      // TODO: Recalculate adherence window if needed
+      // This would involve checking if the new time affects adherence calculations
+
+      return {
+        id: updatedDoseLog.id,
+        prescription_id: updatedDoseLog.prescription_id,
+        user_id: updatedDoseLog.user_id,
+        status: updatedDoseLog.status,
+        scheduled_time: updatedDoseLog.scheduled_time,
+        actual_taken_time: updatedDoseLog.actual_taken_time,
+        reported_at: updatedDoseLog.reported_at,
+        skip_reason: updatedDoseLog.skip_reason,
+        skip_reason_details: updatedDoseLog.skip_reason_details,
+        created_at: updatedDoseLog.created_at,
+        updated_at: updatedDoseLog.updated_at,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error adjusting dose time: ' + error.message,
       );
     }
   }

@@ -17,6 +17,11 @@ import {
   ToggleReminderDto,
   TrackingQueryDto,
 } from './dto/tracking.dto';
+import {
+  CreateMedicationDoseLogDto,
+  SkipMedicationDoseDto,
+  AdjustDoseTimeDto,
+} from './dto/medication-dose-log.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
@@ -147,6 +152,99 @@ export class PrescriptionsController {
       prescriptionId,
       patientId,
       toggleDto,
+    );
+  }
+
+  @Post('medication-dose-log')
+  @ApiOperation({ summary: 'Create new medication dose record' })
+  @ApiBody({ type: CreateMedicationDoseLogDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Medication dose log created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input data',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Active prescription not found for this patient',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async createMedicationDoseLog(
+    @Request() req,
+    @Body() createDto: CreateMedicationDoseLogDto,
+  ) {
+    const patientId = req.user.id;
+    return this.prescriptionsService.createMedicationDoseLog(
+      patientId,
+      createDto,
+    );
+  }
+
+  @Patch('medication-dose-log/:log_id/skip')
+  @ApiOperation({ summary: 'Mark dose as skipped by user' })
+  @ApiParam({
+    name: 'log_id',
+    description: 'Medication dose log ID to mark as skipped',
+  })
+  @ApiBody({ type: SkipMedicationDoseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Dose marked as skipped successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input data',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Dose log not found for this patient',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async skipMedicationDose(
+    @Request() req,
+    @Param('log_id') logId: string,
+    @Body() skipDto: SkipMedicationDoseDto,
+  ) {
+    const patientId = req.user.id;
+    return this.prescriptionsService.skipMedicationDose(
+      patientId,
+      logId,
+      skipDto,
+    );
+  }
+
+  @Patch('medication-dose-log/:log_id/adjust-time')
+  @ApiOperation({ summary: 'Adjust actual taken time for a dose' })
+  @ApiParam({
+    name: 'log_id',
+    description: 'Medication dose log ID to adjust time for',
+  })
+  @ApiBody({ type: AdjustDoseTimeDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Dose time adjusted successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input data',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Taken dose log not found for this patient',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async adjustDoseTime(
+    @Request() req,
+    @Param('log_id') logId: string,
+    @Body() adjustDto: AdjustDoseTimeDto,
+  ) {
+    const patientId = req.user.id;
+    return this.prescriptionsService.adjustDoseTime(
+      patientId,
+      logId,
+      adjustDto,
     );
   }
 }
