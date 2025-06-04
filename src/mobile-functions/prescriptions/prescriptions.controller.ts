@@ -17,6 +17,7 @@ import {
   ToggleReminderDto,
   TrackingQueryDto,
 } from './dto/tracking.dto';
+import { CreateMedicationDoseLogDto } from './dto/medication-dose-log.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
@@ -147,6 +148,33 @@ export class PrescriptionsController {
       prescriptionId,
       patientId,
       toggleDto,
+    );
+  }
+
+  @Post('medication-dose-log')
+  @ApiOperation({ summary: 'Create new medication dose record' })
+  @ApiBody({ type: CreateMedicationDoseLogDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Medication dose log created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input data',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Active prescription not found for this patient',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async createMedicationDoseLog(
+    @Request() req,
+    @Body() createDto: CreateMedicationDoseLogDto,
+  ) {
+    const patientId = req.user.id;
+    return this.prescriptionsService.createMedicationDoseLog(
+      patientId,
+      createDto,
     );
   }
 }
