@@ -236,11 +236,11 @@ model transaction {
 model patient_study {
   id                String         @id @default(uuid())
   patient_id        String
-  physician_id      String
+  physician_id      String?
   url               String?        @default("")
   title             String
   description       String
-  tenant_id         String
+  tenant_id         String?
   cat_study_type_id Int
   is_deleted        Boolean        @default(false)
   createdAt         DateTime       @default(now())
@@ -421,15 +421,15 @@ model medication_skip_reason_catalog {
 }
 
 model self_evaluation_event {
-  id               String        @id @default(uuid())
+  id               String         @id @default(uuid())
   patient_id       String
-  medical_event_id String
-  tenant_id        String
-  created_at       DateTime      @default(now())
-  updated_at       DateTime      @updatedAt
-  medical_event    medical_event @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
-  patient          user          @relation(fields: [patient_id], references: [id], onDelete: Cascade)
-  tenant           tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  medical_event_id String?
+  tenant_id        String?
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  patient          user           @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  tenant           tenant?        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   vital_signs      vital_signs[]
 }
 
@@ -440,7 +440,7 @@ model vital_signs {
   self_evaluation_event_id String?
   vital_sign_id            Int
   measure                  Int
-  tenant_id                String
+  tenant_id                String?
   created_at               DateTime               @default(now())
   updated_at               DateTime               @updatedAt
   deleted                  Boolean                @default(false)
@@ -448,7 +448,7 @@ model vital_signs {
   medical_event            medical_event?         @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   patient                  user                   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id], onDelete: Cascade)
-  tenant                   tenant                 @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant                   tenant?                @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id], onDelete: Cascade)
 }
 

@@ -15,6 +15,7 @@ import { PatientModule } from './management/patient/patient.module';
 import { PatientStudiesModule } from './medical-scheduling/modules/patient-studies/patient-studies.module';
 import { FileUploadModule } from './utils/file_upload/file_upload.module';
 import { CatStudyTypeModule } from './catalogs/cat-study-type/cat-study-type.module';
+import { CatIdentificationTypeModule } from './catalogs/cat-identification-type/cat-identification-type.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
 import { TwilioModule } from './services/twilio/twilio.module';
@@ -58,6 +59,7 @@ config({ path: '.env' });
     AuthModule,
     FileUploadModule,
     CatStudyTypeModule,
+    CatIdentificationTypeModule,
     CatCieDiezModule,
     SubcatCieDiezModule,
     CatVitalSignsModule,
