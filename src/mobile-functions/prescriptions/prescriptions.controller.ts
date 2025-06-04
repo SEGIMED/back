@@ -17,7 +17,10 @@ import {
   ToggleReminderDto,
   TrackingQueryDto,
 } from './dto/tracking.dto';
-import { CreateMedicationDoseLogDto } from './dto/medication-dose-log.dto';
+import {
+  CreateMedicationDoseLogDto,
+  SkipMedicationDoseDto,
+} from './dto/medication-dose-log.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
@@ -175,6 +178,39 @@ export class PrescriptionsController {
     return this.prescriptionsService.createMedicationDoseLog(
       patientId,
       createDto,
+    );
+  }
+
+  @Patch('medication-dose-log/:log_id/skip')
+  @ApiOperation({ summary: 'Mark dose as skipped by user' })
+  @ApiParam({
+    name: 'log_id',
+    description: 'Medication dose log ID to mark as skipped',
+  })
+  @ApiBody({ type: SkipMedicationDoseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Dose marked as skipped successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input data',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Dose log not found for this patient',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async skipMedicationDose(
+    @Request() req,
+    @Param('log_id') logId: string,
+    @Body() skipDto: SkipMedicationDoseDto,
+  ) {
+    const patientId = req.user.id;
+    return this.prescriptionsService.skipMedicationDose(
+      patientId,
+      logId,
+      skipDto,
     );
   }
 }
