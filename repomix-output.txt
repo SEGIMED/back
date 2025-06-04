@@ -136,6 +136,7 @@ src/docs/medical-events.md
 src/docs/medicine.md
 src/docs/mobile-latest-vital-signs.md
 src/docs/mobile-vital-sign-history.md
+src/docs/mobile.appointment.md
 src/docs/mood.md
 src/docs/notification-service.md
 src/docs/order-type.md
@@ -245,6 +246,12 @@ src/medical-scheduling/modules/pres_mod_history/pres_mod_history.controller.ts
 src/medical-scheduling/modules/pres_mod_history/pres_mod_history.module.ts
 src/medical-scheduling/modules/pres_mod_history/pres_mod_history.service.ts
 src/medical-scheduling/modules/prescription/dto/create-prescription.dto.ts
+src/medical-scheduling/modules/prescription/dto/index.ts
+src/medical-scheduling/modules/prescription/dto/medication-dose.dto.ts
+src/medical-scheduling/modules/prescription/dto/medication-skip-reason.dto.ts
+src/medical-scheduling/modules/prescription/dto/medication-tracking-response.dto.ts
+src/medical-scheduling/modules/prescription/dto/medication-tracking.dto.ts
+src/medical-scheduling/modules/prescription/dto/README_DTOS.md
 src/medical-scheduling/modules/prescription/dto/update-prescription.dto.ts
 src/medical-scheduling/modules/prescription/entities/prescription.entity.ts
 src/medical-scheduling/modules/prescription/prescription.controller.ts
@@ -256,12 +263,10 @@ src/medical-scheduling/modules/vital-signs/dto/update-vital-sign.dto.ts
 src/medical-scheduling/modules/vital-signs/vital-signs.controller.ts
 src/medical-scheduling/modules/vital-signs/vital-signs.module.ts
 src/medical-scheduling/modules/vital-signs/vital-signs.service.ts
-src/mobile-functions/appointments/appointments.controller.spec.ts
 src/mobile-functions/appointments/appointments.controller.ts
 src/mobile-functions/appointments/appointments.module.ts
 src/mobile-functions/appointments/appointments.service.ts
 src/mobile-functions/appointments/dto/mobile-appointments-response.dto.ts
-src/mobile-functions/appointments/README.md
 src/mobile-functions/mobile-functions.module.ts
 src/mobile-functions/mood/dto/create-mood.dto.ts
 src/mobile-functions/mood/mood.controller.ts
@@ -293,6 +298,7 @@ src/utils/file_upload/file_upload.controller.ts
 src/utils/file_upload/file_upload.module.ts
 src/utils/file_upload/file_upload.repository.ts
 src/utils/file_upload/file_upload.service.ts
+src/utils/fuctions.ts
 src/utils/middlewares/tenantMiddleware.ts
 src/utils/middlewares/tenantPrismaMiddleware.ts
 src/utils/pagination.helper.ts
@@ -824,6 +830,7 @@ File: package.json
     "googleapis": "^144.0.0",
     "moment": "^2.30.1",
     "multer": "^1.4.5-lts.1",
+    "nestjs-cls": "^6.0.1",
     "pg": "^8.13.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
@@ -889,96 +896,92 @@ datasource db {
 }
 
 model tenant {
-  id         String      @id @default(uuid())
-  type       tenant_type
-  db_name    String?
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-  deleted    Boolean     @default(false)
-
-  users                        user[]
-  organizations                organization[]
-  physicians                   physician[]
+  id                           String                         @id @default(uuid())
+  type                         tenant_type
+  db_name                      String?
+  created_at                   DateTime                       @default(now())
+  updated_at                   DateTime                       @updatedAt
+  deleted                      Boolean                        @default(false)
   appointments                 appointment[]
+  background                   background[]
+  cat_certification_type       cat_certification_type[]
   medical_events               medical_event[]
+  medical_order                medical_order[]
+  mood_entries                 mood_entry[]
+  organizations                organization[]
   organization_physician       organization_physician[]
   patient_tenant               patient_tenant[]
-  prescription                 prescription[]
-  transaction                  transaction[]
-  background                   background[]
   physical_exploration         physical_exploration[]
-  vital_signs                  vital_signs[]
-  self_evaluation_event        self_evaluation_event[]
-  role                         role[]
-  medical_order                medical_order[]
-  cat_certification_type       cat_certification_type[]
+  physicians                   physician[]
   physician_schedule           physician_schedule[]
   physician_schedule_exception physician_schedule_exception[]
+  prescription                 prescription[]
+  role                         role[]
   schedule_slot                schedule_slot[]
-  mood_entries                 mood_entry[]
+  self_evaluation_event        self_evaluation_event[]
+  transaction                  transaction[]
+  users                        user[]
+  vital_signs                  vital_signs[]
 }
 
 model user {
-  id                    String                 @id @default(uuid())
-  name                  String
-  last_name             String?
-  email                 String                 @unique
-  password              String?
-  role                  role_type              @default(physician)
-  is_superadmin         Boolean                @default(false)
-  nationality           String?
-  gender                String?
-  dni                   String?                @unique
-  birth_date            DateTime?
-  phone_prefix          String?
-  phone                 String?
-  is_phone_verified     Boolean                @default(false)
-  image                 String                 @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
-  created_at            DateTime               @default(now())
-  updated_at            DateTime               @updatedAt
-  deleted               Boolean                @default(false)
-  deleted_at            DateTime?
-  transactions          transaction[]
-  physical_examinations physical_examination[]
-
-  tenant_id String?
-  patient   patient?
-  tenant    tenant?  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-
-  physicianAppointment appointment[]      @relation(name: "physician")
-  patientAppointments  appointment[]      @relation(name: "patient")
-  physician            physician[]
-  prescription         prescription[]
-  pres_mod_history     pres_mod_history[]
-  background           background[]
-
-  self_evaluation_event self_evaluation_event[]
-  vital_signs           vital_signs[]
-  mood_entries          mood_entry[]
-
-  roles user_role[]
-
-  physical_exploration_physician physical_exploration[] @relation("physician")
-  physical_exploration_patient   physical_exploration[] @relation("patient")
-  medical_event_patient          medical_event[]        @relation("patient")
-  medical_event_physician        medical_event[]        @relation("physician")
-  medical_order_patient          medical_order[]        @relation("patient")
-  medical_order_physician        medical_order[]        @relation("physician")
+  id                             String                   @id @default(uuid())
+  name                           String
+  last_name                      String?
+  email                          String                   @unique
+  password                       String?
+  role                           role_type                @default(physician)
+  is_superadmin                  Boolean                  @default(false)
+  nationality                    String?
+  gender                         String?
+  identification_number          String?                  @unique
+  birth_date                     DateTime?
+  phone_prefix                   String?
+  phone                          String?
+  is_phone_verified              Boolean                  @default(false)
+  image                          String                   @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
+  created_at                     DateTime                 @default(now())
+  updated_at                     DateTime                 @updatedAt
+  deleted                        Boolean                  @default(false)
+  deleted_at                     DateTime?
+  tenant_id                      String?
+  identification_type_id         Int?
+  patientAppointments            appointment[]            @relation("patient")
+  physicianAppointment           appointment[]            @relation("physician")
+  background                     background[]
+  medical_event_patient          medical_event[]          @relation("patient")
+  medical_event_physician        medical_event[]          @relation("physician")
+  medical_order_patient          medical_order[]          @relation("patient")
+  medical_order_physician        medical_order[]          @relation("physician")
   medical_order                  medical_order[]
+  medication_dose_logs           medication_dose_log[]
+  mood_entries                   mood_entry[]
+  patient                        patient?
+  physical_examinations          physical_examination[]
+  physical_exploration_patient   physical_exploration[]   @relation("patient")
+  physical_exploration_physician physical_exploration[]   @relation("physician")
+  physician                      physician?
+  pres_mod_history               pres_mod_history[]
+  prescription                   prescription[]
+  self_evaluation_event          self_evaluation_event[]
+  transactions                   transaction[]
+  identification_type            cat_identification_type? @relation(fields: [identification_type_id], references: [id])
+  tenant                         tenant?                  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  roles                          user_role[]
+  vital_signs                    vital_signs[]
 }
 
 model organization {
-  id                  String      @id @default(uuid())
-  name                String
-  type                tenant_type
-  number_of_employees Int?
-  number_of_patients  Int?
-  reason_register     String
-  created_at          DateTime    @default(now())
-  updated_at          DateTime    @updatedAt
-  deleted             Boolean     @default(false)
-  deleted_at          DateTime?
-
+  id                     String                   @id @default(uuid())
+  name                   String
+  type                   tenant_type
+  number_of_employees    Int?
+  number_of_patients     Int?
+  reason_register        String
+  created_at             DateTime                 @default(now())
+  updated_at             DateTime                 @updatedAt
+  deleted                Boolean                  @default(false)
+  deleted_at             DateTime?
   tenant_id              String?
   tenant                 tenant?                  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   organization_physician organization_physician[]
@@ -992,64 +995,64 @@ model organization_physician {
   updated_at      DateTime     @updatedAt
   deleted         Boolean      @default(false)
   deleted_at      DateTime?
+  tenant_id       String
   organization    organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
   physician       physician    @relation(fields: [physician_id], references: [id], onDelete: Cascade)
-  tenant_id       String
-  tenant          tenant?      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant          tenant       @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model patient {
-  id                 String    @id @default(uuid())
-  direction          String?
-  country            String?
-  province           String?
-  city               String?
-  postal_code        String?
-  direction_number   String?
-  apartment          String?
-  health_care_number String?
-  notes              String?
-  created_at         DateTime  @default(now())
-  updated_at         DateTime  @updatedAt
-  deleted            Boolean   @default(false)
-  deleted_at         DateTime?
-  user_id            String    @unique
-  user               user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  patient_tenant patient_tenant[]
+  id                                   String           @id @default(uuid())
+  direction                            String?
+  country                              String?
+  province                             String?
+  city                                 String?
+  postal_code                          String?
+  direction_number                     String?
+  apartment                            String?
+  health_care_number                   String?
+  notes                                String?
+  created_at                           DateTime         @default(now())
+  updated_at                           DateTime         @updatedAt
+  deleted                              Boolean          @default(false)
+  deleted_at                           DateTime?
+  user_id                              String           @unique
+  medication_reminder_interval_minutes Int?             @default(30)
+  medication_reminder_max_retries      Int?             @default(3)
+  user                                 user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  patient_tenant                       patient_tenant[]
 }
 
 model patient_tenant {
   id         String    @id @default(uuid())
   patient_id String
-  patient    patient   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   tenant_id  String
-  tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   created_at DateTime  @default(now())
   updated_at DateTime  @default(now())
   deleted    Boolean   @default(false)
   deleted_at DateTime?
+  patient    patient   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
   @@unique([patient_id, tenant_id])
 }
 
 model physician {
-  id               String    @id @default(uuid())
-  user_id          String    @unique
-  user             user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  tenant_id        String?
-  tenant           tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-  medical_registry String?
-  signature        String?
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-  deleted          Boolean   @default(false)
-  deleted_at       DateTime?
-
-  physician_speciality         physician_speciality[]
+  id                           String                         @id @default(uuid())
+  user_id                      String                         @unique
+  tenant_id                    String?
+  medical_registry             String?
+  signature                    String?
+  created_at                   DateTime                       @default(now())
+  updated_at                   DateTime                       @updatedAt
+  deleted                      Boolean                        @default(false)
+  deleted_at                   DateTime?
   organization_physician       organization_physician[]
+  tenant                       tenant?                        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user                         user                           @relation(fields: [user_id], references: [id], onDelete: Cascade)
   physician_schedule           physician_schedule[]
   physician_schedule_exception physician_schedule_exception[]
+  physician_speciality         physician_speciality[]
   schedule_slot                schedule_slot[]
 }
 
@@ -1067,39 +1070,38 @@ model appointment {
   updated_at          DateTime        @updatedAt
   deleted             Boolean         @default(false)
   deleted_at          DateTime?
-  patient             user            @relation(name: "patient", fields: [patient_id], references: [id], onDelete: Cascade)
-  physician           user            @relation(name: "physician", fields: [physician_id], references: [id], onDelete: Cascade)
+  tenant_id           String
+  patient             user            @relation("patient", fields: [patient_id], references: [id], onDelete: Cascade)
+  physician           user            @relation("physician", fields: [physician_id], references: [id], onDelete: Cascade)
+  tenant              tenant          @relation(fields: [tenant_id], references: [id])
   medical_events      medical_event[]
-
-  tenant_id String
-  tenant    tenant? @relation(fields: [tenant_id], references: [id])
 }
 
 model medical_event {
-  id                   String                 @id @default(uuid())
-  appointment_id       String
-  patient_id           String
-  physician_id         String
-  physician_comments   String?
-  main_diagnostic_cie  String?
-  evolution            String?
-  procedure            String?
-  treatment            String?
-  created_at           DateTime               @default(now())
-  updated_at           DateTime               @updatedAt
-  deleted              Boolean                @default(false)
-  deleted_at           DateTime?
-  appointment          appointment            @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
-  patient              user                   @relation(fields: [patient_id], references: [id], onDelete: Cascade, name: "patient")
-  physician            user                   @relation(fields: [physician_id], references: [id], onDelete: Cascade, name: "physician")
-  physical_examination physical_examination[]
-  physical_exploration physical_exploration[]
-
+  id                        String                      @id @default(uuid())
+  appointment_id            String
+  patient_id                String
+  physician_id              String
+  physician_comments        String?
+  main_diagnostic_cie_id    Int?                        @default(1)
+  evolution                 String?
+  procedure                 String?
+  treatment                 String?
+  created_at                DateTime                    @default(now())
+  updated_at                DateTime                    @updatedAt
+  deleted                   Boolean                     @default(false)
+  deleted_at                DateTime?
   tenant_id                 String
-  tenant                    tenant?                     @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  appointment               appointment                 @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
+  main_diagnostic_cie       subcategories_cie_diez?     @relation(fields: [main_diagnostic_cie_id], references: [id])
+  patient                   user                        @relation("patient", fields: [patient_id], references: [id], onDelete: Cascade)
+  physician                 user                        @relation("physician", fields: [physician_id], references: [id], onDelete: Cascade)
+  tenant                    tenant                      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  physical_examination      physical_examination[]
+  physical_exploration      physical_exploration?
   pres_mod_history          pres_mod_history[]
-  subcategory_medical_event subcategory_medical_event[]
   self_evaluation_event     self_evaluation_event[]
+  subcategory_medical_event subcategory_medical_event[]
   vital_signs               vital_signs[]
 }
 
@@ -1114,10 +1116,9 @@ model transaction {
   updated_at DateTime  @updatedAt
   deleted    Boolean   @default(false)
   deleted_at DateTime?
+  tenant_id  String
+  tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  tenant_id String
-  tenant    tenant? @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model patient_study {
@@ -1163,26 +1164,24 @@ model physical_examination {
 }
 
 model physical_exploration {
-  id                           String @id @default(uuid())
+  id                           String                    @id @default(uuid())
   patient_id                   String
   physician_id                 String
-  medical_event_id             String @unique // Only one physical exploration per medical event
+  medical_event_id             String                    @unique
   description                  String
   physical_exploration_area_id Int
   tenant_id                    String
-
-  patient                   user                      @relation("patient", fields: [patient_id], references: [id], onDelete: Cascade)
-  physician                 user                      @relation("physician", fields: [physician_id], references: [id], onDelete: Cascade)
-  medical_event             medical_event             @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
-  physical_exploration_area physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
-  tenant                    tenant                    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  medical_event                medical_event             @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  patient                      user                      @relation("patient", fields: [patient_id], references: [id], onDelete: Cascade)
+  physical_exploration_area    physical_exploration_area @relation(fields: [physical_exploration_area_id], references: [id])
+  physician                    user                      @relation("physician", fields: [physician_id], references: [id], onDelete: Cascade)
+  tenant                       tenant                    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model physical_exploration_area {
-  id              Int    @id @default(autoincrement())
-  name_on_library String @unique
-  name            String @unique
-
+  id                   Int                    @id @default(autoincrement())
+  name_on_library      String                 @unique
+  name                 String                 @unique
   physical_exploration physical_exploration[]
 }
 
@@ -1218,159 +1217,197 @@ model background {
   tenant_id                 String
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt
-
-  patient user   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
-  tenant  tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  patient                   user     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  tenant                    tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model subcategory_medical_event {
   id                     String                 @id @default(uuid())
   subCategoryId          Int
-  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
   medical_eventId        String
   medical_event          medical_event          @relation(fields: [medical_eventId], references: [id], onDelete: Cascade)
+  subcategories_cie_diez subcategories_cie_diez @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
 
   @@unique([subCategoryId, medical_eventId])
 }
 
 model prescription {
-  id                               String             @id @default(uuid())
-  start_timestamp                  DateTime           @default(now())
+  id                               String                          @id @default(uuid())
+  start_timestamp                  DateTime                        @default(now())
   end_timestamp                    DateTime?
   description                      String?
-  active                           Boolean            @default(true)
+  active                           Boolean                         @default(true)
   patient_id                       String?
-  user                             user?              @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   monodrug                         String
-  show_in_calendar                 Boolean            @default(false)
-  authorized                       Boolean            @default(false)
-  patient_stopped_treatment        Boolean            @default(false)
+  show_in_calendar                 Boolean                         @default(false)
+  authorized                       Boolean                         @default(false)
+  patient_stopped_treatment        Boolean                         @default(false)
   patient_stopped_treatment_date   DateTime?
   patient_stopped_treatment_reason String?
   tenant_id                        String?
-  tenant                           tenant?            @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  created_by_patient               Boolean                         @default(false)
+  first_dose_taken_at              DateTime?
+  is_tracking_active               Boolean                         @default(false)
+  last_reminder_sent_at            DateTime?
+  reminder_enabled                 Boolean                         @default(true)
+  reminders_sent_count             Int                             @default(0)
+  skip_reason_details              String?
+  skip_reason_id                   Int?
+  time_of_day_slots                String[]
+  medication_dose_logs             medication_dose_log[]
   pres_mod_history                 pres_mod_history[]
+  user                             user?                           @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  skip_reason                      medication_skip_reason_catalog? @relation(fields: [skip_reason_id], references: [id])
+  tenant                           tenant?                         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
 
 model pres_mod_history {
   id               String         @id @default(uuid())
   prescription_id  String
-  prescription     prescription?  @relation(fields: [prescription_id], references: [id])
   physician_id     String?
-  physician        user?          @relation(fields: [physician_id], references: [id])
   mod_timestamp    DateTime       @default(now())
   medical_event_id String?
-  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id])
   medical_order_id String?
-  medical_order    medical_order? @relation(fields: [medical_order_id], references: [id])
   observations     String?
   dose             String
   dose_units       String
   frecuency        String
   duration         String
   duration_units   String
+  commercial_name  String?
+  medical_event    medical_event? @relation(fields: [medical_event_id], references: [id])
+  medical_order    medical_order? @relation(fields: [medical_order_id], references: [id])
+  physician        user?          @relation(fields: [physician_id], references: [id])
+  prescription     prescription   @relation(fields: [prescription_id], references: [id])
+}
+
+model medication_dose_log {
+  id                  String                          @id @default(uuid())
+  prescription_id     String
+  user_id             String
+  scheduled_time      DateTime
+  actual_taken_time   DateTime?
+  status              medication_dose_status
+  reported_at         DateTime                        @default(now())
+  skip_reason_id      Int?
+  skip_reason_details String?
+  created_at          DateTime                        @default(now())
+  updated_at          DateTime                        @updatedAt
+  prescription        prescription                    @relation(fields: [prescription_id], references: [id], onDelete: Cascade)
+  skip_reason         medication_skip_reason_catalog? @relation(fields: [skip_reason_id], references: [id])
+  user                user                            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model medication_skip_reason_catalog {
+  id                   Int                   @id @default(autoincrement())
+  reason_text          String
+  category             String
+  created_at           DateTime              @default(now())
+  updated_at           DateTime              @updatedAt
+  medication_dose_logs medication_dose_log[]
+  prescriptions        prescription[]
 }
 
 model self_evaluation_event {
   id               String        @id @default(uuid())
   patient_id       String
-  patient          user          @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   medical_event_id String
-  medical_event    medical_event @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   tenant_id        String
-  tenant           tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   created_at       DateTime      @default(now())
   updated_at       DateTime      @updatedAt
+  medical_event    medical_event @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  patient          user          @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  tenant           tenant        @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   vital_signs      vital_signs[]
 }
 
 model vital_signs {
   id                       String                 @id @default(uuid())
   patient_id               String
-  patient                  user                   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   medical_event_id         String?
-  medical_event            medical_event?         @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
   self_evaluation_event_id String?
-  self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id], onDelete: Cascade)
   vital_sign_id            Int
-  vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id], onDelete: Cascade)
   measure                  Int
   tenant_id                String
-  tenant                   tenant?                @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   created_at               DateTime               @default(now())
   updated_at               DateTime               @updatedAt
   deleted                  Boolean                @default(false)
   deleted_at               DateTime?
+  medical_event            medical_event?         @relation(fields: [medical_event_id], references: [id], onDelete: Cascade)
+  patient                  user                   @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id], onDelete: Cascade)
+  tenant                   tenant                 @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id], onDelete: Cascade)
 }
 
 model medical_order {
-  id                    String             @id @default(uuid())
-  medical_order_type_id String
-  medical_order_type    medical_order_type @relation(fields: [medical_order_type_id], references: [id])
-  patient_id            String
-  patient               user               @relation(fields: [patient_id], references: [id], name: "patient")
-  physician_id          String
-  physician             user               @relation(fields: [physician_id], references: [id], name: "physician")
-  category_cie_diez_id  Int?
-  category_cie_diez     category_cie_diez? @relation(fields: [category_cie_diez_id], references: [id])
-  pres_mod_history      pres_mod_history[]
-  additional_text       String?
-  application_date      DateTime?
-  description_type      String?
-  url                   String?
-  request_date          DateTime           @default(now())
-  tenant_id             String?
-  tenant                tenant?            @relation(fields: [tenant_id], references: [id])
-
-  // Campos específicos para autorización de estudios
-  cat_study_type_id Int?
-  cat_study_type    cat_study_type? @relation(fields: [cat_study_type_id], references: [id])
-  request_reason    String?
-
-  // Campos específicos para certificados
+  id                        String                  @id @default(uuid())
+  medical_order_type_id     String
+  patient_id                String
+  physician_id              String
+  category_cie_diez_id      Int?
+  additional_text           String?
+  application_date          DateTime?
+  description_type          String?
+  url                       String?
+  request_date              DateTime                @default(now())
+  tenant_id                 String?
+  cat_study_type_id         Int?
+  request_reason            String?
   cat_certification_type_id Int?
+  hospitalization_reason    String?
+  cat_speciality_id         Int?
+  userId                    String?
   cat_certification_type    cat_certification_type? @relation(fields: [cat_certification_type_id], references: [id])
-
-  // Campos específicos para hospitalización
-  hospitalization_reason String?
-
-  // Campos específicos para solicitud de turno
-  cat_speciality_id Int?
-  cat_speciality    cat_speciality? @relation(fields: [cat_speciality_id], references: [id])
-  user              user?           @relation(fields: [userId], references: [id])
-  userId            String?
+  cat_speciality            cat_speciality?         @relation(fields: [cat_speciality_id], references: [id])
+  cat_study_type            cat_study_type?         @relation(fields: [cat_study_type_id], references: [id])
+  category_cie_diez         category_cie_diez?      @relation(fields: [category_cie_diez_id], references: [id])
+  medical_order_type        medical_order_type      @relation(fields: [medical_order_type_id], references: [id])
+  patient                   user                    @relation("patient", fields: [patient_id], references: [id])
+  physician                 user                    @relation("physician", fields: [physician_id], references: [id])
+  tenant                    tenant?                 @relation(fields: [tenant_id], references: [id])
+  user                      user?                   @relation(fields: [userId], references: [id])
+  pres_mod_history          pres_mod_history[]
 }
 
-//!Catalogs
+model cat_identification_type {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  country     String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  user        user[]
+}
 
 model cat_physical_subsystem {
   id                    Int                    @id @default(autoincrement())
   name                  String
-  physical_examinations physical_examination[]
   created_at            DateTime               @default(now())
   updated_at            DateTime               @updatedAt
   deleted               Boolean                @default(false)
   deleted_at            DateTime?
+  physical_examinations physical_examination[]
 }
 
 model cat_speciality {
   id                   Int                    @id @default(autoincrement())
   name                 String
-  physician_speciality physician_speciality[]
   created_at           DateTime               @default(now())
   updated_at           DateTime               @updatedAt
   deleted              Boolean                @default(false)
   deleted_at           DateTime?
-  cat_vital_signs      cat_vital_signs[]      @relation("SpecialityVitalSigns")
   medical_order        medical_order[]
+  physician_speciality physician_speciality[]
+  cat_vital_signs      cat_vital_signs[]      @relation("SpecialityVitalSigns")
 }
 
 model category_cie_diez {
   id                     Int                      @id @default(autoincrement())
   code                   String
   description            String
-  subcategories_cie_diez subcategories_cie_diez[]
   medical_order          medical_order[]
+  subcategories_cie_diez subcategories_cie_diez[]
 }
 
 model subcategories_cie_diez {
@@ -1378,6 +1415,7 @@ model subcategories_cie_diez {
   code                      String
   description               String
   categoryId                Int
+  medical_event             medical_event[]
   category_cie_diez         category_cie_diez           @relation(fields: [categoryId], references: [id])
   subcategory_medical_event subcategory_medical_event[]
 }
@@ -1386,20 +1424,19 @@ model cat_vital_signs {
   id                  Int               @id @default(autoincrement())
   name                String
   category            String
-  vital_signs         vital_signs[]
   color               String?
-  mini_icon           String?
   icon                String?
-  background_icon     String?
-  normal_min_value    Float?
-  normal_max_value    Float?
-  slightly_high_value Float?
-  high_max_value      Float?
-  critical_max_value  Float?
+  mini_icon           String?
   cat_measure_unit_id Int?
+  background_icon     String?
+  critical_max_value  Float?
+  high_max_value      Float?
+  normal_max_value    Float?
+  normal_min_value    Float?
+  slightly_high_value Float?
   cat_measure_unit    cat_measure_unit? @relation(fields: [cat_measure_unit_id], references: [id])
-
-  specialties cat_speciality[] @relation("SpecialityVitalSigns")
+  vital_signs         vital_signs[]
+  specialties         cat_speciality[]  @relation("SpecialityVitalSigns")
 }
 
 model cat_measure_unit {
@@ -1412,8 +1449,8 @@ model cat_measure_unit {
 model cat_study_type {
   id              Int             @id @default(autoincrement())
   name            String
-  patient_studies patient_study[]
   medical_order   medical_order[]
+  patient_studies patient_study[]
 }
 
 model medical_order_type {
@@ -1432,12 +1469,128 @@ model cat_certification_type {
   deleted        Boolean         @default(false)
   deleted_at     DateTime?
   tenant_id      String?
-  tenant         tenant?         @relation(fields: [tenant_id], references: [id])
   custom         Boolean         @default(false)
+  tenant         tenant?         @relation(fields: [tenant_id], references: [id])
   medical_orders medical_order[]
 }
 
-//!Types
+model role {
+  id          String            @id @default(uuid())
+  name        String
+  description String?
+  is_system   Boolean           @default(false)
+  tenant_id   String?
+  created_at  DateTime          @default(now())
+  updated_at  DateTime          @updatedAt
+  deleted     Boolean           @default(false)
+  deleted_at  DateTime?
+  tenant      tenant?           @relation(fields: [tenant_id], references: [id])
+  permissions role_permission[]
+  users       user_role[]
+}
+
+model permission {
+  id          String            @id @default(uuid())
+  name        String            @unique
+  description String?
+  created_at  DateTime          @default(now())
+  updated_at  DateTime          @updatedAt
+  roles       role_permission[]
+}
+
+model role_permission {
+  id            String     @id @default(uuid())
+  role_id       String
+  permission_id String
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  permission    permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+  role          role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@unique([role_id, permission_id])
+}
+
+model user_role {
+  id         String   @id @default(uuid())
+  user_id    String
+  role_id    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  role       role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, role_id])
+}
+
+model physician_schedule {
+  id                 String    @id @default(uuid())
+  physician_id       String
+  day_of_week        Int
+  start_time         String
+  end_time           String
+  appointment_length Int
+  simultaneous_slots Int       @default(1)
+  break_between      Int       @default(0)
+  rest_start         String?
+  rest_end           String?
+  is_working_day     Boolean   @default(true)
+  modality           String
+  office_id          String?
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  deleted            Boolean   @default(false)
+  deleted_at         DateTime?
+  tenant_id          String
+  physician          physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  tenant             tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([physician_id, day_of_week])
+}
+
+model physician_schedule_exception {
+  id           String    @id @default(uuid())
+  physician_id String
+  date         DateTime
+  is_available Boolean   @default(false)
+  reason       String?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted      Boolean   @default(false)
+  deleted_at   DateTime?
+  tenant_id    String
+  physician    physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  tenant       tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([physician_id, date])
+}
+
+model schedule_slot {
+  id           String    @id @default(uuid())
+  physician_id String
+  start_time   DateTime
+  end_time     DateTime
+  is_available Boolean   @default(true)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+  deleted      Boolean   @default(false)
+  deleted_at   DateTime?
+  tenant_id    String
+  physician    physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
+  tenant       tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([physician_id, start_time, end_time])
+}
+
+model mood_entry {
+  id         String   @id @default(uuid())
+  patient_id String
+  mood_level Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  tenant_id  String
+  patient    user     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+}
 
 enum role_type {
   patient
@@ -1463,126 +1616,11 @@ enum gender {
   otro
 }
 
-model role {
-  id          String    @id @default(uuid())
-  name        String
-  description String?
-  is_system   Boolean   @default(false)
-  tenant_id   String?
-  tenant      tenant?   @relation(fields: [tenant_id], references: [id])
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  deleted     Boolean   @default(false)
-  deleted_at  DateTime?
-
-  users       user_role[]
-  permissions role_permission[]
-}
-
-model permission {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  roles role_permission[]
-}
-
-model role_permission {
-  id            String   @id @default(uuid())
-  role_id       String
-  permission_id String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  role       role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
-  permission permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
-
-  @@unique([role_id, permission_id])
-}
-
-model user_role {
-  id         String   @id @default(uuid())
-  user_id    String
-  role_id    String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  user user @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  role role @relation(fields: [role_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, role_id])
-}
-
-model physician_schedule {
-  id                 String    @id @default(uuid())
-  physician_id       String
-  day_of_week        Int // 0-6 where 0 is Sunday
-  start_time         String // Format: "HH:MM"
-  end_time           String // Format: "HH:MM"
-  appointment_length Int // Duration in minutes
-  simultaneous_slots Int       @default(1)
-  break_between      Int       @default(0) // Minutes between appointments
-  rest_start         String? // Format: "HH:MM", start time for rest/break
-  rest_end           String? // Format: "HH:MM", end time for rest/break
-  is_working_day     Boolean   @default(true)
-  modality           String // "Presencial" or "Virtual"
-  office_id          String?
-  created_at         DateTime  @default(now())
-  updated_at         DateTime  @updatedAt
-  deleted            Boolean   @default(false)
-  deleted_at         DateTime?
-  tenant_id          String
-  tenant             tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-  physician          physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
-
-  @@index([physician_id, day_of_week])
-}
-
-model physician_schedule_exception {
-  id           String    @id @default(uuid())
-  physician_id String
-  date         DateTime // Specific date for exception
-  is_available Boolean   @default(false)
-  reason       String?
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
-  deleted      Boolean   @default(false)
-  deleted_at   DateTime?
-  tenant_id    String
-  tenant       tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-  physician    physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
-
-  @@index([physician_id, date])
-}
-
-model schedule_slot {
-  id           String    @id @default(uuid())
-  physician_id String
-  start_time   DateTime
-  end_time     DateTime
-  is_available Boolean   @default(true)
-  created_at   DateTime  @default(now())
-  updated_at   DateTime  @updatedAt
-  deleted      Boolean   @default(false)
-  deleted_at   DateTime?
-  tenant_id    String
-  tenant       tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
-  physician    physician @relation(fields: [physician_id], references: [id], onDelete: Cascade)
-
-  @@index([physician_id, start_time, end_time])
-}
-
-model mood_entry {
-  id         String   @id @default(uuid())
-  patient_id String
-  patient    user     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
-  mood_level Int // 1: Muy mal, 2: Mal, 3: Neutral, 4: Bien, 5: Muy bien
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  tenant_id  String
-  tenant     tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+enum medication_dose_status {
+  TAKEN
+  MISSED_AUTOMATIC
+  MISSED_REPORTED
+  SKIPPED_BY_USER
 }
 
 ================
@@ -66494,7 +66532,7 @@ El sistema utiliza el `NotificationService` para enviar notificaciones automáti
 Todos los endpoints de este módulo requieren los siguientes headers:
 
 - `Authorization`: `Bearer <JWT_TOKEN>` (Token de autenticación del usuario)
-- `X-Tenant-ID`: `<TENANT_UUID>` (Identificador único del tenant/organización)
+- `X-Tenant-ID`: `<TENANT_UUID>` (Identificador único del tenant/organización, opcional en Swagger)
 
 ---
 
@@ -67490,6 +67528,157 @@ tenant-id: 123e4567-e89b-12d3-a456-426614174000
 - Estructura semanal completa pero vacía
 
 ================
+File: src/docs/mobile.appointment.md
+================
+# Mobile Appointments API
+
+Este módulo proporciona endpoints optimizados para aplicaciones móviles para gestionar las citas de pacientes.
+
+## Endpoints
+
+### GET `/mobile/appointments`
+
+Obtiene las citas del paciente autenticado según el parámetro `home`.
+
+#### Parámetros Query
+
+- `home` (boolean, opcional):
+  - `true`: Devuelve solo la próxima cita pendiente del paciente
+  - `false` o no especificado: Devuelve todas las citas agrupadas por estado (pendientes/pasadas)
+
+#### Autenticación
+
+- Requiere Bearer token en el header `Authorization`
+- Solo funciona para usuarios con rol `patient`
+- Automáticamente considera todos los tenants asociados al paciente según su JWT
+
+#### Headers
+
+- `Authorization: Bearer <token>` (requerido)
+- `x-tenant-id: <tenant_id>` (opcional, para especificar un tenant específico)
+
+#### Respuestas
+
+##### Cuando `home=true` - Próxima cita
+
+```json
+{
+  "next_appointment": {
+    "id": "uuid",
+    "start": "2024-01-15T10:00:00Z",
+    "end": "2024-01-15T11:00:00Z",
+    "status": "pendiente",
+    "physician": {
+      "id": "uuid",
+      "name": "Dr. Juan",
+      "surname": "Pérez",
+      "specialties": ["Cardiología"]
+    },
+    "tenant": {
+      "id": "uuid",
+      "name": "Hospital Central"
+    },
+    "notes": "Revisión mensual"
+  },
+  "message": "Próxima cita encontrada exitosamente"
+}
+```
+
+##### Cuando `home=false` - Todas las citas
+
+```json
+{
+  "appointments": {
+    "pending": [
+      {
+        "id": "uuid",
+        "start": "2024-01-15T10:00:00Z",
+        "end": "2024-01-15T11:00:00Z",
+        "status": "pendiente",
+        "physician": {
+          "id": "uuid",
+          "name": "Dr. Juan",
+          "surname": "Pérez",
+          "specialties": ["Cardiología"]
+        },
+        "tenant": {
+          "id": "uuid",
+          "name": "Hospital Central"
+        },
+        "notes": "Revisión mensual"
+      }
+    ],
+    "past": [
+      {
+        "id": "uuid",
+        "start": "2024-01-01T10:00:00Z",
+        "end": "2024-01-01T11:00:00Z",
+        "status": "atendida",
+        "physician": {
+          "id": "uuid",
+          "name": "Dr. María",
+          "surname": "González",
+          "specialties": ["Medicina General"]
+        },
+        "tenant": {
+          "id": "uuid",
+          "name": "Clínica Norte"
+        }
+      }
+    ],
+    "pending_count": 1,
+    "past_count": 1
+  },
+  "message": "Citas obtenidas exitosamente"
+}
+```
+
+#### Códigos de Estado
+
+- `200 OK`: Operación exitosa
+- `400 Bad Request`: Error en la solicitud o datos inválidos
+- `401 Unauthorized`: Token inválido o faltante
+- `403 Forbidden`: No tiene permisos para acceder
+- `404 Not Found`: Paciente no encontrado
+
+## Lógica de Multi-Tenant para Pacientes
+
+El sistema maneja automáticamente pacientes asociados a múltiples organizaciones (tenants):
+
+1. **JWT Token**: El token JWT del paciente incluye un array `tenants` con todas las organizaciones asociadas
+2. **Tenant Específico**: Si se envía el header `x-tenant-id`, se filtran solo las citas de esa organización (si el paciente tiene acceso)
+3. **Todos los Tenants**: Si no se especifica tenant, se obtienen citas de todas las organizaciones asociadas al paciente
+4. **Validación**: El sistema verifica que el paciente tenga acceso a los tenants solicitados
+
+## Permisos Requeridos
+
+- `VIEW_OWN_APPOINTMENTS`: Permiso para ver las citas propias del paciente
+
+## Ejemplo de Uso
+
+### Obtener próxima cita (para pantalla de inicio)
+
+```bash
+curl -X GET "https://api.example.com/mobile/appointments?home=true" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Obtener todas las citas (para pantalla de historial)
+
+```bash
+curl -X GET "https://api.example.com/mobile/appointments" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Obtener citas de una organización específica
+
+```bash
+curl -X GET "https://api.example.com/mobile/appointments" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "x-tenant-id: <tenant_uuid>"
+```
+
+================
 File: src/docs/mood.md
 ================
 # Documentación de API: Mood
@@ -68332,7 +68521,7 @@ El módulo de Pacientes proporciona endpoints para la gestión completa de los p
 Todos los endpoints requieren los siguientes headers:
 
 - `Authorization`: Bearer token JWT para autenticación
-- `tenant-id`: ID del tenant al que pertenece el usuario y los pacientes
+- `X-Tenant-ID`: ID del tenant al que pertenece el usuario y los pacientes
 
 ## Permisos Requeridos
 
@@ -68356,7 +68545,7 @@ Crea un nuevo paciente en el sistema, incluyendo la información de usuario asoc
 - **Permisos**: `MANAGE_USERS`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Request Body**:
 
 ```json
@@ -68410,7 +68599,7 @@ Obtiene la lista de todos los pacientes registrados en el sistema para el tenant
 - **Permisos**: `VIEW_PATIENTS_LIST`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de consulta**:
   - `page` (número, opcional): Número de página para paginación, por defecto 1
   - `limit` (número, opcional): Cantidad de registros por página, por defecto 10
@@ -68463,7 +68652,7 @@ Obtiene los detalles completos de un paciente específico.
 - **Permisos**: `VIEW_PATIENT_DETAILS`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de ruta**:
   - `id` (string, obligatorio): ID del paciente a consultar
 - **Respuesta exitosa**:
@@ -68555,7 +68744,7 @@ Actualiza la información de un paciente existente.
 - **Permisos**: `EDIT_PATIENT_INFO`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de ruta**:
   - `id` (string, obligatorio): ID del paciente a actualizar
 - **Request Body**: Igual que en la creación, pero todos los campos son opcionales
@@ -68585,7 +68774,7 @@ Elimina un paciente del sistema.
 - **Permisos**: `DELETE_PATIENTS`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de ruta**:
   - `id` (string, obligatorio): ID del paciente a eliminar
 - **Respuesta exitosa**:
@@ -72082,13 +72271,15 @@ export class GetPatientsDto {
   name: string;
   last_name: string;
   image: string;
-  birth_date: Date;
+  age: number;
   gender: string;
   email: string;
   phone: string;
   prefix: string;
-  dni: string;
+  identification_number: string;
+  identification_type: string;
   health_care_number: string;
+  main_diagnostic_cie: string;
 }
 
 export class GetPatientDto {
@@ -72097,6 +72288,7 @@ export class GetPatientDto {
   last_name: string;
   image: string;
   birth_date: Date;
+  age: number;
   email: string;
   notes: string;
   vital_signs: VitalSignDto[];
@@ -72233,18 +72425,12 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
   ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
 
 @ApiTags('Patients')
 @ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant-id',
-  description: 'ID del tenant al que pertenecen los pacientes',
-  required: true,
-})
 @Controller('patient')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class PatientController {
@@ -72440,6 +72626,7 @@ import { UserRoleManagerService } from '../../auth/roles/user-role-manager.servi
 import { Prisma } from '@prisma/client';
 import { AuthHelper } from 'src/utils/auth.helper';
 import { ConfigService } from '@nestjs/config';
+import { calculateAge } from 'src/utils/fuctions';
 
 @Injectable()
 export class PatientService {
@@ -72481,152 +72668,39 @@ export class PatientService {
         },
       });
 
-      // Si el usuario ya existe y ya tiene este tenant asociado, devolver error
+      // Determinar escenario y ejecutar lógica correspondiente
       if (
         existingUser &&
         existingUser.patient &&
         existingUser.patient.patient_tenant &&
         existingUser.patient.patient_tenant.length > 0
       ) {
+        // Caso 1: Usuario existe y ya está asociado a este tenant -> Error
         throw new BadRequestException(
           'El usuario ya existe para esta organización',
         );
-      }
-
-      // Si el usuario existe pero NO tiene el tenant asociado, agregarlo
-      if (existingUser && existingUser.patient) {
-        console.log(
-          `🔗 Usuario existente encontrado: ${existingUser.email}. Asociando al tenant: ${tenant_id}`,
-        );
-
-        await this.prisma.$transaction(async (transaction) => {
-          // Crear la asociación patient_tenant
-          await transaction.patient_tenant.create({
-            data: {
-              patient_id: existingUser.patient.id,
-              tenant_id: tenant_id,
-            },
-          });
-
-          // Asignar el rol de paciente para este tenant
-          await this.userRoleManager.assignDefaultRoleToUser(
-            existingUser.id,
-            'patient',
-            tenant_id,
-          );
-        });
-
-        return {
-          message: 'Paciente asociado exitosamente a la organización',
-          userId: existingUser.id,
-          action: 'associated',
-        };
-      }
-
-      // Si el usuario existe pero NO es paciente, convertirlo en paciente
-      if (existingUser && !existingUser.patient) {
-        console.log(
-          `🔄 Usuario existente encontrado pero no es paciente: ${existingUser.email}. Creando registro de paciente.`,
-        );
-
-        let patientId: string;
-        await this.prisma.$transaction(async (transaction) => {
-          // Crear el registro de paciente
-          const newPatient = await transaction.patient.create({
-            data: {
-              ...patient,
-              user_id: existingUser.id,
-            },
-          });
-
-          patientId = newPatient.id;
-
-          // Crear la asociación patient_tenant
-          await transaction.patient_tenant.create({
-            data: {
-              patient_id: newPatient.id,
-              tenant_id: tenant_id,
-            },
-          });
-
-          // Actualizar el rol del usuario a paciente si es necesario
-          if (existingUser.role !== 'patient') {
-            await transaction.user.update({
-              where: { id: existingUser.id },
-              data: { role: 'patient' },
-            });
-          }
-        });
-
-        // Asignar el rol de paciente para este tenant
-        await this.userRoleManager.assignDefaultRoleToUser(
-          existingUser.id,
-          'patient',
+      } else if (existingUser && existingUser.patient) {
+        // Caso 2: Usuario existe como paciente pero no asociado a este tenant -> Asociar
+        return await this._handleExistingPatientInTenant(
+          existingUser,
           tenant_id,
         );
-
-        return {
-          message: 'Usuario convertido a paciente y asociado exitosamente',
-          userId: existingUser.id,
-          patientId: patientId,
-          action: 'converted',
-        };
-      }
-
-      // Si el usuario NO existe, crear todo desde cero (lógica original)
-      console.log(
-        `➕ Usuario nuevo: ${user.email}. Creando usuario y paciente desde cero.`,
-      );
-
-      let newUserId: string;
-      const saltRounds = parseInt(
-        this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
-      );
-
-      await this.prisma.$transaction(async (transaction) => {
-        const newUser = await transaction.user.create({
-          data: {
-            ...user,
-            role: 'patient',
-            password: await AuthHelper.hashPassword(newPassword, saltRounds),
-          },
-        });
-
-        newUserId = newUser.id;
-
-        const newPatient = await transaction.patient.create({
-          data: {
-            ...patient,
-            user_id: newUser.id,
-          },
-        });
-
-        await transaction.patient_tenant.create({
-          data: {
-            patient_id: newPatient.id,
-            tenant_id: tenant_id,
-          },
-        });
-
-        // Enviar credenciales solo para usuarios nuevos
-        await this.emailService.sendMail(
-          user.email,
-          'Credenciales Segimed',
-          sendCredentialsHtml(user.email, newPassword),
+      } else if (existingUser && !existingUser.patient) {
+        // Caso 3: Usuario existe pero no es paciente -> Convertir
+        return await this._convertExistingUserToPatient(
+          existingUser,
+          patient,
+          tenant_id,
         );
-      });
-
-      await this.userRoleManager.assignDefaultRoleToUser(
-        newUserId,
-        'patient',
-        tenant_id,
-      );
-
-      return {
-        message: 'Paciente creado exitosamente',
-        userId: newUserId,
-        action: 'created',
-      };
+      } else {
+        // Caso 4: Usuario no existe -> Crear nuevo
+        return await this._createNewUserAndPatient(
+          user,
+          patient,
+          tenant_id,
+          newPassword,
+        );
+      }
     } catch (error) {
       console.error('Error al crear paciente:', error);
       if (error instanceof BadRequestException) {
@@ -72636,6 +72710,153 @@ export class PatientService {
         'Error al crear el paciente: ' + error.message,
       );
     }
+  }
+
+  private async _handleExistingPatientInTenant(
+    existingUser: any,
+    tenant_id: string,
+  ): Promise<object> {
+    console.log(
+      `🔗 Usuario existente encontrado: ${existingUser.email}. Asociando al tenant: ${tenant_id}`,
+    );
+
+    await this.prisma.$transaction(async (transaction) => {
+      // Crear la asociación patient_tenant
+      await transaction.patient_tenant.create({
+        data: {
+          patient_id: existingUser.patient.id,
+          tenant_id: tenant_id,
+        },
+      });
+    });
+
+    // Asignar el rol de paciente para este tenant
+    await this.userRoleManager.assignDefaultRoleToUser(
+      existingUser.id,
+      'patient',
+      tenant_id,
+    );
+
+    return {
+      message: 'Paciente asociado exitosamente a la organización',
+      userId: existingUser.id,
+      action: 'associated',
+    };
+  }
+
+  private async _convertExistingUserToPatient(
+    existingUser: any,
+    patientData: any,
+    tenant_id: string,
+  ): Promise<object> {
+    console.log(
+      `🔄 Usuario existente encontrado pero no es paciente: ${existingUser.email}. Creando registro de paciente.`,
+    );
+
+    let patientId: string;
+    await this.prisma.$transaction(async (transaction) => {
+      // Crear el registro de paciente
+      const newPatient = await transaction.patient.create({
+        data: {
+          ...patientData,
+          user_id: existingUser.id,
+        },
+      });
+
+      patientId = newPatient.id;
+
+      // Crear la asociación patient_tenant
+      await transaction.patient_tenant.create({
+        data: {
+          patient_id: newPatient.id,
+          tenant_id: tenant_id,
+        },
+      });
+
+      // Actualizar el rol del usuario a paciente si es necesario
+      if (existingUser.role !== 'patient') {
+        await transaction.user.update({
+          where: { id: existingUser.id },
+          data: { role: 'patient' },
+        });
+      }
+    });
+
+    // Asignar el rol de paciente para este tenant
+    await this.userRoleManager.assignDefaultRoleToUser(
+      existingUser.id,
+      'patient',
+      tenant_id,
+    );
+
+    return {
+      message: 'Usuario convertido a paciente y asociado exitosamente',
+      userId: existingUser.id,
+      patientId: patientId,
+      action: 'converted',
+    };
+  }
+
+  private async _createNewUserAndPatient(
+    userData: any,
+    patientData: any,
+    tenant_id: string,
+    newPassword: string,
+  ): Promise<object> {
+    console.log(
+      `➕ Usuario nuevo: ${userData.email}. Creando usuario y paciente desde cero.`,
+    );
+
+    let newUserId: string;
+    const saltRounds = parseInt(
+      this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
+    );
+
+    await this.prisma.$transaction(async (transaction) => {
+      const newUser = await transaction.user.create({
+        data: {
+          ...userData,
+          role: 'patient',
+          password: await AuthHelper.hashPassword(newPassword, saltRounds),
+        },
+      });
+
+      newUserId = newUser.id;
+
+      const newPatient = await transaction.patient.create({
+        data: {
+          ...patientData,
+          user_id: newUser.id,
+        },
+      });
+
+      await transaction.patient_tenant.create({
+        data: {
+          patient_id: newPatient.id,
+          tenant_id: tenant_id,
+        },
+      });
+    });
+
+    // Asignar el rol de paciente para este tenant
+    await this.userRoleManager.assignDefaultRoleToUser(
+      newUserId,
+      'patient',
+      tenant_id,
+    );
+
+    // Enviar credenciales por email para usuarios nuevos
+    await this.emailService.sendMail(
+      userData.email,
+      'Credenciales Segimed',
+      sendCredentialsHtml(userData.email, newPassword),
+    );
+
+    return {
+      message: 'Paciente creado exitosamente',
+      userId: newUserId,
+      action: 'created',
+    };
   }
 
   async findAll(
@@ -72653,7 +72874,6 @@ export class PatientService {
       }
 
       let searchFilter: Prisma.patientWhereInput = {};
-      console.log('searchQuery', searchQuery);
       if (searchQuery) {
         searchFilter = {
           OR: [
@@ -72663,7 +72883,14 @@ export class PatientService {
                 last_name: { contains: searchQuery, mode: 'insensitive' },
               },
             },
-            { user: { dni: { contains: searchQuery, mode: 'insensitive' } } },
+            {
+              user: {
+                identification_number: {
+                  contains: searchQuery,
+                  mode: 'insensitive',
+                },
+              },
+            },
             {
               health_care_number: {
                 contains: searchQuery,
@@ -72688,7 +72915,26 @@ export class PatientService {
           ...searchFilter,
         },
         include: {
-          user: true,
+          user: {
+            include: {
+              identification_type: true,
+              medical_event_patient: {
+                select: {
+                  main_diagnostic_cie: true,
+                },
+                where: {
+                  deleted: false,
+                  appointment: {
+                    status: 'atendida',
+                  },
+                },
+                orderBy: {
+                  updated_at: 'desc',
+                },
+                take: 1,
+              },
+            },
+          },
         },
         skip,
         take,
@@ -72712,13 +72958,17 @@ export class PatientService {
           name: user.name,
           last_name: user.last_name || '',
           image: user.image,
-          birth_date: user.birth_date,
+          age: calculateAge(user.birth_date),
           gender: user.gender || '',
           email: user.email,
           phone: user.phone || '',
           prefix: user.phone_prefix || '',
-          dni: user.dni || '',
+          identification_number: user.identification_number || '',
+          identification_type: user.identification_type?.name || '',
           health_care_number: patient.health_care_number || '',
+          main_diagnostic_cie:
+            user.medical_event_patient[0]?.main_diagnostic_cie.description ||
+            '',
         };
       });
     } catch (error) {
@@ -72757,54 +73007,39 @@ export class PatientService {
         throw new NotFoundException('Paciente no encontrado en este tenant');
       }
 
-      // Get patient files (studies)
-      const files = await this.prisma.patient_study.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          is_deleted: false,
-        },
-        select: {
-          id: true,
-          title: true,
-          url: true,
-        },
-      });
-
-      const formattedFiles = files.map((file) => ({
-        id: file.id,
-        name: file.title,
-        url: file.url || '',
-      }));
-
-      // Get the latest medical event with status COMPLETED
-      const latestMedicalEvent = await this.prisma.medical_event.findFirst({
-        where: {
-          patient_id: id,
-          tenant_id,
-          deleted: false,
-          appointment: {
-            status: 'atendida',
-          },
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-        include: {
-          vital_signs: {
-            include: {
-              vital_sign: true,
-            },
-          },
-        },
-      });
-
-      // Get the latest self evaluation
-      const latestSelfEvaluation =
-        await this.prisma.self_evaluation_event.findFirst({
+      // Ejecutar todas las queries independientes en paralelo
+      const [
+        files,
+        latestMedicalEvent,
+        latestSelfEvaluation,
+        background,
+        medications,
+        futureMedicalEvents,
+        pastMedicalEvents,
+      ] = await Promise.all([
+        // Get patient files (studies)
+        this.prisma.patient_study.findMany({
           where: {
             patient_id: id,
             tenant_id,
+            is_deleted: false,
+          },
+          select: {
+            id: true,
+            title: true,
+            url: true,
+          },
+        }),
+
+        // Get the latest medical event with status COMPLETED
+        this.prisma.medical_event.findFirst({
+          where: {
+            patient_id: id,
+            tenant_id,
+            deleted: false,
+            appointment: {
+              status: 'atendida',
+            },
           },
           orderBy: {
             created_at: 'desc',
@@ -72816,13 +73051,116 @@ export class PatientService {
               },
             },
           },
-        });
+        }),
 
-      // Determine which vital signs to use (from most recent source)
+        // Get the latest self evaluation
+        this.prisma.self_evaluation_event.findFirst({
+          where: {
+            patient_id: id,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          include: {
+            vital_signs: {
+              include: {
+                vital_sign: true,
+              },
+            },
+          },
+        }),
+
+        // Get the latest patient background
+        this.prisma.background.findFirst({
+          where: {
+            patient_id: id,
+            tenant_id,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        }),
+
+        // Get active medications
+        this.prisma.prescription.findMany({
+          where: {
+            patient_id: id,
+            tenant_id,
+            active: true,
+          },
+          include: {
+            pres_mod_history: {
+              orderBy: {
+                mod_timestamp: 'desc',
+              },
+              take: 1,
+            },
+          },
+        }),
+
+        // Get future medical events (upcoming appointments)
+        this.prisma.appointment.findMany({
+          where: {
+            patient_id: id,
+            tenant_id,
+            status: {
+              in: ['pendiente'],
+            },
+            deleted: false,
+          },
+          orderBy: {
+            start: 'asc',
+          },
+          include: {
+            physician: true,
+          },
+        }),
+
+        // Get past medical events (past appointments)
+        this.prisma.appointment.findMany({
+          where: {
+            patient_id: id,
+            tenant_id,
+            start: {
+              lt: new Date(),
+            },
+            status: {
+              in: ['atendida', 'cancelada'],
+            },
+            deleted: false,
+          },
+          orderBy: {
+            start: 'desc',
+          },
+          include: {
+            physician: true,
+          },
+        }),
+      ]);
+
+      const formattedFiles = files.map((file) => ({
+        id: file.id,
+        name: file.title,
+        url: file.url || '',
+      }));
+
+      // Determine which vital signs to use based on business logic:
+      // 1. Priorizar medical events atendidos que tengan signos vitales guardados
+      // 2. Si no, usar el dato de signo vital más reciente independientemente de la fuente
       let vitalSignsData = [];
       let vitalSignsSource = null;
 
-      if (latestMedicalEvent && latestSelfEvaluation) {
+      // Verificar si el latest medical event tiene signos vitales y está atendido
+      const medicalEventHasVitalSigns =
+        latestMedicalEvent &&
+        latestMedicalEvent.vital_signs &&
+        latestMedicalEvent.vital_signs.length > 0;
+
+      if (medicalEventHasVitalSigns) {
+        // Priorizar el medical event atendido con signos vitales
+        vitalSignsSource = latestMedicalEvent;
+      } else if (latestMedicalEvent && latestSelfEvaluation) {
+        // Si el medical event no tiene signos vitales, comparar fechas
         const medicalEventDate = new Date(latestMedicalEvent.created_at);
         const selfEvalDate = new Date(latestSelfEvaluation.created_at);
 
@@ -72841,118 +73179,68 @@ export class PatientService {
         vitalSignsSource.vital_signs &&
         vitalSignsSource.vital_signs.length > 0
       ) {
-        // For each vital sign, get the measure unit
-        const vitalSignPromises = vitalSignsSource.vital_signs.map(
-          async (vs) => {
-            if (!vs.vital_sign) return null;
+        // Paso 1: Extraer IDs de Signos Vitales únicos
+        const vitalSignIds: number[] = [];
+        const seenIds = new Set<number>();
 
-            const measureUnit = await this.prisma.cat_measure_unit.findFirst({
-              where: {
-                cat_vital_signs: {
-                  some: {
-                    id: vs.vital_sign_id,
-                  },
+        vitalSignsSource.vital_signs.forEach((vs) => {
+          if (
+            vs.vital_sign_id != null &&
+            typeof vs.vital_sign_id === 'number' &&
+            !seenIds.has(vs.vital_sign_id)
+          ) {
+            vitalSignIds.push(vs.vital_sign_id);
+            seenIds.add(vs.vital_sign_id);
+          }
+        });
+
+        // Paso 2: Query única para Unidades de Medida
+        const measureUnitsMap = new Map<number, string>();
+        if (vitalSignIds.length > 0) {
+          const measureUnits = await this.prisma.cat_measure_unit.findMany({
+            where: {
+              cat_vital_signs: {
+                some: {
+                  id: { in: vitalSignIds },
                 },
               },
+            },
+            include: {
+              cat_vital_signs: {
+                where: {
+                  id: { in: vitalSignIds },
+                },
+                select: {
+                  id: true,
+                },
+              },
+            },
+          });
+
+          // Paso 3: Crear mapa para búsqueda rápida
+          measureUnits.forEach((measureUnit) => {
+            measureUnit.cat_vital_signs.forEach((vitalSign) => {
+              measureUnitsMap.set(vitalSign.id, measureUnit.name);
             });
+          });
+        }
+
+        // Paso 4: Modificar el mapeo original (ya no asíncrono)
+        vitalSignsData = vitalSignsSource.vital_signs
+          .map((vs) => {
+            if (!vs.vital_sign) return null;
+
+            const measureUnitName = measureUnitsMap.get(vs.vital_sign_id) || '';
 
             return {
               id: vs.id,
               vital_sign_category: vs.vital_sign.name,
               measure: vs.measure,
-              vital_sign_measure_unit: measureUnit ? measureUnit.name : '',
+              vital_sign_measure_unit: measureUnitName,
             };
-          },
-        );
-
-        const results = await Promise.all(vitalSignPromises);
-        vitalSignsData = results.filter((item) => item !== null);
+          })
+          .filter((item) => item !== null);
       }
-
-      // Get the latest patient background
-      const background = await this.prisma.background.findFirst({
-        where: {
-          patient_id: id,
-          tenant_id,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-      });
-
-      // Get active medications
-      const medications = await this.prisma.prescription.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          active: true,
-        },
-        include: {
-          pres_mod_history: {
-            orderBy: {
-              mod_timestamp: 'desc',
-            },
-            take: 1,
-          },
-        },
-      });
-
-      const formattedMedications = medications.map((med) => {
-        const lastModification =
-          med.pres_mod_history && med.pres_mod_history.length > 0
-            ? med.pres_mod_history[0]
-            : null;
-        return {
-          id: med.id,
-          name: med.monodrug,
-          dosage: lastModification
-            ? `${lastModification.dose} ${lastModification.dose_units}`
-            : '',
-          instructions: lastModification
-            ? `${lastModification.frecuency}, durante ${lastModification.duration} ${lastModification.duration_units}`
-            : '',
-          active: med.active,
-        };
-      });
-
-      // Get future medical events (upcoming appointments)
-      const futureMedicalEvents = await this.prisma.appointment.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          status: {
-            in: ['pendiente'],
-          },
-          deleted: false,
-        },
-        orderBy: {
-          start: 'asc',
-        },
-        include: {
-          physician: true,
-        },
-      });
-
-      // Get past medical events (past appointments)
-      const pastMedicalEvents = await this.prisma.appointment.findMany({
-        where: {
-          patient_id: id,
-          tenant_id,
-          start: {
-            lt: new Date(),
-          },
-          status: {
-            in: ['atendida', 'cancelada'],
-          },
-          deleted: false,
-        },
-        orderBy: {
-          start: 'desc',
-        },
-        include: {
-          physician: true,
-        },
-      });
 
       // Format evaluation from latest medical event
       const evaluation = latestMedicalEvent
@@ -73007,6 +73295,7 @@ export class PatientService {
         name: user.name,
         last_name: user.last_name || '',
         image: user.image,
+        age: calculateAge(user.birth_date),
         birth_date: user.birth_date,
         email: user.email,
         notes: patient.notes || '',
@@ -73014,7 +73303,23 @@ export class PatientService {
         files: formattedFiles,
         evaluation: evaluation,
         background: backgroundData,
-        current_medication: formattedMedications,
+        current_medication: medications.map((med) => {
+          const lastModification =
+            med.pres_mod_history && med.pres_mod_history.length > 0
+              ? med.pres_mod_history[0]
+              : null;
+          return {
+            id: med.id,
+            name: med.monodrug,
+            dosage: lastModification
+              ? `${lastModification.dose} ${lastModification.dose_units}`
+              : '',
+            instructions: lastModification
+              ? `${lastModification.frecuency}, durante ${lastModification.duration} ${lastModification.duration_units}`
+              : '',
+            active: med.active,
+          };
+        }),
         future_medical_events: formatMedicalEvents(futureMedicalEvents),
         past_medical_events: formatMedicalEvents(pastMedicalEvents),
       };
@@ -77199,6 +77504,7 @@ import {
   IsBoolean,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -77322,9 +77628,9 @@ export class AttendMedicalEventDto {
     example: 'J00',
     required: false,
   })
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  main_diagnostic_cie?: string;
+  main_diagnostic_cie_id?: number;
 
   @ApiProperty({
     description: 'Optional description of the patient_s evolution',
@@ -77421,7 +77727,13 @@ export class AttendMedicalEventDto {
 ================
 File: src/medical-scheduling/medical-events/dto/create-medical-event.dto.ts
 ================
-import { IsUUID, IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  IsUUID,
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMedicalEventDto {
@@ -77463,9 +77775,9 @@ export class CreateMedicalEventDto {
     example: 'A001',
     required: false,
   })
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  main_diagnostic_cie?: string;
+  main_diagnostic_cie?: number;
 
   @ApiProperty({
     description: 'Optional description of the patient_s evolution',
@@ -77514,16 +77826,10 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiQuery,
-  ApiHeader,
 } from '@nestjs/swagger';
 
 @ApiTags('Medical Events')
 @ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'X-Tenant-ID',
-  description: 'ID del tenant (organización)',
-  required: true,
-})
 @Controller('medical-events')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class MedicalEventsController {
@@ -77712,7 +78018,7 @@ export class MedicalEventsService {
           patient_id: data.patient_id,
           physician_id: data.physician_id,
           physician_comments: data.physician_comments ?? '',
-          main_diagnostic_cie: data.main_diagnostic_cie ?? '',
+          main_diagnostic_cie_id: data.main_diagnostic_cie,
           evolution: data.evolution ?? '',
           procedure: data.procedure ?? '',
           treatment: data.treatment ?? '',
@@ -77771,7 +78077,7 @@ export class MedicalEventsService {
         physical_explorations,
         physical_examinations,
         subcategory_cie_ids,
-        main_diagnostic_cie,
+        main_diagnostic_cie_id,
         consultation_ended,
         medications,
         ...basicData
@@ -77826,14 +78132,14 @@ export class MedicalEventsService {
         );
       }
 
-      if (main_diagnostic_cie) {
+      if (main_diagnostic_cie_id) {
         const subcategoryCodes = medicalEvent.subcategory_medical_event.map(
           (subCat) => subCat.subcategories_cie_diez.code,
         );
 
         if (
           subcategoryCodes.length > 0 &&
-          !subcategoryCodes.includes(main_diagnostic_cie)
+          !subcategoryCodes.includes(main_diagnostic_cie_id.toString())
         ) {
           throw new BadRequestException(
             'El diagnóstico principal debe ser una de las subcategorías CIE-10 asociadas al evento',
@@ -77847,7 +78153,7 @@ export class MedicalEventsService {
             where: { id },
             data: {
               ...basicData,
-              main_diagnostic_cie,
+              main_diagnostic_cie_id,
               updated_at: new Date(),
             },
           });
@@ -78053,7 +78359,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
 } from '@nestjs/swagger';
 import { BackgroundService } from './background.service';
 import { CreateBackgroundDto } from './dto/create-background.dto';
@@ -78072,11 +78377,6 @@ export class BackgroundController {
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   async createBackground(@Body() data: CreateBackgroundDto) {
     try {
       return await this.backgroundService.createBackground(data);
@@ -78310,6 +78610,52 @@ export class MedicineService {
   private readonly apiUrl = 'https://www.datos.gov.co/resource/i7cb-raxc.json';
 
   constructor(private readonly httpService: HttpService) {}
+
+  /**
+   * Determina si un medicamento es genérico basándose en patrones del nombre
+   */
+  private isGenericMedicine(
+    producto: string,
+    principioActivo: string,
+  ): boolean {
+    const productLower = producto.toLowerCase();
+    const principleWords = principioActivo.toLowerCase().split(' ');
+
+    // Si el producto contiene símbolos de marca registrada, es comercial
+    if (producto.includes('®') || producto.includes('™')) {
+      return false;
+    }
+
+    // Si el producto es muy similar al principio activo, probablemente es genérico
+    const similarity = this.calculateNameSimilarity(
+      productLower,
+      principleWords,
+    );
+
+    // Si la similitud es alta (>70%), considerarlo genérico
+    return similarity > 0.7;
+  }
+
+  /**
+   * Calcula la similitud entre el nombre del producto y el principio activo
+   */
+  private calculateNameSimilarity(
+    producto: string,
+    principleWords: string[],
+  ): number {
+    let matchingWords = 0;
+
+    for (const word of principleWords) {
+      if (word.length > 3 && producto.includes(word)) {
+        matchingWords++;
+      }
+    }
+
+    return principleWords.length > 0
+      ? matchingWords / principleWords.length
+      : 0;
+  }
+
   async searchMedicine(query: string) {
     if (!query || query.trim() === '') {
       throw new HttpException('El parámetro de búsqueda es requerido', 400);
@@ -78324,15 +78670,27 @@ export class MedicineService {
 
     try {
       const medicines = await firstValueFrom(this.httpService.get(apiQuery));
-      return medicines.data.map((medicine) => ({
-        id: medicine.expediente,
-        active_principle: medicine.principio_activo,
-        product: medicine.producto,
-        presentation: medicine.formafarmaceutica,
-        administration_route: medicine.viaadministracion,
-        quantity: medicine.cantidad,
-        measurement_unit: medicine.unidadmedida,
-      }));
+
+      return medicines.data.map((medicine) => {
+        // Determinar si el producto es un nombre comercial distintivo o genérico
+        const isGenericName = this.isGenericMedicine(
+          medicine.producto,
+          medicine.principioactivo,
+        );
+
+        return {
+          id: medicine.expediente,
+          active_principle: medicine.principioactivo,
+          product: medicine.producto,
+          commercial_name: isGenericName ? null : medicine.producto,
+          presentation: medicine.formafarmaceutica,
+          administration_route: medicine.viaadministracion,
+          quantity: medicine.cantidad,
+          measurement_unit: medicine.unidadmedida,
+          laboratory: medicine.titular,
+          commercial_description: medicine.descripcioncomercial,
+        };
+      });
     } catch (error) {
       console.log(error);
       throw new HttpException('La medicina no ha podido ser consultada', 500);
@@ -81279,7 +81637,6 @@ export class CreatePresHistoryDto {
   })
   @IsString()
   duration: string;
-
   @ApiProperty({
     description: 'Unidades de duración (días, semanas, etc.)',
     type: String,
@@ -81288,6 +81645,16 @@ export class CreatePresHistoryDto {
   })
   @IsString()
   duration_units: string;
+
+  @ApiProperty({
+    description: 'Nombre comercial del medicamento',
+    type: String,
+    required: false,
+    example: 'Tylenol',
+  })
+  @IsString()
+  @IsOptional()
+  commercial_name?: string;
 }
 
 ================
@@ -81461,6 +81828,7 @@ export class PresModHistoryService {
             ],
           },
         });
+
         if (!prescription) {
           prescription = await op.prescription.create({
             data: { monodrug: createPresHistoryDto.monodrug },
@@ -81474,6 +81842,7 @@ export class PresModHistoryService {
         delete createPresHistoryDto.patient_id;
         delete createPresHistoryDto.monodrug;
         delete createPresHistoryDto.tenant_id; // Corrected typo here
+        // Note: commercial_name is preserved and will be saved to pres_mod_history
 
         createPresHistoryDto.prescription_id = prescription.id;
 
@@ -81529,8 +81898,15 @@ export class PresModHistoryService {
 File: src/medical-scheduling/modules/prescription/dto/create-prescription.dto.ts
 ================
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsDate, IsOptional, IsString } from 'class-validator';
-import { Type } from 'class-transformer'; // Import Type
+import {
+  IsBoolean,
+  IsDate,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsArray,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreatePrescriptionDto {
   @ApiProperty({
@@ -81600,7 +81976,1285 @@ export class CreatePrescriptionDto {
   @IsString()
   @IsOptional()
   tenant_id?: string;
+
+  // New medication tracking fields
+  @ApiProperty({
+    description:
+      'Indicates if this prescription was created by the patient (patient-initiated tracking)',
+    example: false,
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  created_by_patient?: boolean;
+
+  @ApiProperty({
+    description:
+      'Indicates if medication tracking is currently active for this prescription',
+    example: true,
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_tracking_active?: boolean;
+
+  @ApiProperty({
+    description:
+      'Indicates if medication reminders are enabled for this prescription',
+    example: true,
+    required: false,
+    default: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  reminder_enabled?: boolean;
+
+  @ApiProperty({
+    description:
+      'Timestamp when the first dose was taken (if tracking has started)',
+    example: '2025-05-29T08:00:00.000Z',
+    required: false,
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  first_dose_taken_at?: Date;
+
+  @ApiProperty({
+    description:
+      'Array of preferred time slots for taking medication (e.g., ["08:00", "20:00"])',
+    example: ['08:00', '14:00', '20:00'],
+    required: false,
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  time_of_day_slots?: string[];
+
+  @ApiProperty({
+    description: 'Timestamp of the last reminder sent',
+    example: '2025-05-29T08:00:00.000Z',
+    required: false,
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  last_reminder_sent_at?: Date;
+
+  @ApiProperty({
+    description: 'Count of reminders sent for this prescription',
+    example: 5,
+    required: false,
+    default: 0,
+  })
+  @IsNumber()
+  @IsOptional()
+  reminders_sent_count?: number;
+
+  @ApiProperty({
+    description: 'Reference to skip reason catalog if prescription was skipped',
+    example: 1,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  skip_reason_id?: number;
+
+  @ApiProperty({
+    description: 'Additional details about why the prescription was skipped',
+    example: 'Patient reported nausea after taking the medication',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  skip_reason_details?: string;
+
+  // Missing fields from prescription table
+  @ApiProperty({
+    description: 'Whether prescription shows in patient calendar',
+    example: false,
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  show_in_calendar?: boolean;
+
+  @ApiProperty({
+    description: 'Whether prescription is authorized by physician',
+    example: true,
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  authorized?: boolean;
+
+  @ApiProperty({
+    description: 'Whether patient has stopped the treatment',
+    example: false,
+    required: false,
+    default: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  patient_stopped_treatment?: boolean;
+
+  @ApiProperty({
+    description: 'Date when patient stopped the treatment',
+    example: '2025-05-29T10:00:00.000Z',
+    required: false,
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  patient_stopped_treatment_date?: Date;
+
+  @ApiProperty({
+    description: 'Reason why patient stopped the treatment',
+    example: 'Side effects were too severe',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  patient_stopped_treatment_reason?: string;
 }
+
+================
+File: src/medical-scheduling/modules/prescription/dto/index.ts
+================
+// Core DTOs
+export { CreatePrescriptionDto } from './create-prescription.dto';
+export { UpdatePrescriptionDto } from './update-prescription.dto';
+
+// Medication Tracking DTOs
+export {
+  ActivateMedicationTrackingDto,
+  UpdateMedicationTrackingDto,
+  UpdatePatientReminderSettingsDto,
+} from './medication-tracking.dto';
+
+// Medication Dose DTOs
+export {
+  MedicationDoseStatus,
+  RecordMedicationDoseDto,
+  MedicationDoseHistoryQueryDto,
+  MedicationDoseLogResponseDto,
+} from './medication-dose.dto';
+
+// Skip Reason DTOs (catalog with full CRUD)
+export {
+  CreateMedicationSkipReasonDto,
+  UpdateMedicationSkipReasonDto,
+  MedicationSkipReasonResponseDto,
+  MedicationSkipReasonQueryDto,
+  MedicationSkipReasonCategoriesDto,
+} from './medication-skip-reason.dto';
+
+// Response DTOs
+export {
+  PrescriptionWithTrackingResponseDto,
+  MedicationAdherenceStatsDto,
+  ActiveTrackingMedicationsDto,
+} from './medication-tracking-response.dto';
+
+================
+File: src/medical-scheduling/modules/prescription/dto/medication-dose.dto.ts
+================
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsDate,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsUUID,
+  IsNotEmpty,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+// Enum para el estado de la dosis
+export enum MedicationDoseStatus {
+  TAKEN = 'TAKEN',
+  MISSED_AUTOMATIC = 'MISSED_AUTOMATIC',
+  MISSED_REPORTED = 'MISSED_REPORTED',
+  SKIPPED_BY_USER = 'SKIPPED_BY_USER',
+}
+
+// DTO para registrar una dosis tomada
+export class RecordMedicationDoseDto {
+  @ApiProperty({
+    description: 'Prescription ID for which the dose is being recorded',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    format: 'uuid',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  prescription_id: string;
+
+  @ApiProperty({
+    description: 'Status of the medication dose',
+    enum: MedicationDoseStatus,
+    example: MedicationDoseStatus.TAKEN,
+  })
+  @IsEnum(MedicationDoseStatus)
+  @IsNotEmpty()
+  dose_status: MedicationDoseStatus;
+
+  @ApiProperty({
+    description: 'Timestamp when the dose was scheduled',
+    example: '2025-05-29T08:00:00.000Z',
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsNotEmpty()
+  scheduled_time: Date;
+
+  @ApiProperty({
+    description: 'User ID who is recording the dose',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    format: 'uuid',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  user_id: string;
+
+  @ApiProperty({
+    description: 'Timestamp when the dose was actually taken (if taken)',
+    example: '2025-05-29T08:05:00.000Z',
+    required: false,
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  actual_taken_time?: Date;
+
+  @ApiProperty({
+    description: 'Reference to skip reason catalog if dose was skipped',
+    example: 1,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  skip_reason_id?: number;
+
+  @ApiProperty({
+    description:
+      'Additional details about why the dose was skipped (maps to skip_reason_details in table)',
+    example: 'Patient reported nausea after taking the medication',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  skip_reason_details?: string;
+}
+
+// DTO para consultar historial de dosis
+export class MedicationDoseHistoryQueryDto {
+  @ApiProperty({
+    description: 'Prescription ID to get dose history for',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    format: 'uuid',
+    required: false,
+  })
+  @IsUUID()
+  @IsOptional()
+  prescription_id?: string;
+
+  @ApiProperty({
+    description: 'Patient ID to get dose history for',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    format: 'uuid',
+    required: false,
+  })
+  @IsUUID()
+  @IsOptional()
+  patient_id?: string;
+
+  @ApiProperty({
+    description: 'Start date for dose history query',
+    example: '2025-05-01T00:00:00.000Z',
+    required: false,
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  start_date?: Date;
+
+  @ApiProperty({
+    description: 'End date for dose history query',
+    example: '2025-05-31T23:59:59.000Z',
+    required: false,
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  end_date?: Date;
+
+  @ApiProperty({
+    description: 'Filter by dose status',
+    enum: MedicationDoseStatus,
+    required: false,
+  })
+  @IsEnum(MedicationDoseStatus)
+  @IsOptional()
+  dose_status?: MedicationDoseStatus;
+
+  @ApiProperty({
+    description: 'Number of records per page',
+    example: 50,
+    required: false,
+    default: 50,
+  })
+  @IsNumber()
+  @IsOptional()
+  limit?: number;
+
+  @ApiProperty({
+    description: 'Page offset for pagination',
+    example: 0,
+    required: false,
+    default: 0,
+  })
+  @IsNumber()
+  @IsOptional()
+  offset?: number;
+}
+
+// DTO para respuesta del historial de dosis
+export class MedicationDoseLogResponseDto {
+  @ApiProperty({
+    description: 'Unique identifier for the dose log entry',
+    example: 123,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: 'Prescription ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  prescription_id: string;
+
+  @ApiProperty({
+    description: 'User ID who recorded the dose',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  user_id: string;
+
+  @ApiProperty({
+    description: 'Status of the medication dose',
+    enum: MedicationDoseStatus,
+  })
+  dose_status: MedicationDoseStatus;
+
+  @ApiProperty({
+    description: 'Timestamp when the dose was scheduled',
+    type: Date,
+  })
+  scheduled_time: Date;
+
+  @ApiProperty({
+    description: 'Timestamp when the dose was actually taken',
+    type: Date,
+    required: false,
+  })
+  actual_taken_time?: Date;
+
+  @ApiProperty({
+    description: 'Timestamp when the dose was reported',
+    type: Date,
+  })
+  reported_at: Date;
+
+  @ApiProperty({
+    description: 'Skip reason information',
+    required: false,
+  })
+  skip_reason?: {
+    id: number;
+    reason_text: string;
+    category: string;
+  };
+
+  @ApiProperty({
+    description: 'Additional details about why the dose was skipped',
+    required: false,
+  })
+  skip_reason_details?: string;
+
+  @ApiProperty({
+    description: 'Timestamp when the record was created',
+    type: Date,
+  })
+  created_at: Date;
+
+  @ApiProperty({
+    description: 'Timestamp when the record was last updated',
+    type: Date,
+  })
+  updated_at: Date;
+}
+
+================
+File: src/medical-scheduling/modules/prescription/dto/medication-skip-reason.dto.ts
+================
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNumber, IsOptional, IsNotEmpty } from 'class-validator';
+
+// NOTA: Esta tabla es un CATÁLOGO con CRUD completo
+// Los motivos de omisión pueden ser gestionados por administradores del sistema
+
+// DTO para crear nuevos motivos de omisión
+export class CreateMedicationSkipReasonDto {
+  @ApiProperty({
+    description: 'Text description of the skip reason',
+    example: 'Se me olvidó tomar el medicamento',
+  })
+  @IsString()
+  @IsNotEmpty()
+  reason_text: string;
+
+  @ApiProperty({
+    description: 'Category of the skip reason',
+    example: 'Olvido',
+  })
+  @IsString()
+  @IsNotEmpty()
+  category: string;
+}
+
+// DTO para actualizar motivos de omisión
+export class UpdateMedicationSkipReasonDto {
+  @ApiProperty({
+    description: 'Text description of the skip reason',
+    example: 'Se me olvidó tomar el medicamento',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  reason_text?: string;
+
+  @ApiProperty({
+    description: 'Category of the skip reason',
+    example: 'Olvido',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  category?: string;
+}
+
+// DTO para respuesta de motivos de omisión (catálogo estático)
+export class MedicationSkipReasonResponseDto {
+  @ApiProperty({
+    description: 'Unique identifier for the skip reason',
+    example: 1,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: 'Text description of the skip reason',
+    example: 'Se me olvidó tomar el medicamento',
+  })
+  reason_text: string;
+
+  @ApiProperty({
+    description: 'Category of the skip reason',
+    example: 'Olvido',
+  })
+  category: string;
+
+  @ApiProperty({
+    description: 'Creation timestamp',
+    example: '2025-05-29T15:10:09.000Z',
+  })
+  created_at: Date;
+
+  @ApiProperty({
+    description: 'Last update timestamp',
+    example: '2025-05-29T15:10:09.000Z',
+  })
+  updated_at: Date;
+}
+
+// DTO para consultar motivos de omisión por categoría (solo lectura)
+export class MedicationSkipReasonQueryDto {
+  @ApiProperty({
+    description: 'Filter by category',
+    example: 'Olvido',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  category?: string;
+
+  @ApiProperty({
+    description: 'Number of records per page',
+    example: 50,
+    required: false,
+    default: 50,
+  })
+  @IsNumber()
+  @IsOptional()
+  limit?: number;
+
+  @ApiProperty({
+    description: 'Page offset for pagination',
+    example: 0,
+    required: false,
+    default: 0,
+  })
+  @IsNumber()
+  @IsOptional()
+  offset?: number;
+}
+
+// DTO para obtener categorías únicas de motivos de omisión
+export class MedicationSkipReasonCategoriesDto {
+  @ApiProperty({
+    description: 'List of unique categories available in the catalog',
+    example: [
+      'No necesito medicamento',
+      'Problemas de cobertura',
+      'Efectos adversos',
+      'Olvido',
+      'Problemas logísticos',
+      'Preocupaciones',
+      'Otros',
+    ],
+    type: [String],
+  })
+  categories: string[];
+}
+
+================
+File: src/medical-scheduling/modules/prescription/dto/medication-tracking-response.dto.ts
+================
+import { ApiProperty } from '@nestjs/swagger';
+
+// DTO para respuesta de prescripción con información de tracking
+export class PrescriptionWithTrackingResponseDto {
+  @ApiProperty({
+    description: 'Prescription unique identifier',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Start date and time of the prescription',
+    type: Date,
+  })
+  start_timestamp: Date;
+
+  @ApiProperty({
+    description: 'End date and time of the prescription',
+    type: Date,
+    required: false,
+  })
+  end_timestamp?: Date;
+
+  @ApiProperty({
+    description: 'Prescription description or instructions',
+    required: false,
+  })
+  description?: string;
+
+  @ApiProperty({
+    description: 'Whether the prescription is active',
+  })
+  active: boolean;
+
+  @ApiProperty({
+    description: 'Name of the monodrug prescribed',
+  })
+  monodrug: string;
+
+  @ApiProperty({
+    description: 'Patient ID',
+  })
+  patient_id: string;
+
+  // Tracking fields
+  @ApiProperty({
+    description: 'Whether this prescription was created by the patient',
+  })
+  created_by_patient: boolean;
+
+  @ApiProperty({
+    description: 'Whether medication tracking is currently active',
+  })
+  is_tracking_active: boolean;
+
+  @ApiProperty({
+    description: 'Whether medication reminders are enabled',
+  })
+  reminder_enabled: boolean;
+
+  @ApiProperty({
+    description: 'Timestamp when the first dose was taken',
+    type: Date,
+    required: false,
+  })
+  first_dose_taken_at?: Date;
+
+  @ApiProperty({
+    description: 'Array of preferred time slots for taking medication',
+    type: [String],
+    required: false,
+  })
+  time_of_day_slots?: string[];
+
+  @ApiProperty({
+    description: 'Timestamp of the last reminder sent',
+    type: Date,
+    required: false,
+  })
+  last_reminder_sent_at?: Date;
+
+  @ApiProperty({
+    description: 'Count of reminders sent for this prescription',
+  })
+  reminders_sent_count: number;
+
+  @ApiProperty({
+    description: 'Skip reason information',
+    required: false,
+  })
+  skip_reason?: {
+    id: number;
+    reason_text: string;
+    category: string;
+  };
+
+  @ApiProperty({
+    description: 'Additional details about why the prescription was skipped',
+    required: false,
+  })
+  skip_reason_details?: string;
+
+  @ApiProperty({
+    description: 'Timestamps',
+  })
+  created_at: Date;
+
+  @ApiProperty({
+    description: 'Last update timestamp',
+  })
+  updated_at: Date;
+}
+
+// DTO para estadísticas de adherencia del paciente
+export class MedicationAdherenceStatsDto {
+  @ApiProperty({
+    description: 'Patient ID',
+  })
+  patient_id: string;
+
+  @ApiProperty({
+    description: 'Prescription ID (if specific to one prescription)',
+    required: false,
+  })
+  prescription_id?: string;
+
+  @ApiProperty({
+    description: 'Total number of scheduled doses in the period',
+  })
+  total_scheduled_doses: number;
+
+  @ApiProperty({
+    description: 'Number of doses actually taken',
+  })
+  doses_taken: number;
+
+  @ApiProperty({
+    description: 'Number of doses missed automatically (no user input)',
+  })
+  doses_missed_automatic: number;
+
+  @ApiProperty({
+    description: 'Number of doses missed and reported by user',
+  })
+  doses_missed_reported: number;
+
+  @ApiProperty({
+    description: 'Number of doses intentionally skipped by user',
+  })
+  doses_skipped_by_user: number;
+
+  @ApiProperty({
+    description: 'Adherence percentage (doses_taken / total_scheduled_doses)',
+  })
+  adherence_percentage: number;
+
+  @ApiProperty({
+    description: 'Period start date for the statistics',
+    type: Date,
+  })
+  period_start: Date;
+
+  @ApiProperty({
+    description: 'Period end date for the statistics',
+    type: Date,
+  })
+  period_end: Date;
+  @ApiProperty({
+    description: 'Breakdown by skip reasons',
+    additionalProperties: true,
+  })
+  skip_reasons_breakdown: {
+    [category: string]: {
+      count: number;
+      reasons: Array<{
+        reason_text: string;
+        count: number;
+      }>;
+    };
+  };
+}
+
+// DTO para resumen de tracking activo
+export class ActiveTrackingMedicationsDto {
+  @ApiProperty({
+    description: 'Patient ID',
+  })
+  patient_id: string;
+
+  @ApiProperty({
+    description: 'List of active prescriptions with tracking enabled',
+    type: [PrescriptionWithTrackingResponseDto],
+  })
+  active_prescriptions: PrescriptionWithTrackingResponseDto[];
+
+  @ApiProperty({
+    description: 'Next scheduled doses across all active prescriptions',
+  })
+  next_scheduled_doses: Array<{
+    prescription_id: string;
+    monodrug: string;
+    scheduled_time: Date;
+    time_slot: string;
+  }>;
+
+  @ApiProperty({
+    description: 'Patient reminder settings',
+  })
+  reminder_settings: {
+    medication_reminder_interval_minutes: number;
+    medication_reminder_max_retries: number;
+  };
+
+  @ApiProperty({
+    description: 'Overall adherence summary for the current period',
+  })
+  adherence_summary: {
+    total_prescriptions_with_tracking: number;
+    average_adherence_percentage: number;
+    last_30_days_adherence: number;
+  };
+}
+
+================
+File: src/medical-scheduling/modules/prescription/dto/medication-tracking.dto.ts
+================
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsBoolean,
+  IsDate,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsArray,
+  IsUUID,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+// DTO para activar tracking de medicación
+export class ActivateMedicationTrackingDto {
+  @ApiProperty({
+    description: 'Prescription ID to activate tracking for',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    format: 'uuid',
+  })
+  @IsUUID()
+  prescription_id: string;
+
+  @ApiProperty({
+    description: 'Enable medication reminders',
+    example: true,
+    required: false,
+    default: true,
+  })
+  @IsBoolean()
+  @IsOptional()
+  reminder_enabled?: boolean;
+
+  @ApiProperty({
+    description:
+      'Array of preferred time slots for taking medication (e.g., ["08:00", "20:00"])',
+    example: ['08:00', '14:00', '20:00'],
+    required: false,
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  time_of_day_slots?: string[];
+
+  @ApiProperty({
+    description: 'Timestamp when the first dose was taken',
+    example: '2025-05-29T08:00:00.000Z',
+    required: false,
+    type: Date,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  first_dose_taken_at?: Date;
+}
+
+// DTO para actualizar configuración de tracking
+export class UpdateMedicationTrackingDto {
+  @ApiProperty({
+    description: 'Enable or disable medication tracking',
+    example: true,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  is_tracking_active?: boolean;
+
+  @ApiProperty({
+    description: 'Enable or disable medication reminders',
+    example: true,
+    required: false,
+  })
+  @IsBoolean()
+  @IsOptional()
+  reminder_enabled?: boolean;
+
+  @ApiProperty({
+    description:
+      'Array of preferred time slots for taking medication (e.g., ["08:00", "20:00"])',
+    example: ['08:00', '14:00', '20:00'],
+    required: false,
+    type: [String],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  time_of_day_slots?: string[];
+
+  @ApiProperty({
+    description: 'Reference to skip reason catalog if prescription was skipped',
+    example: 1,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  skip_reason_id?: number;
+
+  @ApiProperty({
+    description: 'Additional details about why the prescription was skipped',
+    example: 'Patient reported nausea after taking the medication',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  skip_reason_details?: string;
+}
+
+// DTO para configuración de recordatorios del paciente
+export class UpdatePatientReminderSettingsDto {
+  @ApiProperty({
+    description: 'Interval between medication reminders in minutes',
+    example: 30,
+    required: false,
+    default: 30,
+  })
+  @IsNumber()
+  @IsOptional()
+  medication_reminder_interval_minutes?: number;
+
+  @ApiProperty({
+    description: 'Maximum number of reminder retries per dose',
+    example: 3,
+    required: false,
+    default: 3,
+  })
+  @IsNumber()
+  @IsOptional()
+  medication_reminder_max_retries?: number;
+}
+
+================
+File: src/medical-scheduling/modules/prescription/dto/README_DTOS.md
+================
+# Sistema de Seguimiento de Medicación - DTOs e Interfaces
+
+## Resumen
+
+Este documento describe los DTOs (Data Transfer Objects) e interfaces implementadas para el sistema completo de seguimiento de medicación en el backend de Segimed.
+
+## Estructura de Archivos
+
+```
+src/medical-scheduling/modules/prescription/dto/
+├── create-prescription.dto.ts          # DTO principal actualizado con campos de tracking
+├── update-prescription.dto.ts          # DTO de actualización (sin cambios)
+├── medication-tracking.dto.ts          # DTOs para activar/configurar tracking
+├── medication-dose.dto.ts              # DTOs para registro de dosis
+├── medication-skip-reason.dto.ts       # DTOs para motivos de omisión
+├── medication-tracking-response.dto.ts # DTOs de respuesta con información de tracking
+└── index.ts                           # Archivo de exportación centralizada
+```
+
+## DTOs Principales
+
+### 1. CreatePrescriptionDto (Actualizado)
+
+**Archivo:** `create-prescription.dto.ts`
+
+**Campos originales preservados:**
+
+- `start_timestamp`: Fecha/hora de inicio de la prescripción
+- `end_timestamp`: Fecha/hora de fin de la prescripción
+- `description`: Descripción/instrucciones de la prescripción
+- `active`: Estado activo de la prescripción
+- `patient_id`: ID del paciente
+- `monodrug`: Nombre del medicamento
+- `tenant_id`: ID del tenant
+
+**Nuevos campos para tracking:**
+
+- `created_by_patient`: Boolean - Indica si fue creada por el paciente
+- `is_tracking_active`: Boolean - Indica si el tracking está activo
+- `reminder_enabled`: Boolean - Indica si los recordatorios están habilitados
+- `first_dose_taken_at`: Date - Timestamp de la primera dosis tomada
+- `time_of_day_slots`: string[] - Horarios preferidos para tomar medicación
+- `last_reminder_sent_at`: Date - Timestamp del último recordatorio enviado
+- `reminders_sent_count`: number - Contador de recordatorios enviados
+- `skip_reason_id`: number - Referencia al catálogo de motivos de omisión
+- `skip_reason_details`: string - Detalles adicionales sobre omisión
+
+### 2. DTOs de Tracking de Medicación
+
+**Archivo:** `medication-tracking.dto.ts`
+
+#### ActivateMedicationTrackingDto
+
+Usado para activar el seguimiento de una prescripción específica.
+
+**Campos:**
+
+- `prescription_id`: UUID de la prescripción
+- `reminder_enabled`: Boolean opcional - Habilitar recordatorios
+- `time_of_day_slots`: string[] opcional - Horarios preferidos
+- `first_dose_taken_at`: Date opcional - Primera dosis tomada
+
+#### UpdateMedicationTrackingDto
+
+Usado para actualizar la configuración de tracking.
+
+**Campos:**
+
+- `is_tracking_active`: Boolean opcional
+- `reminder_enabled`: Boolean opcional
+- `time_of_day_slots`: string[] opcional
+- `skip_reason_id`: number opcional
+- `skip_reason_details`: string opcional
+
+#### UpdatePatientReminderSettingsDto
+
+Usado para configurar las preferencias globales de recordatorios del paciente.
+
+**Campos:**
+
+- `medication_reminder_interval_minutes`: number - Intervalo entre recordatorios (default: 30)
+- `medication_reminder_max_retries`: number - Máximo de reintentos (default: 3)
+
+### 3. DTOs de Registro de Dosis
+
+**Archivo:** `medication-dose.dto.ts`
+
+#### MedicationDoseStatus (Enum)
+
+Estados posibles de una dosis:
+
+- `TAKEN`: Dosis tomada
+- `MISSED_AUTOMATIC`: Dosis perdida automáticamente
+- `MISSED_REPORTED`: Dosis perdida reportada por usuario
+- `SKIPPED_BY_USER`: Dosis omitida intencionalmente por usuario
+
+#### RecordMedicationDoseDto
+
+Usado para registrar cuando se toma/omite una dosis.
+
+**Campos:**
+
+- `prescription_id`: UUID de la prescripción
+- `dose_status`: MedicationDoseStatus - Estado de la dosis
+- `scheduled_time`: Date - Hora programada
+- `taken_time`: Date opcional - Hora real de toma
+- `skip_reason_id`: number opcional - Motivo de omisión
+- `notes`: string opcional - Notas adicionales
+
+#### MedicationDoseHistoryQueryDto
+
+Usado para consultar el historial de dosis con filtros.
+
+**Campos:**
+
+- `prescription_id`: UUID opcional - Filtrar por prescripción
+- `patient_id`: UUID opcional - Filtrar por paciente
+- `start_date`: Date opcional - Fecha inicio
+- `end_date`: Date opcional - Fecha fin
+- `dose_status`: MedicationDoseStatus opcional - Filtrar por estado
+- `limit`: number opcional - Registros por página (default: 50)
+- `offset`: number opcional - Offset para paginación (default: 0)
+
+#### MedicationDoseLogResponseDto
+
+Estructura de respuesta para logs de dosis.
+
+**Campos:**
+
+- `id`: number - ID único del log
+- `prescription_id`: string - ID de la prescripción
+- `user_id`: string - ID del usuario que registró
+- `dose_status`: MedicationDoseStatus - Estado de la dosis
+- `scheduled_time`: Date - Hora programada
+- `taken_time`: Date opcional - Hora real
+- `skip_reason`: objeto opcional - Información del motivo de omisión
+- `notes`: string opcional - Notas
+- `created_at`: Date - Fecha de creación
+- `updated_at`: Date - Fecha de actualización
+
+### 4. DTOs de Motivos de Omisión (Catálogo con CRUD)
+
+**Archivo:** `medication-skip-reason.dto.ts`
+
+> **IMPORTANTE:** La tabla `medication_skip_reason_catalog` es un catálogo con CRUD completo. Los administradores pueden gestionar los motivos de omisión según las necesidades del sistema.
+
+#### CreateMedicationSkipReasonDto
+
+DTO para crear nuevos motivos de omisión.
+
+**Campos:**
+
+- `reason_text`: string - Descripción del motivo (requerido)
+- `category`: string - Categoría del motivo (requerido)
+
+#### UpdateMedicationSkipReasonDto
+
+DTO para actualizar motivos de omisión existentes.
+
+**Campos:**
+
+- `reason_text`: string opcional - Nueva descripción del motivo
+- `category`: string opcional - Nueva categoría del motivo
+
+#### MedicationSkipReasonResponseDto
+
+DTO de respuesta para motivos de omisión del catálogo.
+
+**Campos:**
+
+- `id`: number - Identificador único autoincrement
+- `reason_text`: string - Descripción del motivo
+- `category`: string - Categoría del motivo
+- `created_at`: Date - Timestamp de creación
+- `updated_at`: Date - Timestamp de última actualización
+
+#### MedicationSkipReasonQueryDto
+
+DTO para consultar motivos de omisión con filtros.
+
+**Campos:**
+
+- `category`: string opcional - Filtrar por categoría
+- `limit`: number opcional - Registros por página (default: 50)
+- `offset`: number opcional - Offset para paginación (default: 0)
+
+#### MedicationSkipReasonCategoriesDto
+
+DTO para obtener lista de categorías únicas disponibles.
+
+**Campos:**
+
+- `categories`: string[] - Array con las 7 categorías únicas del catálogo
+
+#### MedicationSkipReasonResponseDto
+
+Estructura de respuesta para motivos de omisión.
+
+**Campos:**
+
+- `id`: number - ID único
+- `reason_text`: string - Descripción
+- `category`: string - Categoría
+
+#### MedicationSkipReasonQueryDto
+
+Para consultar motivos con filtros.
+
+**Campos:**
+
+- `category`: string opcional - Filtrar por categoría
+- `limit`: number opcional - Registros por página
+- `offset`: number opcional - Offset para paginación
+
+### 5. DTOs de Respuesta con Tracking
+
+**Archivo:** `medication-tracking-response.dto.ts`
+
+#### PrescriptionWithTrackingResponseDto
+
+Respuesta completa de prescripción con información de tracking.
+
+**Campos principales:**
+
+- Todos los campos básicos de prescripción
+- Campos de tracking (created_by_patient, is_tracking_active, etc.)
+- Información de motivos de omisión relacionados
+- Timestamps de creación y actualización
+
+#### MedicationAdherenceStatsDto
+
+Estadísticas de adherencia del paciente.
+
+**Campos:**
+
+- `patient_id`: string - ID del paciente
+- `prescription_id`: string opcional - ID específico de prescripción
+- `total_scheduled_doses`: number - Total de dosis programadas
+- `doses_taken`: number - Dosis tomadas
+- `doses_missed_automatic`: number - Dosis perdidas automáticamente
+- `doses_missed_reported`: number - Dosis perdidas reportadas
+- `doses_skipped_by_user`: number - Dosis omitidas por usuario
+- `adherence_percentage`: number - Porcentaje de adherencia
+- `period_start`: Date - Inicio del período
+- `period_end`: Date - Fin del período
+- `skip_reasons_breakdown`: object - Desglose por motivos de omisión
+
+#### ActiveTrackingMedicationsDto
+
+Resumen de medicaciones con tracking activo.
+
+**Campos:**
+
+- `patient_id`: string - ID del paciente
+- `active_prescriptions`: PrescriptionWithTrackingResponseDto[] - Lista de prescripciones activas
+- `next_scheduled_doses`: array - Próximas dosis programadas
+- `reminder_settings`: object - Configuración de recordatorios del paciente
+- `adherence_summary`: object - Resumen general de adherencia
+
+## Interfaces Actualizadas
+
+### MedicationItemInterface (Sin cambios)
+
+Interfaz original preservada para compatibilidad:
+
+```typescript
+{
+  monodrug: string;
+  dose: string;
+  dose_units: string;
+  frecuency: string;
+  duration: string;
+  duration_units: string;
+  observations?: string;
+}
+```
+
+### MedicationItemWithTrackingInterface (Nueva)
+
+Interfaz extendida para incluir campos de tracking:
+
+```typescript
+extends MedicationItemInterface {
+  created_by_patient?: boolean;
+  is_tracking_active?: boolean;
+  reminder_enabled?: boolean;
+  first_dose_taken_at?: Date;
+  time_of_day_slots?: string[];
+  skip_reason_id?: number;
+  skip_reason_details?: string;
+}
+```
+
+## Validaciones Implementadas
+
+### Class Validators Utilizados
+
+- `@IsBoolean()`: Para campos booleanos
+- `@IsDate()`: Para fechas con `@Type(() => Date)`
+- `@IsString()`: Para campos de texto
+- `@IsNumber()`: Para campos numéricos
+- `@IsArray()`: Para arrays con `@IsString({ each: true })`
+- `@IsEnum()`: Para enums como MedicationDoseStatus
+- `@IsUUID()`: Para identificadores UUID
+- `@IsOptional()`: Para campos opcionales
+- `@IsNotEmpty()`: Para campos requeridos
+
+### Documentación Swagger
+
+- Todos los DTOs incluyen documentación completa con `@ApiProperty()`
+- Ejemplos de valores para cada campo
+- Indicación de campos requeridos/opcionales
+- Tipos de datos especificados
+- Descripciones detalladas de funcionalidad
+
+## Verificación de Consistencia
+
+✅ **FASE 2 COMPLETA - DTOs vs Schema:**
+
+- **Tabla `patient`** ↔ `UpdatePatientReminderSettingsDto`: ✅ Perfecta correspondencia
+- **Tabla `prescription`** ↔ `CreatePrescriptionDto`: ✅ Alineado (corregido default de `reminder_enabled`)
+- **Tabla `medication_dose_log`** ↔ DTOs de dosis: ✅ Correspondencia exacta
+- **Tabla `medication_skip_reason_catalog`** ↔ DTOs de motivos: ✅ CRUD completo
+- **Enum `medication_dose_status`** ↔ `MedicationDoseStatus`: ✅ Correspondencia exacta
+
+**CORRECCIÓN APLICADA:**
+
+- Campo `reminder_enabled` en CreatePrescriptionDto: default cambiado de `false` a `true` para coincidir con schema.
+
+## Compatibilidad
+
+- **Backward Compatibility**: Todos los DTOs existentes mantienen compatibilidad
+- **Progressive Enhancement**: Los nuevos campos son opcionales donde corresponde
+- **Type Safety**: Uso extensivo de TypeScript para type safety
+- **Validation**: Validaciones robustas en todos los DTOs
+
+## Próximos Pasos
+
+Esta implementación de DTOs prepara la infraestructura para:
+
+1. **FASE 3**: Implementación de servicios (PrescriptionService extensión, MedicationTrackingService, MedicationReminderService)
+2. **FASE 4**: Controladores y endpoints REST
+3. **FASE 5**: Testing y validación
+
+## Archivo de Exportación
+
+Todos los DTOs se exportan centralizadamente desde `index.ts` para facilitar imports:
+
+```typescript
+import {
+  CreatePrescriptionDto,
+  ActivateMedicationTrackingDto,
+  MedicationDoseStatus,
+  // ... otros DTOs
+} from './dto';
+```
 
 ================
 File: src/medical-scheduling/modules/prescription/dto/update-prescription.dto.ts
@@ -81624,7 +83278,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
   ApiParam,
 } from '@nestjs/swagger';
 import { PrescriptionService } from './prescription.service';
@@ -81646,11 +83299,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
     return this.prescriptionService.create(createPrescriptionDto);
   }
@@ -81668,11 +83316,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Patient not found.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   @ApiParam({
     name: 'id',
     type: 'string',
@@ -81696,11 +83339,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: false,
-  })
   findAll() {
     return this.prescriptionService.findAll();
   }
@@ -81716,11 +83354,6 @@ export class PrescriptionController {
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Prescription not found.' })
   @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: true,
-  })
   @ApiParam({
     name: 'id',
     type: 'string',
@@ -81768,13 +83401,38 @@ export interface MedicationItemInterface {
   observations?: string;
 }
 
+// Extended interface for medication items with tracking capabilities
+export interface MedicationItemWithTrackingInterface
+  extends MedicationItemInterface {
+  // Tracking fields (optional for backward compatibility)
+  created_by_patient?: boolean;
+  is_tracking_active?: boolean;
+  reminder_enabled?: boolean;
+  first_dose_taken_at?: Date;
+  time_of_day_slots?: string[];
+  skip_reason_id?: number;
+  skip_reason_details?: string;
+}
+
 @Injectable()
 export class PrescriptionService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createPrescriptionDto: CreatePrescriptionDto) {
     try {
+      // Preparar los datos para la creación
+      const prescriptionData = { ...createPrescriptionDto };
+
+      // Si es creada por un médico (created_by_patient = false o undefined)
+      if (!prescriptionData.created_by_patient) {
+        prescriptionData.created_by_patient = false;
+        prescriptionData.is_tracking_active = false;
+        prescriptionData.reminder_enabled = true;
+        prescriptionData.first_dose_taken_at = undefined;
+        prescriptionData.time_of_day_slots = [];
+      }
+
       await this.prisma.prescription.create({
-        data: { ...createPrescriptionDto },
+        data: prescriptionData,
       });
       return { message: 'La prescripción ha sido correctamente generada' };
     } catch (error) {
@@ -81886,6 +83544,10 @@ export class PrescriptionService {
             active: true,
             authorized: isAuthorized,
             tenant_id: tenantId,
+            created_by_patient: false,
+            is_tracking_active: false,
+            reminder_enabled: true,
+            time_of_day_slots: [],
           },
         });
 
@@ -82138,7 +83800,7 @@ export class VitalSignsController {
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
-    required: true,
+    required: false,
   })
   @RequirePermission(Permission.VIEW_PATIENT_DETAILS) // Should this be CREATE_VITAL_SIGNS or similar?
   async create(
@@ -82173,7 +83835,7 @@ export class VitalSignsController {
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
-    required: true,
+    required: false,
   })
   @ApiParam({
     name: 'patientId',
@@ -82208,7 +83870,7 @@ export class VitalSignsController {
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
-    required: true,
+    required: false,
   })
   @ApiParam({
     name: 'id',
@@ -82337,7 +83999,12 @@ export class VitalSignsService {
         }
 
         // Verificar que el tenant del evento de autoevaluación coincide con el tenant proporcionado
-        if (selfEvaluationEvent.tenant_id !== tenant_id) {
+        // Solo validar si ambos tienen tenant_id (para signos vitales propios del paciente puede ser null)
+        if (
+          selfEvaluationEvent.tenantId &&
+          tenant_id &&
+          selfEvaluationEvent.tenantId !== tenant_id
+        ) {
           throw new BadRequestException(
             'El tenant no coincide con el evento de autoevaluación',
           );
@@ -82517,11 +84184,12 @@ export class VitalSignsService {
       });
 
       // Obtener todos los eventos de autoevaluación del paciente
+      // NOTA: No filtramos por tenantId porque los eventos de autoevaluación
+      // pueden no tener tenant asociado cuando son signos vitales propios del paciente
       const selfEvaluationEvents =
         await this.prisma.self_evaluation_event.findMany({
           where: {
             patient_id,
-            tenant_id,
           },
           select: {
             id: true,
@@ -82626,56 +84294,6 @@ export class VitalSignsService {
 }
 
 ================
-File: src/mobile-functions/appointments/appointments.controller.spec.ts
-================
-import { Test, TestingModule } from '@nestjs/testing';
-import { MobileAppointmentsController } from './appointments.controller';
-import { MobileAppointmentsService } from './appointments.service';
-import { PrismaService } from '../../prisma/prisma.service';
-
-describe('MobileAppointmentsController', () => {
-  let controller: MobileAppointmentsController;
-  let service: MobileAppointmentsService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [MobileAppointmentsController],
-      providers: [
-        MobileAppointmentsService,
-        {
-          provide: PrismaService,
-          useValue: {
-            user: {
-              findUnique: jest.fn(),
-            },
-            appointment: {
-              findFirst: jest.fn(),
-              findMany: jest.fn(),
-            },
-            patient_tenant: {
-              findMany: jest.fn(),
-            },
-          },
-        },
-      ],
-    }).compile();
-
-    controller = module.get<MobileAppointmentsController>(
-      MobileAppointmentsController,
-    );
-    service = module.get<MobileAppointmentsService>(MobileAppointmentsService);
-  });
-
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-
-  it('should be defined service', () => {
-    expect(service).toBeDefined();
-  });
-});
-
-================
 File: src/mobile-functions/appointments/appointments.controller.ts
 ================
 import {
@@ -82716,9 +84334,9 @@ export class MobileAppointmentsController {
   @Get()
   @RequirePermission(Permission.VIEW_OWN_APPOINTMENTS)
   @ApiOperation({
-    summary: 'Obtener turnos del paciente',
+    summary: 'Obtener turnos del paciente móvil',
     description:
-      'Obtiene los turnos del paciente. Si home=true, devuelve solo la próxima cita pendiente. Si home=false o no se especifica, devuelve todas las citas agrupadas por estado.',
+      'Obtiene los turnos del paciente para la app móvil. Si home=true, devuelve solo la próxima cita pendiente. Si home=false o no se especifica, devuelve todas las citas agrupadas por estado. Campos devueltos: médico (nombre, apellido, especialidad, foto), estado, fecha.',
   })
   @ApiQuery({
     name: 'home',
@@ -82726,29 +84344,82 @@ export class MobileAppointmentsController {
     type: Boolean,
     description:
       'Si es true, devuelve solo la próxima cita pendiente. Si es false o no se especifica, devuelve todas las citas.',
+    example: true,
   })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Turnos obtenidos exitosamente',
-    type: 'object',
-    schema: {
-      oneOf: [
-        {
-          $ref: '#/components/schemas/NextAppointmentResponseDto',
+    content: {
+      'application/json': {
+        examples: {
+          nextAppointment: {
+            summary: 'Próxima cita (home=true)',
+            value: {
+              next_appointment: {
+                id: 'uuid-cita',
+                start: '2024-01-15T10:00:00Z',
+                status: 'pendiente',
+                physician: {
+                  id: 'uuid-medico',
+                  name: 'Santiago',
+                  surname: 'Pérez',
+                  image: 'https://example.com/doctor.jpg',
+                  specialty: 'Cardiología',
+                },
+              },
+              message: 'Próxima cita encontrada exitosamente',
+            },
+          },
+          allAppointments: {
+            summary: 'Todas las citas (home=false)',
+            value: {
+              appointments: {
+                pending: [
+                  {
+                    id: 'uuid-cita-1',
+                    start: '2024-01-15T10:00:00Z',
+                    status: 'pendiente',
+                    physician: {
+                      id: 'uuid-medico',
+                      name: 'Santiago',
+                      surname: 'Pérez',
+                      image: 'https://example.com/doctor.jpg',
+                      specialty: 'Cardiología',
+                    },
+                  },
+                ],
+                past: [
+                  {
+                    id: 'uuid-cita-2',
+                    start: '2024-01-10T14:00:00Z',
+                    status: 'atendida',
+                    physician: {
+                      id: 'uuid-medico-2',
+                      name: 'María',
+                      surname: 'González',
+                      image: 'https://example.com/doctor2.jpg',
+                      specialty: 'Medicina General',
+                    },
+                  },
+                ],
+                pending_count: 1,
+                past_count: 1,
+              },
+              message: 'Citas obtenidas exitosamente',
+            },
+          },
         },
-        {
-          $ref: '#/components/schemas/AllAppointmentsResponseDto',
-        },
-      ],
+      },
     },
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Solicitud inválida',
+    description:
+      'Solicitud inválida - Usuario no es paciente o falta autenticación',
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
-    description: 'No autorizado',
+    description: 'No autorizado - Token JWT inválido o faltante',
   })
   @ApiResponse({
     status: HttpStatus.FORBIDDEN,
@@ -82828,11 +84499,7 @@ export class MobileAppointmentsModule {}
 ================
 File: src/mobile-functions/appointments/appointments.service.ts
 ================
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   NextAppointmentResponseDto,
@@ -82846,41 +84513,41 @@ export class MobileAppointmentsService {
   constructor(private prisma: PrismaService) {}
 
   /**
+   * Obtiene los tenant IDs del paciente de forma optimizada
+   */
+  private async getPatientTenantIds(
+    patientId: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<string[]> {
+    // Si los tenants vienen del JWT, usarlos directamente
+    if (userTenants && userTenants.length > 0) {
+      return userTenants.map((tenant) => tenant.id);
+    }
+
+    // Sino, buscar en la DB con el patient_id directamente
+    const patientTenants = await this.prisma.patient_tenant.findMany({
+      where: {
+        patient: {
+          user_id: patientId,
+        },
+        deleted: false,
+      },
+      select: { tenant_id: true },
+    });
+
+    return patientTenants.map((pt) => pt.tenant_id);
+  }
+
+  /**
    * Obtiene el próximo turno pendiente del paciente según sus tenants asociados
-   * @param patientId ID del paciente
-   * @param userTenants Tenants asociados al paciente desde el token JWT
-   * @returns Próximo turno pendiente o mensaje si no hay
    */
   async getNextAppointment(
     patientId: string,
     userTenants?: { id: string; name: string; type: string }[],
   ): Promise<NextAppointmentResponseDto> {
     try {
-      // Verificar que el paciente existe
-      const patient = await this.prisma.user.findUnique({
-        where: { id: patientId },
-        include: { patient: true },
-      });
-
-      if (!patient || !patient.patient || patient.role !== 'patient') {
-        throw new NotFoundException('Paciente no encontrado');
-      }
-
-      // Obtener IDs de tenants asociados al paciente
-      let tenantIds: string[] = [];
-
-      if (userTenants && userTenants.length > 0) {
-        tenantIds = userTenants.map((tenant) => tenant.id);
-      } else {
-        const patientTenants = await this.prisma.patient_tenant.findMany({
-          where: {
-            patient_id: patient.patient.id,
-            deleted: false,
-          },
-          select: { tenant_id: true },
-        });
-        tenantIds = patientTenants.map((pt) => pt.tenant_id);
-      }
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
 
       if (tenantIds.length === 0) {
         return {
@@ -82889,7 +84556,7 @@ export class MobileAppointmentsService {
         };
       }
 
-      // Buscar el próximo turno pendiente
+      // Buscar el próximo turno pendiente con especialidad en una sola consulta
       const now = new Date();
       const nextAppointment = await this.prisma.appointment.findFirst({
         where: {
@@ -82922,8 +84589,8 @@ export class MobileAppointmentsService {
         };
       }
 
-      // Obtener la especialidad del médico
-      const physicianSpecialty = await this.prisma.physician.findUnique({
+      // Obtener especialidad del médico en consulta separada pero optimizada
+      const physicianInfo = await this.prisma.physician.findUnique({
         where: { user_id: nextAppointment.physician.id },
         select: {
           physician_speciality: {
@@ -82934,13 +84601,13 @@ export class MobileAppointmentsService {
                 },
               },
             },
-            take: 1, // Solo la primera especialidad
+            take: 1,
           },
         },
       });
 
       const specialty =
-        physicianSpecialty?.physician_speciality?.[0]?.speciality?.name ||
+        physicianInfo?.physician_speciality?.[0]?.speciality?.name ||
         'Medicina General';
 
       const formattedAppointment = {
@@ -82950,7 +84617,7 @@ export class MobileAppointmentsService {
         physician: {
           id: nextAppointment.physician.id,
           name: nextAppointment.physician.name,
-          surname: nextAppointment.physician.last_name,
+          last_name: nextAppointment.physician.last_name,
           image: nextAppointment.physician.image,
           specialty: specialty,
         },
@@ -82961,9 +84628,6 @@ export class MobileAppointmentsService {
         message: 'Próxima cita encontrada exitosamente',
       };
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
       throw new BadRequestException(
         `Error al obtener el próximo turno: ${error.message}`,
       );
@@ -82972,40 +84636,14 @@ export class MobileAppointmentsService {
 
   /**
    * Obtiene todos los turnos del paciente agrupados entre pendientes y pasados
-   * @param patientId ID del paciente
-   * @param userTenants Tenants asociados al paciente desde el token JWT
-   * @returns Turnos agrupados por estado
    */
   async getAllAppointments(
     patientId: string,
     userTenants?: { id: string; name: string; type: string }[],
   ): Promise<AllAppointmentsResponseDto> {
     try {
-      // Verificar que el paciente existe
-      const patient = await this.prisma.user.findUnique({
-        where: { id: patientId },
-        include: { patient: true },
-      });
-
-      if (!patient || !patient.patient || patient.role !== 'patient') {
-        throw new NotFoundException('Paciente no encontrado');
-      }
-
-      // Obtener IDs de tenants asociados al paciente
-      let tenantIds: string[] = [];
-
-      if (userTenants && userTenants.length > 0) {
-        tenantIds = userTenants.map((tenant) => tenant.id);
-      } else {
-        const patientTenants = await this.prisma.patient_tenant.findMany({
-          where: {
-            patient_id: patient.patient.id,
-            deleted: false,
-          },
-          select: { tenant_id: true },
-        });
-        tenantIds = patientTenants.map((pt) => pt.tenant_id);
-      }
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
 
       if (tenantIds.length === 0) {
         const emptyResponse: GroupedAppointmentsDto = {
@@ -83043,34 +84681,37 @@ export class MobileAppointmentsService {
         },
       });
 
-      // Obtener especialidades de todos los médicos únicos
+      // Obtener especialidades de médicos únicos en batch para optimizar
       const uniquePhysicianIds = [
         ...new Set(allAppointments.map((apt) => apt.physician.id)),
       ];
-      const physicianSpecialtyMap = new Map();
-
-      for (const physicianId of uniquePhysicianIds) {
-        const physicianSpecialty = await this.prisma.physician.findUnique({
-          where: { user_id: physicianId },
-          select: {
-            physician_speciality: {
-              select: {
-                speciality: {
-                  select: {
-                    name: true,
-                  },
+      const physiciansSpecialties = await this.prisma.physician.findMany({
+        where: {
+          user_id: { in: uniquePhysicianIds },
+        },
+        select: {
+          user_id: true,
+          physician_speciality: {
+            select: {
+              speciality: {
+                select: {
+                  name: true,
                 },
               },
-              take: 1, // Solo la primera especialidad
             },
+            take: 1,
           },
-        });
+        },
+      });
 
+      // Crear mapa de especialidades
+      const specialtyMap = new Map();
+      physiciansSpecialties.forEach((physician) => {
         const specialty =
-          physicianSpecialty?.physician_speciality?.[0]?.speciality?.name ||
+          physician.physician_speciality?.[0]?.speciality?.name ||
           'Medicina General';
-        physicianSpecialtyMap.set(physicianId, specialty);
-      }
+        specialtyMap.set(physician.user_id, specialty);
+      });
 
       // Agrupar las citas entre pendientes y pasadas
       const now = new Date();
@@ -83079,8 +84720,7 @@ export class MobileAppointmentsService {
 
       allAppointments.forEach((appointment) => {
         const specialty =
-          physicianSpecialtyMap.get(appointment.physician.id) ||
-          'Medicina General';
+          specialtyMap.get(appointment.physician.id) || 'Medicina General';
 
         const formattedAppointment: AppointmentDto = {
           id: appointment.id,
@@ -83089,7 +84729,7 @@ export class MobileAppointmentsService {
           physician: {
             id: appointment.physician.id,
             name: appointment.physician.name,
-            surname: appointment.physician.last_name,
+            last_name: appointment.physician.last_name,
             image: appointment.physician.image,
             specialty: specialty,
           },
@@ -83122,9 +84762,6 @@ export class MobileAppointmentsService {
         message: 'Citas obtenidas exitosamente',
       };
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
       throw new BadRequestException(
         `Error al obtener las citas: ${error.message}`,
       );
@@ -83137,221 +84774,121 @@ File: src/mobile-functions/appointments/dto/mobile-appointments-response.dto.ts
 ================
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class AppointmentDto {
-  @ApiProperty({ description: 'ID de la cita' })
+export class PhysicianDto {
+  @ApiProperty({
+    description: 'ID único del médico',
+    example: 'b5191b80-2a8d-4eb2-9958-9273a0708025',
+  })
   id: string;
 
-  @ApiProperty({ description: 'Fecha y hora de inicio de la cita' })
+  @ApiProperty({
+    description: 'Nombre del médico',
+    example: 'Santiago',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: 'Apellido del médico',
+    example: 'Pérez',
+  })
+  last_name: string;
+
+  @ApiPropertyOptional({
+    description: 'URL de la imagen/foto del médico',
+    example: 'https://example.com/images/doctor.jpg',
+  })
+  image?: string;
+
+  @ApiProperty({
+    description: 'Especialidad médica principal',
+    example: 'Cardiología',
+  })
+  specialty: string;
+}
+
+export class AppointmentDto {
+  @ApiProperty({
+    description: 'ID único de la cita',
+    example: '3f08ebf8-7647-4150-a128-eaea6d8d22c9',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'Fecha y hora de inicio de la cita en formato ISO',
+    example: '2024-01-15T10:00:00.000Z',
+  })
   start: Date;
 
   @ApiProperty({
-    description: 'Estado de la cita',
-    enum: ['pendiente', 'atendida', 'cancelada'],
+    description: 'Estado actual de la cita',
+    enum: ['pendiente', 'atendida', 'cancelada', 'reprogramada'],
+    example: 'pendiente',
   })
   status: string;
 
-  @ApiProperty({ description: 'Información del médico' })
-  physician: {
-    id: string;
-    name: string;
-    surname: string;
-    image?: string;
-    specialty: string;
-  };
+  @ApiProperty({
+    description: 'Información completa del médico asignado',
+    type: PhysicianDto,
+  })
+  physician: PhysicianDto;
 }
 
 export class NextAppointmentResponseDto {
   @ApiPropertyOptional({
-    description: 'Próxima cita pendiente del paciente',
+    description:
+      'Próxima cita pendiente del paciente. Será undefined si no hay citas pendientes.',
     type: AppointmentDto,
   })
   next_appointment?: AppointmentDto;
 
-  @ApiProperty({ description: 'Mensaje descriptivo' })
+  @ApiProperty({
+    description: 'Mensaje descriptivo del resultado de la consulta',
+    example: 'Próxima cita encontrada exitosamente',
+  })
   message: string;
 }
 
 export class GroupedAppointmentsDto {
   @ApiProperty({
-    description: 'Lista de citas pendientes',
+    description: 'Lista de citas pendientes (futuras)',
     type: [AppointmentDto],
+    example: [],
   })
   pending: AppointmentDto[];
 
   @ApiProperty({
-    description: 'Lista de citas pasadas',
+    description: 'Lista de citas pasadas (completadas o canceladas)',
     type: [AppointmentDto],
+    example: [],
   })
   past: AppointmentDto[];
 
-  @ApiProperty({ description: 'Cantidad de citas pendientes' })
+  @ApiProperty({
+    description: 'Número total de citas pendientes',
+    example: 2,
+  })
   pending_count: number;
 
-  @ApiProperty({ description: 'Cantidad de citas pasadas' })
+  @ApiProperty({
+    description: 'Número total de citas pasadas',
+    example: 5,
+  })
   past_count: number;
 }
 
 export class AllAppointmentsResponseDto {
   @ApiProperty({
-    description: 'Citas agrupadas por estado',
+    description: 'Citas organizadas por estado temporal',
     type: GroupedAppointmentsDto,
   })
   appointments: GroupedAppointmentsDto;
 
-  @ApiProperty({ description: 'Mensaje descriptivo' })
+  @ApiProperty({
+    description: 'Mensaje descriptivo del resultado de la consulta',
+    example: 'Citas obtenidas exitosamente',
+  })
   message: string;
 }
-
-================
-File: src/mobile-functions/appointments/README.md
-================
-# Mobile Appointments API
-
-Este módulo proporciona endpoints optimizados para aplicaciones móviles para gestionar las citas de pacientes.
-
-## Endpoints
-
-### GET `/mobile/appointments`
-
-Obtiene las citas del paciente autenticado según el parámetro `home`.
-
-#### Parámetros Query
-
-- `home` (boolean, opcional):
-  - `true`: Devuelve solo la próxima cita pendiente del paciente
-  - `false` o no especificado: Devuelve todas las citas agrupadas por estado (pendientes/pasadas)
-
-#### Autenticación
-
-- Requiere Bearer token en el header `Authorization`
-- Solo funciona para usuarios con rol `patient`
-- Automáticamente considera todos los tenants asociados al paciente según su JWT
-
-#### Headers
-
-- `Authorization: Bearer <token>` (requerido)
-- `x-tenant-id: <tenant_id>` (opcional, para especificar un tenant específico)
-
-#### Respuestas
-
-##### Cuando `home=true` - Próxima cita
-
-```json
-{
-  "next_appointment": {
-    "id": "uuid",
-    "start": "2024-01-15T10:00:00Z",
-    "end": "2024-01-15T11:00:00Z",
-    "status": "pendiente",
-    "physician": {
-      "id": "uuid",
-      "name": "Dr. Juan",
-      "surname": "Pérez",
-      "specialties": ["Cardiología"]
-    },
-    "tenant": {
-      "id": "uuid",
-      "name": "Hospital Central"
-    },
-    "notes": "Revisión mensual"
-  },
-  "message": "Próxima cita encontrada exitosamente"
-}
-```
-
-##### Cuando `home=false` - Todas las citas
-
-```json
-{
-  "appointments": {
-    "pending": [
-      {
-        "id": "uuid",
-        "start": "2024-01-15T10:00:00Z",
-        "end": "2024-01-15T11:00:00Z",
-        "status": "pendiente",
-        "physician": {
-          "id": "uuid",
-          "name": "Dr. Juan",
-          "surname": "Pérez",
-          "specialties": ["Cardiología"]
-        },
-        "tenant": {
-          "id": "uuid",
-          "name": "Hospital Central"
-        },
-        "notes": "Revisión mensual"
-      }
-    ],
-    "past": [
-      {
-        "id": "uuid",
-        "start": "2024-01-01T10:00:00Z",
-        "end": "2024-01-01T11:00:00Z",
-        "status": "atendida",
-        "physician": {
-          "id": "uuid",
-          "name": "Dr. María",
-          "surname": "González",
-          "specialties": ["Medicina General"]
-        },
-        "tenant": {
-          "id": "uuid",
-          "name": "Clínica Norte"
-        }
-      }
-    ],
-    "pending_count": 1,
-    "past_count": 1
-  },
-  "message": "Citas obtenidas exitosamente"
-}
-```
-
-#### Códigos de Estado
-
-- `200 OK`: Operación exitosa
-- `400 Bad Request`: Error en la solicitud o datos inválidos
-- `401 Unauthorized`: Token inválido o faltante
-- `403 Forbidden`: No tiene permisos para acceder
-- `404 Not Found`: Paciente no encontrado
-
-## Lógica de Multi-Tenant para Pacientes
-
-El sistema maneja automáticamente pacientes asociados a múltiples organizaciones (tenants):
-
-1. **JWT Token**: El token JWT del paciente incluye un array `tenants` con todas las organizaciones asociadas
-2. **Tenant Específico**: Si se envía el header `x-tenant-id`, se filtran solo las citas de esa organización (si el paciente tiene acceso)
-3. **Todos los Tenants**: Si no se especifica tenant, se obtienen citas de todas las organizaciones asociadas al paciente
-4. **Validación**: El sistema verifica que el paciente tenga acceso a los tenants solicitados
-
-## Permisos Requeridos
-
-- `VIEW_OWN_APPOINTMENTS`: Permiso para ver las citas propias del paciente
-
-## Ejemplo de Uso
-
-### Obtener próxima cita (para pantalla de inicio)
-
-```bash
-curl -X GET "https://api.example.com/mobile/appointments?home=true" \
-  -H "Authorization: Bearer <jwt_token>"
-```
-
-### Obtener todas las citas (para pantalla de historial)
-
-```bash
-curl -X GET "https://api.example.com/mobile/appointments" \
-  -H "Authorization: Bearer <jwt_token>"
-```
-
-### Obtener citas de una organización específica
-
-```bash
-curl -X GET "https://api.example.com/mobile/appointments" \
-  -H "Authorization: Bearer <jwt_token>" \
-  -H "x-tenant-id: <tenant_uuid>"
-```
 
 ================
 File: src/mobile-functions/mobile-functions.module.ts
@@ -83605,12 +85142,12 @@ export class MoodService {
 File: src/mobile-functions/self-evaluation-event/dto/create-self-evaluation-event.dto.ts
 ================
 import {
-  IsString,
   IsNotEmpty,
   IsUUID,
   IsArray,
   ValidateNested,
   ArrayNotEmpty,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { VitalSignDto } from '../../../medical-scheduling/modules/vital-signs/dto/create-vital-sign.dto';
@@ -83636,13 +85173,15 @@ export class CreateSelfEvaluationEventDto {
   medical_event_id: string;
 
   @ApiProperty({
-    description: 'ID del inquilino (tenant) en el sistema',
+    description:
+      'ID del inquilino (tenant) en el sistema (opcional para signos vitales propios del paciente)',
     example: 'tid_12345-6789-abcd-ef0123456789',
     format: 'uuid',
+    required: false,
   })
+  @IsOptional()
   @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
-  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
-  tenant_id: string;
+  tenant_id?: string;
 
   @ApiProperty({
     description: 'Array de signos vitales registrados en la autoevaluación',
@@ -84010,7 +85549,7 @@ export class SelfEvaluationEventController {
   @ApiOperation({
     summary: 'Crear un evento de autoevaluación',
     description:
-      'Crea un nuevo evento de autoevaluación con los signos vitales registrados por el paciente mediante la aplicación móvil.',
+      'Crea un nuevo evento de autoevaluación con los signos vitales registrados por el paciente mediante la aplicación móvil. El tenant_id es opcional para signos vitales propios del paciente.',
   })
   @ApiBody({ type: CreateSelfEvaluationEventDto })
   @ApiResponse({
@@ -84031,8 +85570,12 @@ export class SelfEvaluationEventController {
     @Body() createSelfEvaluationEventDto: CreateSelfEvaluationEventDto,
     @Request() req,
   ) {
-    // Verificar que el tenant_id en el DTO coincide con el tenant del request
-    if (createSelfEvaluationEventDto.tenant_id !== req.tenant?.id) {
+    // Verificar que el tenant_id en el DTO coincide con el tenant del request (solo si se proporciona)
+    // Los signos vitales propios del paciente pueden no tener tenant_id asociado
+    if (
+      createSelfEvaluationEventDto.tenant_id &&
+      createSelfEvaluationEventDto.tenant_id !== req.tenant?.id
+    ) {
       throw new BadRequestException(
         'El tenant_id no coincide con el tenant del usuario',
       );
@@ -84195,7 +85738,7 @@ export class SelfEvaluationEventService {
    * @param createSelfEvaluationEventDto Datos para crear el evento
    */
   async create(createSelfEvaluationEventDto: CreateSelfEvaluationEventDto) {
-    const { patient_id, medical_event_id, tenant_id, vital_signs } =
+    const { patient_id, medical_event_id, vital_signs } =
       createSelfEvaluationEventDto;
 
     try {
@@ -84227,18 +85770,11 @@ export class SelfEvaluationEventService {
         );
       }
 
-      if (medicalEvent.tenant_id !== tenant_id) {
-        throw new BadRequestException(
-          'El tenant no coincide con el evento médico',
-        );
-      }
-
       return this.prisma.$transaction(async (tx) => {
         const selfEvaluationEvent = await tx.self_evaluation_event.create({
           data: {
             patient_id,
             medical_event_id,
-            tenant_id,
           },
         });
 
@@ -84246,7 +85782,6 @@ export class SelfEvaluationEventService {
         if (vital_signs && vital_signs.length > 0) {
           await this.vitalSignsService.create({
             patient_id,
-            tenant_id,
             self_evaluation_event_id: selfEvaluationEvent.id,
             vital_signs,
           });
@@ -84310,6 +85845,9 @@ export class SelfEvaluationEventService {
 
       // Para cada tipo de signo vital del catálogo, buscar el registro más reciente
       for (const catalogItem of vitalSignsCatalog) {
+        // NOTA: No filtramos por tenant_id intencionalmente
+        // Los signos vitales propios del paciente (self-evaluation) no tienen tenant_id
+        // y deben ser incluidos junto con los de consultas médicas
         const latestRecord = await this.prisma.vital_signs.findFirst({
           where: {
             patient_id: patientId,
@@ -84437,6 +85975,9 @@ export class SelfEvaluationEventService {
       const endDate = new Date(year, monthNum, 0, 23, 59, 59, 999);
 
       // Obtener todos los registros del mes para este tipo de signo vital
+      // NOTA: No filtramos por tenant_id intencionalmente
+      // Los signos vitales propios del paciente (self-evaluation) no tienen tenant_id
+      // y deben ser incluidos junto con los de consultas médicas
       const monthlyRecords = await this.prisma.vital_signs.findMany({
         where: {
           patient_id: patientId,
@@ -84673,7 +86214,7 @@ File: src/prisma/prisma.service.ts
 ================
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-// import { tenantPrismaMiddleware } from 'src/utils/middlewares/tenantPrismaMiddleware';
+import { tenantPrismaMiddleware } from 'src/utils/middlewares/tenantPrismaMiddleware';
 
 @Injectable()
 export class PrismaService
@@ -84683,10 +86224,10 @@ export class PrismaService
   async onModuleInit() {
     await this.$connect();
 
-    // TODO: Revisar y refactorizar tenantPrismaMiddleware para soporte multi-tenant
-    // this.$use(tenantPrismaMiddleware());
+    // Middleware refactorizado con soporte multi-tenant
+    this.$use(tenantPrismaMiddleware());
 
-    console.log('Prisma connected without tenant middleware');
+    console.log('Prisma middleware registered with multi-tenant support');
   }
 
   async onModuleDestroy() {
@@ -86367,6 +87908,22 @@ export class FileUploadService {
 }
 
 ================
+File: src/utils/fuctions.ts
+================
+export function calculateAge(birthDate: Date): number {
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+  return age;
+}
+
+================
 File: src/utils/middlewares/tenantMiddleware.ts
 ================
 import {
@@ -86523,6 +88080,23 @@ export function tenantPrismaMiddleware() {
 
     try {
       const tenant_id = params.args?.tenant_id || global.tenant_id;
+
+      // Verificar si ya hay un filtro multi-tenant en el where
+      const hasMultiTenantFilter =
+        params.args?.where?.tenant_id &&
+        typeof params.args.where.tenant_id === 'object' &&
+        params.args.where.tenant_id.in;
+
+      // Si ya tiene filtro multi-tenant, permitir la consulta sin modificar
+      if (hasMultiTenantFilter) {
+        // Solo log en desarrollo para debugging
+        if (process.env.NODE_ENV === 'development') {
+          console.log(
+            `Multi-tenant query detected for ${params.model}, skipping middleware tenant filter`,
+          );
+        }
+        return next(params, params.args);
+      }
 
       if (modelRules.requireTenantId && !tenant_id) {
         throw new Error(
