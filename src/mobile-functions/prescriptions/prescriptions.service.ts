@@ -17,10 +17,15 @@ import {
 } from './dto/medication-dose-log.dto';
 import { CancelTrackingDto } from './dto/cancel-tracking.dto';
 import { Prisma } from '@prisma/client';
+import { NotificationService } from '../../services/notification/notification.service';
+import { medicationCancellationHtml } from '../../services/email/templates/medicationCancellationHtml';
 
 @Injectable()
 export class PrescriptionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   /**
    * Obtiene los tenant IDs del paciente de forma optimizada
@@ -808,7 +813,6 @@ export class PrescriptionsService {
       };
     });
   }
-
   async cancelTracking(
     prescriptionId: string,
     patientId: string,
@@ -830,10 +834,94 @@ export class PrescriptionsService {
             },
           ],
         },
+        include: {
+          pres_mod_history: {
+            orderBy: {
+              mod_timestamp: 'desc',
+            },
+            take: 1,
+            include: {
+              physician: {
+                select: {
+                  id: true,
+                  email: true,
+                  name: true,
+                  last_name: true,
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!prescription) {
         throw new NotFoundException('Prescription not found');
+      }
+
+      // Verificar si la prescripción fue creada por un médico y obtener datos para notificación
+      if (
+        prescription.created_by_patient === false &&
+        prescription.pres_mod_history.length > 0
+      ) {
+        const latestHistory = prescription.pres_mod_history[0];
+        const physician = latestHistory.physician;
+
+        if (physician && physician.email) {
+          // Obtener datos del paciente
+          const patient = await this.prisma.user.findUnique({
+            where: { id: patientId },
+            select: { name: true, last_name: true },
+          });
+
+          if (patient) {
+            // Preparar datos para el email
+            const physicianName = `${physician.name} ${physician.last_name}`;
+            const patientName = `${patient.name} ${patient.last_name}`;
+            const medicationName =
+              prescription.monodrug || 'Medicación no especificada';
+
+            // Obtener la razón de cancelación
+            let cancelReason = 'No especificado';
+            if (cancelDto.skip_reason_details) {
+              cancelReason = cancelDto.skip_reason_details;
+            } else if (cancelDto.skip_reason_id) {
+              const skipReason =
+                await this.prisma.medication_skip_reason_catalog.findUnique({
+                  where: { id: cancelDto.skip_reason_id },
+                  select: { reason_text: true },
+                });
+              if (skipReason) {
+                cancelReason = skipReason.reason_text;
+              }
+            }
+
+            const cancelDate = new Date().toLocaleDateString('es-ES');
+
+            // Generar HTML del email
+            const emailHtml = medicationCancellationHtml(
+              physicianName,
+              patientName,
+              medicationName,
+              cancelReason,
+              cancelDate,
+            );
+
+            // Enviar notificación por email
+            try {
+              await this.notificationService.sendEmail(
+                physician.email,
+                'Cancelación de Seguimiento de Medicación - Segimed',
+                emailHtml,
+              );
+            } catch (emailError) {
+              // Log del error pero no fallar la operación principal
+              console.error(
+                'Error enviando notificación al médico:',
+                emailError,
+              );
+            }
+          }
+        }
       }
 
       const updatedPrescription = await this.prisma.prescription.update({
