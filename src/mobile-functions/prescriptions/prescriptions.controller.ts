@@ -22,6 +22,7 @@ import {
   SkipMedicationDoseDto,
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
+import { CancelTrackingDto } from './dto/cancel-tracking.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
@@ -222,7 +223,6 @@ export class PrescriptionsController {
       skipDto,
     );
   }
-
   @Patch('medication-dose-log/:log_id/adjust-time')
   @ApiOperation({ summary: 'Adjust actual taken time for a dose' })
   @ApiParam({
@@ -254,5 +254,50 @@ export class PrescriptionsController {
       logId,
       adjustDto,
     );
+  }
+
+  @Patch(':prescription_id/cancel-tracking')
+  @ApiOperation({ summary: 'Cancel tracking for a prescription' })
+  @ApiParam({
+    name: 'prescription_id',
+    description: 'Prescription ID to cancel tracking for',
+  })
+  @ApiBody({ type: CancelTrackingDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Tracking cancelled successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input or tracking not active',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Prescription not found',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async cancelTracking(
+    @Request() req,
+    @Param('prescription_id') prescriptionId: string,
+    @Body() cancelDto: CancelTrackingDto,
+  ) {
+    const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
+    return this.prescriptionsService.cancelTracking(
+      prescriptionId,
+      patientId,
+      cancelDto,
+      userTenants,
+    );
+  }
+  @Get('medication-skip-reasons')
+  @ApiOperation({ summary: 'Get medication skip reasons catalog' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns medication skip reasons catalog',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async getMedicationSkipReasons() {
+    return this.prescriptionsService.getMedicationSkipReasons();
   }
 }

@@ -15,6 +15,7 @@ import {
   SkipMedicationDoseDto,
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
+import { CancelTrackingDto } from './dto/cancel-tracking.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -806,5 +807,78 @@ export class PrescriptionsService {
         timeSlot: slot,
       };
     });
+  }
+
+  async cancelTracking(
+    prescriptionId: string,
+    patientId: string,
+    cancelDto: CancelTrackingDto,
+    userTenants?: { id: string; name: string; type: string }[],
+  ) {
+    try {
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: prescriptionId,
+          patient_id: patientId,
+          OR: [
+            { tenant_id: { in: tenantIds } },
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
+        },
+      });
+
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      const updatedPrescription = await this.prisma.prescription.update({
+        where: {
+          id: prescriptionId,
+        },
+        data: {
+          is_tracking_active: false,
+          reminder_enabled: false,
+          skip_reason_id: cancelDto.skip_reason_id,
+          skip_reason_details: cancelDto.skip_reason_details,
+        },
+      });
+
+      return {
+        ...updatedPrescription,
+        message: 'Tracking cancelled successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error cancelling tracking: ' + error.message,
+      );
+    }
+  }
+
+  async getMedicationSkipReasons() {
+    try {
+      const skipReasons =
+        await this.prisma.medication_skip_reason_catalog.findMany({
+          orderBy: {
+            category: 'asc',
+          },
+        });
+
+      return skipReasons;
+    } catch (error) {
+      throw new BadRequestException(
+        'Error retrieving medication skip reasons: ' + error.message,
+      );
+    }
   }
 }
