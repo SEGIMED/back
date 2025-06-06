@@ -127,31 +127,6 @@ export class SelfEvaluationEventService {
 
       const { vital_signs } = createMobileSelfEvaluationDto;
 
-      // Verificar que todos los vital_sign_id existen en el catálogo
-      const vitalSignIds = vital_signs.map((vs) => vs.vital_sign_id);
-      const existingVitalSigns = await this.prisma.cat_vital_signs.findMany({
-        where: {
-          id: { in: vitalSignIds },
-        },
-        select: { id: true, name: true },
-      });
-
-      const foundIds = existingVitalSigns.map((vs) => vs.id);
-      const missingIds = vitalSignIds.filter((id) => !foundIds.includes(id));
-
-      if (missingIds.length > 0) {
-        // Obtener todos los signos vitales disponibles para mostrar en el error
-        const allVitalSigns = await this.prisma.cat_vital_signs.findMany({
-          select: { id: true, name: true },
-          orderBy: { id: 'asc' },
-        });
-
-        throw new BadRequestException(
-          `Los siguientes vital_sign_id no existen: ${missingIds.join(', ')}. ` +
-            `IDs disponibles: ${allVitalSigns.map((vs) => `${vs.id} (${vs.name})`).join(', ')}`,
-        );
-      }
-
       return this.prisma.$transaction(async (tx) => {
         // Crear el evento de autoevaluación sin medical_event_id ni tenant_id
         // Esto representa signos vitales propios del paciente, no de una consulta médica
