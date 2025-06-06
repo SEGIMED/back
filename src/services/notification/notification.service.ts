@@ -257,4 +257,20 @@ SEGIMED - Sistema de Gestión Médica`;
       // Continuamos con el flujo normal aunque fallen las notificaciones
     }
   }
+
+  /**
+   * Envía un email simple a través del servicio de notificaciones
+   */
+  async sendEmail(
+    destination: string,
+    subject: string,
+    htmlContent: string,
+  ): Promise<void> {
+    try {
+      await this.emailService.sendMail(destination, subject, htmlContent);
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw error;
+    }
+  }
 }
