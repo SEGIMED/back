@@ -71,6 +71,8 @@ export class PermissionUpdaterService {
         Permission.VIEW_STATISTICS,
         Permission.SCHEDULE_OWN_APPOINTMENT,
         Permission.MANAGE_CATALOGS,
+        Permission.VIEW_PATIENT_SETTINGS,
+        Permission.UPDATE_PATIENT_SETTINGS,
       ];
 
       const patientPermissions = [
@@ -87,6 +89,8 @@ export class PermissionUpdaterService {
         Permission.REGISTER_OWN_VITAL_SIGNS,
         Permission.VIEW_OWN_PRESCRIPTIONS,
         Permission.VIEW_OWN_MEDICAL_EVENTS,
+        Permission.VIEW_OWN_SETTINGS,
+        Permission.UPDATE_OWN_SETTINGS,
       ];
 
       // Actualizar roles y permisos
