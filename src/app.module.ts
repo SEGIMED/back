@@ -41,6 +41,8 @@ import { OrderTypeModule } from './catalogs/order-type/order-type.module';
 import { PermissionCheckerService } from './auth/permissions/permission-checker.service';
 import { PhysicianScheduleModule } from './medical-scheduling/modules/physician-schedule/physician-schedule.module';
 import { TenantAccessGuard } from './auth/guards/tenant-access.guard';
+import { SettingsModule } from './medical-scheduling/modules/settings/settings.module';
+import { MedicationSchedulerModule } from './services/medication-scheduler/medication-scheduler.module';
 
 config({ path: '.env' });
 
@@ -87,8 +89,9 @@ config({ path: '.env' });
     SubcatCieDiezModule,
     MedicalOrderModule,
     OrderTypeModule,
-    MedicalOrderModule,
     PhysicianScheduleModule,
+    SettingsModule,
+    MedicationSchedulerModule,
   ],
   controllers: [AppController],
   providers: [
