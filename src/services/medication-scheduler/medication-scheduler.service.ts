@@ -42,18 +42,6 @@ export class MedicationSchedulerService {
       include: {
         user: {
           include: {
-            patient: {
-              select: {
-                id: true,
-                medication_reminder_max_retries: true,
-                medication_reminder_interval_minutes: true,
-              },
-            },
-          },
-          select: {
-            id: true,
-            phone: true,
-            is_phone_verified: true,
             patient: true,
           },
         },
@@ -173,6 +161,7 @@ export class MedicationSchedulerService {
       );
     }
   }
+
   private async checkForMissedDoses(prescription: any): Promise<void> {
     const maxRetries =
       prescription.user?.patient?.medication_reminder_max_retries || 3;
@@ -195,7 +184,7 @@ export class MedicationSchedulerService {
       await this.prisma.medication_dose_log.create({
         data: {
           prescription_id: prescription.id,
-          user_id: prescription.patient_id,
+          user_id: prescription.user.patient.id,
           scheduled_time: prescription.last_reminder_sent_at,
           status: 'MISSED_AUTOMATIC',
           reported_at: new Date(),
@@ -219,6 +208,7 @@ export class MedicationSchedulerService {
       );
     }
   }
+
   private async sendPushNotification(prescription: any): Promise<void> {
     try {
       const medicationName = prescription.monodrug;
