@@ -52,7 +52,6 @@ export enum Permission {
 
   // Catálogos
   MANAGE_CATALOGS = 'gestionar_catalogos',
-
   //Permisos de Paciente
   VIEW_OWN_APPOINTMENTS = 'ver_citas_propias',
   SCHEDULE_OWN_APPOINTMENT = 'agendar_citas_propias',
@@ -62,4 +61,10 @@ export enum Permission {
   REGISTER_OWN_VITAL_SIGNS = 'registrar_signos_vitales_propios',
   VIEW_OWN_PRESCRIPTIONS = 'ver_prescripciones_propias',
   VIEW_OWN_MEDICAL_EVENTS = 'ver_eventos_medicos_propios',
+  VIEW_OWN_SETTINGS = 'ver_configuraciones_propias',
+  UPDATE_OWN_SETTINGS = 'actualizar_configuraciones_propias',
+
+  // Configuraciones de Pacientes (para profesionales)
+  VIEW_PATIENT_SETTINGS = 'ver_configuraciones_de_paciente',
+  UPDATE_PATIENT_SETTINGS = 'actualizar_configuraciones_de_paciente',
 }
