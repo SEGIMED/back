@@ -23,6 +23,7 @@ import {
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
 import { CancelTrackingDto } from './dto/cancel-tracking.dto';
+import { UpdatePrescriptionScheduleDto } from './dto/update-prescription-schedule.dto';
 import { MedicationAdherenceStatsDto } from '../../medical-scheduling/modules/prescription/dto/medication-tracking-response.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
@@ -291,6 +292,42 @@ export class PrescriptionsController {
       userTenants,
     );
   }
+
+  @Patch(':prescription_id/schedule')
+  @ApiOperation({ summary: 'Update prescription schedule' })
+  @ApiParam({
+    name: 'prescription_id',
+    description: 'Prescription ID to update schedule for',
+  })
+  @ApiBody({ type: UpdatePrescriptionScheduleDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Prescription schedule updated successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input or tracking not active',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Prescription not found',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async updateSchedule(
+    @Request() req,
+    @Param('prescription_id') prescriptionId: string,
+    @Body() updateDto: UpdatePrescriptionScheduleDto,
+  ) {
+    const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
+    return this.prescriptionsService.updateSchedule(
+      prescriptionId,
+      patientId,
+      updateDto,
+      userTenants,
+    );
+  }
+
   @Get('medication-skip-reasons')
   @ApiOperation({ summary: 'Get medication skip reasons catalog' })
   @ApiResponse({

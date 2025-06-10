@@ -16,6 +16,10 @@ import {
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
 import { CancelTrackingDto } from './dto/cancel-tracking.dto';
+import {
+  UpdatePrescriptionScheduleDto,
+  ScheduleUpdateScope,
+} from './dto/update-prescription-schedule.dto';
 import { Prisma } from '@prisma/client';
 import { NotificationService } from '../../services/notification/notification.service';
 import { medicationCancellationHtml } from '../../services/email/templates/medicationCancellationHtml';
@@ -1100,6 +1104,114 @@ export class PrescriptionsService {
     } catch (error) {
       throw new BadRequestException(
         'Error calculating medication adherence: ' + error.message,
+      );
+    }
+  }
+
+  /**
+   * Update prescription schedule
+   */
+  async updateSchedule(
+    prescriptionId: string,
+    patientId: string,
+    updateDto: UpdatePrescriptionScheduleDto,
+    userTenants?: { id: string; name: string; type: string }[],
+  ) {
+    try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
+      // Find the prescription and validate it belongs to the patient
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: prescriptionId,
+          patient_id: patientId,
+          OR: [
+            // Prescripciones de organizaciones del paciente
+            { tenant_id: { in: tenantIds } },
+            // Prescripciones auto-asignadas (sin tenant_id)
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
+        },
+        include: {
+          pres_mod_history: {
+            orderBy: {
+              mod_timestamp: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
+
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      // Validate that tracking is active
+      if (!prescription.is_tracking_active) {
+        throw new BadRequestException(
+          'Cannot update schedule for prescriptions without active tracking',
+        );
+      }
+
+      // Prepare data to update based on scope
+      const dataToUpdate: any = {};
+
+      // Always update time_of_day_slots if provided
+      if (updateDto.time_of_day_slots) {
+        // Validate time slot format (HH:MM)
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        for (const slot of updateDto.time_of_day_slots) {
+          if (!timeRegex.test(slot)) {
+            throw new BadRequestException(
+              `Invalid time slot format: ${slot}. Use HH:MM format.`,
+            );
+          }
+        }
+        dataToUpdate.time_of_day_slots = updateDto.time_of_day_slots;
+      }
+
+      // Handle scope-specific logic
+      if (updateDto.scope === ScheduleUpdateScope.PERMANENT) {
+        // For permanent changes, also update first_dose_taken_at if provided
+        if (updateDto.first_dose_taken_at) {
+          // Validate date
+          if (isNaN(updateDto.first_dose_taken_at.getTime())) {
+            throw new BadRequestException('Invalid first dose date format');
+          }
+          dataToUpdate.first_dose_taken_at = updateDto.first_dose_taken_at;
+        }
+      }
+      // For FUTURE_ONLY scope, we only update time_of_day_slots
+      // The first_dose_taken_at remains unchanged
+
+      // Update the prescription
+      const updatedPrescription = await this.prisma.prescription.update({
+        where: {
+          id: prescriptionId,
+        },
+        data: dataToUpdate,
+      });
+
+      return {
+        id: updatedPrescription.id,
+        time_of_day_slots: updatedPrescription.time_of_day_slots,
+        first_dose_taken_at: updatedPrescription.first_dose_taken_at,
+        scope: updateDto.scope,
+        message: `Schedule updated successfully (${updateDto.scope.toLowerCase()})`,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error updating prescription schedule: ' + error.message,
       );
     }
   }
