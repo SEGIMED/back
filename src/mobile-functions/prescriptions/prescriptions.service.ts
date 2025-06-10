@@ -952,7 +952,9 @@ export class PrescriptionsService {
       );
     }
   }
-
+  /**
+   * Calculate medication adherence for a patient
+   */
   async calculateMedicationAdherence(
     patientId: string,
     prescriptionId?: string,
@@ -1004,6 +1006,12 @@ export class PrescriptionsService {
       let dosesMissedAutomatic = 0;
       let dosesMissedReported = 0;
       let dosesSkippedByUser = 0;
+      const skipReasonsBreakdown: {
+        [category: string]: {
+          count: number;
+          reasons: Array<{ reason_text: string; count: number }>;
+        };
+      } = {};
 
       for (const prescription of prescriptions) {
         for (const log of prescription.medication_dose_logs) {
@@ -1021,6 +1029,50 @@ export class PrescriptionsService {
               break;
             case 'SKIPPED_BY_USER':
               dosesSkippedByUser++;
+
+              // Procesar skip reasons para el breakdown
+              if (log.skip_reason_id) {
+                try {
+                  const skipReason =
+                    await this.prisma.medication_skip_reason_catalog.findUnique(
+                      {
+                        where: { id: log.skip_reason_id },
+                      },
+                    );
+
+                  if (skipReason) {
+                    const category = skipReason.category;
+                    const reasonText = skipReason.reason_text;
+
+                    if (!skipReasonsBreakdown[category]) {
+                      skipReasonsBreakdown[category] = {
+                        count: 0,
+                        reasons: [],
+                      };
+                    }
+
+                    skipReasonsBreakdown[category].count++;
+
+                    const existingReason = skipReasonsBreakdown[
+                      category
+                    ].reasons.find((r) => r.reason_text === reasonText);
+                    if (existingReason) {
+                      existingReason.count++;
+                    } else {
+                      skipReasonsBreakdown[category].reasons.push({
+                        reason_text: reasonText,
+                        count: 1,
+                      });
+                    }
+                  }
+                } catch (error) {
+                  // Continue processing even if skip reason lookup fails
+                  console.warn(
+                    `Could not fetch skip reason for ID ${log.skip_reason_id}:`,
+                    error.message,
+                  );
+                }
+              }
               break;
           }
         }
@@ -1043,7 +1095,7 @@ export class PrescriptionsService {
         adherence_percentage: adherencePercentage,
         period_start: periodStart || new Date(),
         period_end: periodEnd || new Date(),
-        skip_reasons_breakdown: {},
+        skip_reasons_breakdown: skipReasonsBreakdown,
       };
     } catch (error) {
       throw new BadRequestException(

@@ -23,6 +23,7 @@ import {
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
 import { CancelTrackingDto } from './dto/cancel-tracking.dto';
+import { MedicationAdherenceStatsDto } from '../../medical-scheduling/modules/prescription/dto/medication-tracking-response.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
@@ -321,6 +322,7 @@ export class PrescriptionsController {
   @ApiResponse({
     status: 200,
     description: 'Returns medication adherence statistics',
+    type: MedicationAdherenceStatsDto,
   })
   @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
   async getMedicationAdherence(
