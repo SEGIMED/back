@@ -300,4 +300,45 @@ export class PrescriptionsController {
   async getMedicationSkipReasons() {
     return this.prescriptionsService.getMedicationSkipReasons();
   }
+
+  @Get('medication-adherence')
+  @ApiOperation({ summary: 'Get medication adherence statistics' })
+  @ApiQuery({
+    name: 'period_start',
+    required: false,
+    description: 'Start date for adherence calculation (ISO 8601 format)',
+  })
+  @ApiQuery({
+    name: 'period_end',
+    required: false,
+    description: 'End date for adherence calculation (ISO 8601 format)',
+  })
+  @ApiQuery({
+    name: 'prescription_id',
+    required: false,
+    description: 'Specific prescription ID to calculate adherence for',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns medication adherence statistics',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async getMedicationAdherence(
+    @Request() req,
+    @Query('period_start') periodStart?: string,
+    @Query('period_end') periodEnd?: string,
+    @Query('prescription_id') prescriptionId?: string,
+  ) {
+    const patientId = req.user.id;
+
+    const periodStartDate = periodStart ? new Date(periodStart) : undefined;
+    const periodEndDate = periodEnd ? new Date(periodEnd) : undefined;
+
+    return this.prescriptionsService.calculateMedicationAdherence(
+      patientId,
+      prescriptionId,
+      periodStartDate,
+      periodEndDate,
+    );
+  }
 }

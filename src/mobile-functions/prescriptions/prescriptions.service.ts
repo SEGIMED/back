@@ -953,6 +953,105 @@ export class PrescriptionsService {
     }
   }
 
+  async calculateMedicationAdherence(
+    patientId: string,
+    prescriptionId?: string,
+    periodStart?: Date,
+    periodEnd?: Date,
+  ) {
+    try {
+      // Consultar prescripciones con is_tracking_active = true
+      const whereCondition: any = {
+        patient_id: patientId,
+        is_tracking_active: true,
+      };
+
+      if (prescriptionId) {
+        whereCondition.id = prescriptionId;
+      }
+
+      const prescriptions = await this.prisma.prescription.findMany({
+        where: whereCondition,
+        include: {
+          medication_dose_logs: {
+            where: {
+              ...(periodStart && { scheduled_time: { gte: periodStart } }),
+              ...(periodEnd && { scheduled_time: { lte: periodEnd } }),
+            },
+          },
+        },
+      });
+
+      if (prescriptions.length === 0) {
+        return {
+          patient_id: patientId,
+          prescription_id: prescriptionId || null,
+          total_scheduled_doses: 0,
+          doses_taken: 0,
+          doses_missed_automatic: 0,
+          doses_missed_reported: 0,
+          doses_skipped_by_user: 0,
+          adherence_percentage: 0,
+          period_start: periodStart || new Date(),
+          period_end: periodEnd || new Date(),
+          skip_reasons_breakdown: {},
+        };
+      }
+
+      // Contar dosis por estado basado en los status de MedicationDoseLog
+      let totalScheduledDoses = 0;
+      let dosesTaken = 0;
+      let dosesMissedAutomatic = 0;
+      let dosesMissedReported = 0;
+      let dosesSkippedByUser = 0;
+
+      for (const prescription of prescriptions) {
+        for (const log of prescription.medication_dose_logs) {
+          totalScheduledDoses++;
+
+          switch (log.status) {
+            case 'TAKEN':
+              dosesTaken++;
+              break;
+            case 'MISSED_AUTOMATIC':
+              dosesMissedAutomatic++;
+              break;
+            case 'MISSED_REPORTED':
+              dosesMissedReported++;
+              break;
+            case 'SKIPPED_BY_USER':
+              dosesSkippedByUser++;
+              break;
+          }
+        }
+      }
+
+      // Implementar fórmula: adherence_percentage = (doses_taken / total_scheduled_doses) * 100
+      const adherencePercentage =
+        totalScheduledDoses > 0
+          ? Math.round((dosesTaken / totalScheduledDoses) * 100 * 100) / 100
+          : 0;
+
+      return {
+        patient_id: patientId,
+        prescription_id: prescriptionId || null,
+        total_scheduled_doses: totalScheduledDoses,
+        doses_taken: dosesTaken,
+        doses_missed_automatic: dosesMissedAutomatic,
+        doses_missed_reported: dosesMissedReported,
+        doses_skipped_by_user: dosesSkippedByUser,
+        adherence_percentage: adherencePercentage,
+        period_start: periodStart || new Date(),
+        period_end: periodEnd || new Date(),
+        skip_reasons_breakdown: {},
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Error calculating medication adherence: ' + error.message,
+      );
+    }
+  }
+
   async getMedicationSkipReasons() {
     try {
       const skipReasons =
