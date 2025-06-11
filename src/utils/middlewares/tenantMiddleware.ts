@@ -6,10 +6,14 @@ import {
 import { Request, Response, NextFunction } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthHelper } from '../auth.helper';
+import { RequestContextService } from '../../auth/services/request-context.service';
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly requestContext: RequestContextService,
+  ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
@@ -40,6 +44,14 @@ export class TenantMiddleware implements NestMiddleware {
         throw new UnauthorizedException(`Invalid token: ${error.message}`);
       }
 
+      // Establecer información del usuario en el contexto
+      this.requestContext.setUser({
+        id: payload.userId || payload.id,
+        role: payload.role,
+        tenant_id: payload.tenant_id,
+        tenants: payload.tenants,
+      });
+
       // Check if this is a patient with multiple tenants
       if (
         payload.role === 'patient' &&
@@ -48,7 +60,7 @@ export class TenantMiddleware implements NestMiddleware {
         payload.tenants.length > 0
       ) {
         // Store tenants info for patients
-        req['userTenants'] = payload.tenants;
+        this.requestContext.setUserTenants(payload.tenants);
 
         // If there's a tenant_id in the header/request and it's in the list of
         // patient's tenants, use that one
@@ -67,7 +79,13 @@ export class TenantMiddleware implements NestMiddleware {
               where: { id: requestTenantId },
             });
             if (tenant) {
-              global.tenant_id = requestTenantId;
+              this.requestContext.setTenantId(requestTenantId);
+              this.requestContext.setTenant({
+                id: tenant.id,
+                type: tenant.type,
+                db_name: tenant.db_name,
+              });
+              // Mantener compatibilidad con req para otros middlewares
               req['tenant_id'] = requestTenantId;
               req['tenant'] = tenant;
               next();
@@ -82,7 +100,13 @@ export class TenantMiddleware implements NestMiddleware {
           where: { id: firstTenantId },
         });
         if (tenant) {
-          global.tenant_id = firstTenantId;
+          this.requestContext.setTenantId(firstTenantId);
+          this.requestContext.setTenant({
+            id: tenant.id,
+            type: tenant.type,
+            db_name: tenant.db_name,
+          });
+          // Mantener compatibilidad con req para otros middlewares
           req['tenant_id'] = firstTenantId;
           req['tenant'] = tenant;
           next();
@@ -104,9 +128,15 @@ export class TenantMiddleware implements NestMiddleware {
           throw new UnauthorizedException('Invalid tenant');
         }
 
-        // Guardar en el contexto global
-        global.tenant_id = tenant_id;
+        // Establecer en el contexto CLS
+        this.requestContext.setTenantId(tenant_id);
+        this.requestContext.setTenant({
+          id: tenant.id,
+          type: tenant.type,
+          db_name: tenant.db_name,
+        });
 
+        // Mantener compatibilidad con req para otros middlewares
         req['tenant_id'] = tenant_id;
         req['tenant'] = tenant;
       }

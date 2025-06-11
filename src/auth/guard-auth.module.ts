@@ -11,6 +11,7 @@ import { RolesController } from './controllers/roles.controller';
 import { UserRoleManagerService } from './roles/user-role-manager.service';
 import { PermissionUpdaterService } from './services/permission-updater.service';
 import { PermissionUpdaterController } from './controllers/permission-updater.controller';
+import { RequestContextService } from './services/request-context.service';
 
 @Module({
   controllers: [RolesController, PermissionUpdaterController],
@@ -25,6 +26,7 @@ import { PermissionUpdaterController } from './controllers/permission-updater.co
     SuperAdminGuard,
     UserRoleManagerService,
     PermissionUpdaterService,
+    RequestContextService,
   ],
   exports: [
     PermissionsService,
@@ -36,6 +38,7 @@ import { PermissionUpdaterController } from './controllers/permission-updater.co
     SuperAdminGuard,
     UserRoleManagerService,
     PermissionUpdaterService,
+    RequestContextService,
   ],
 })
 export class GuardAuthModule {}

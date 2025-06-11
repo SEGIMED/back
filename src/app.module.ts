@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { ClsModule, ClsMiddleware } from 'nestjs-cls';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './management/user/user.module';
@@ -48,6 +49,17 @@ config({ path: '.env' });
 
 @Module({
   imports: [
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: false,
+        generateId: true,
+        setup: (cls) => {
+          // Inicialización básica del contexto
+          cls.set('requestId', cls.getId());
+        },
+      },
+    }),
     GuardAuthModule,
     AppointmentsModule,
     MedicalEventsModule,
@@ -105,6 +117,9 @@ config({ path: '.env' });
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
+    // Montar ClsMiddleware primero para asegurar que el contexto esté disponible
+    consumer.apply(ClsMiddleware).forRoutes('*');
+
     consumer
       .apply(TenantMiddleware)
       .exclude(
