@@ -127,31 +127,6 @@ export class SelfEvaluationEventService {
 
       const { vital_signs } = createMobileSelfEvaluationDto;
 
-      // Verificar que todos los vital_sign_id existen en el catálogo
-      const vitalSignIds = vital_signs.map((vs) => vs.vital_sign_id);
-      const existingVitalSigns = await this.prisma.cat_vital_signs.findMany({
-        where: {
-          id: { in: vitalSignIds },
-        },
-        select: { id: true, name: true },
-      });
-
-      const foundIds = existingVitalSigns.map((vs) => vs.id);
-      const missingIds = vitalSignIds.filter((id) => !foundIds.includes(id));
-
-      if (missingIds.length > 0) {
-        // Obtener todos los signos vitales disponibles para mostrar en el error
-        const allVitalSigns = await this.prisma.cat_vital_signs.findMany({
-          select: { id: true, name: true },
-          orderBy: { id: 'asc' },
-        });
-
-        throw new BadRequestException(
-          `Los siguientes vital_sign_id no existen: ${missingIds.join(', ')}. ` +
-            `IDs disponibles: ${allVitalSigns.map((vs) => `${vs.id} (${vs.name})`).join(', ')}`,
-        );
-      }
-
       return this.prisma.$transaction(async (tx) => {
         // Crear el evento de autoevaluación sin medical_event_id ni tenant_id
         // Esto representa signos vitales propios del paciente, no de una consulta médica
@@ -251,31 +226,40 @@ export class SelfEvaluationEventService {
         },
       });
 
+      // Obtener los últimos registros de signos vitales usando una consulta optimizada
+      // Usar DISTINCT ON para obtener el último registro de cada tipo de signo vital
+      const latestVitalSignsRaw = (await this.prisma.$queryRaw`
+        SELECT DISTINCT ON (vs.vital_sign_id)
+          vs.id, vs.measure, vs.created_at, vs.vital_sign_id
+        FROM vital_signs vs
+        WHERE vs.patient_id = ${patientId} AND vs.deleted = FALSE
+        ORDER BY vs.vital_sign_id, vs.created_at DESC
+      `) as Array<{
+        id: string;
+        measure: string;
+        created_at: Date;
+        vital_sign_id: number;
+      }>;
+
+      // Crear un Map para acceso rápido a los registros por vital_sign_id
+      const latestRecordsMap = new Map<
+        number,
+        {
+          id: string;
+          measure: string;
+          created_at: Date;
+          vital_sign_id: number;
+        }
+      >();
+
+      latestVitalSignsRaw.forEach((record) => {
+        latestRecordsMap.set(record.vital_sign_id, record);
+      });
+
       const latestVitalSigns: LatestVitalSignDto[] = [];
 
-      // Para cada tipo de signo vital del catálogo, buscar el registro más reciente
+      // Para cada tipo de signo vital del catálogo, combinar con los datos obtenidos
       for (const catalogItem of vitalSignsCatalog) {
-        // NOTA: No filtramos por tenant_id intencionalmente
-        // Los signos vitales propios del paciente (self-evaluation) no tienen tenant_id
-        // y deben ser incluidos junto con los de consultas médicas
-        const latestRecord = await this.prisma.vital_signs.findFirst({
-          where: {
-            patient_id: patientId,
-            vital_sign_id: catalogItem.id,
-            deleted: false,
-          },
-          orderBy: {
-            created_at: 'desc',
-          },
-          include: {
-            vital_sign: {
-              include: {
-                cat_measure_unit: true,
-              },
-            },
-          },
-        });
-
         // Preparar la información del catálogo (excluyendo specialties como se especifica)
         const vitalSignCatalogInfo = {
           id: catalogItem.id,
@@ -292,11 +276,14 @@ export class SelfEvaluationEventService {
           critical_max_value: catalogItem.critical_max_value,
         };
 
+        // Buscar el registro más reciente en el Map
+        const latestRecord = latestRecordsMap.get(catalogItem.id);
+
         if (latestRecord) {
           // Si se encontró un registro, incluir los datos
           latestVitalSigns.push({
             vital_sign: vitalSignCatalogInfo,
-            measure: latestRecord.measure,
+            measure: parseFloat(latestRecord.measure) || 0,
             created_at: latestRecord.created_at,
             cat_measure_unit: catalogItem.cat_measure_unit
               ? {

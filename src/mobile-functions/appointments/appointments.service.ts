@@ -60,7 +60,7 @@ export class MobileAppointmentsService {
         };
       }
 
-      // Buscar el próximo turno pendiente con especialidad en una sola consulta
+      // Buscar el próximo turno pendiente
       const now = new Date();
       const nextAppointment = await this.prisma.appointment.findFirst({
         where: {
@@ -93,7 +93,7 @@ export class MobileAppointmentsService {
         };
       }
 
-      // Obtener especialidad del médico en consulta separada pero optimizada
+      // Obtener especialidad del médico en una consulta optimizada con los datos preexistentes
       const physicianInfo = await this.prisma.physician.findUnique({
         where: { user_id: nextAppointment.physician.id },
         select: {

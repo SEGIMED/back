@@ -81,6 +81,11 @@ model user {
   tenant                         tenant?                  @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   roles                          user_role[]
   vital_signs                    vital_signs[]
+
+  @@index([role, tenant_id, deleted])
+  @@index([tenant_id, role])
+  @@index([email, deleted])
+  @@index([identification_number, deleted])
 }
 
 model organization {
@@ -147,6 +152,8 @@ model patient_tenant {
   tenant     tenant    @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
   @@unique([patient_id, tenant_id])
+  @@index([deleted])
+  @@index([tenant_id, deleted])
 }
 
 model physician {
@@ -187,6 +194,12 @@ model appointment {
   physician           user            @relation("physician", fields: [physician_id], references: [id], onDelete: Cascade)
   tenant              tenant          @relation(fields: [tenant_id], references: [id])
   medical_events      medical_event[]
+
+  @@index([patient_id, tenant_id, status, start])
+  @@index([physician_id, tenant_id, status, start])
+  @@index([patient_id, status, start, deleted])
+  @@index([physician_id, status, start, deleted])
+  @@index([tenant_id, status, start, deleted])
 }
 
 model medical_event {
@@ -215,6 +228,12 @@ model medical_event {
   self_evaluation_event     self_evaluation_event[]
   subcategory_medical_event subcategory_medical_event[]
   vital_signs               vital_signs[]
+
+  @@index([patient_id, tenant_id, created_at])
+  @@index([physician_id, tenant_id, created_at])
+  @@index([appointment_id])
+  @@index([patient_id, deleted, created_at])
+  @@index([tenant_id, deleted, created_at])
 }
 
 model transaction {
@@ -247,6 +266,9 @@ model patient_study {
   updatedAt         DateTime       @updatedAt
   cat_study_type    cat_study_type @relation(fields: [cat_study_type_id], references: [id], onDelete: Cascade)
 
+  @@index([patient_id, tenant_id, is_deleted])
+  @@index([patient_id, is_deleted, createdAt])
+  @@index([physician_id, tenant_id, is_deleted])
   @@map("patient_studies")
 }
 
@@ -307,6 +329,9 @@ model physician_speciality {
   deleted_at    DateTime?
   physician     physician      @relation(fields: [physician_id], references: [id], onDelete: Cascade)
   speciality    cat_speciality @relation(fields: [speciality_id], references: [id], onDelete: Cascade)
+
+  @@index([physician_id, deleted])
+  @@index([speciality_id, deleted])
 }
 
 model otp_code {
@@ -331,6 +356,9 @@ model background {
   updated_at                DateTime @updatedAt
   patient                   user     @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   tenant                    tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([patient_id, tenant_id, created_at])
+  @@index([tenant_id, created_at])
 }
 
 model subcategory_medical_event {
@@ -371,6 +399,12 @@ model prescription {
   user                             user?                           @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   skip_reason                      medication_skip_reason_catalog? @relation(fields: [skip_reason_id], references: [id])
   tenant                           tenant?                         @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@index([patient_id, active])
+  @@index([tenant_id, active])
+  @@index([patient_id, monodrug, active])
+  @@index([patient_id, tenant_id, active])
+  @@index([monodrug, active])
 }
 
 model pres_mod_history {
@@ -408,6 +442,11 @@ model medication_dose_log {
   prescription        prescription                    @relation(fields: [prescription_id], references: [id], onDelete: Cascade)
   skip_reason         medication_skip_reason_catalog? @relation(fields: [skip_reason_id], references: [id])
   user                user                            @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([prescription_id, user_id, scheduled_time, status])
+  @@index([user_id, scheduled_time, status])
+  @@index([prescription_id, status, scheduled_time])
+  @@index([user_id, status, reported_at])
 }
 
 model medication_skip_reason_catalog {
@@ -450,6 +489,12 @@ model vital_signs {
   self_evaluation_event    self_evaluation_event? @relation(fields: [self_evaluation_event_id], references: [id], onDelete: Cascade)
   tenant                   tenant?                @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   vital_sign               cat_vital_signs        @relation(fields: [vital_sign_id], references: [id], onDelete: Cascade)
+
+  @@index([patient_id, vital_sign_id, created_at(sort: Desc), deleted])
+  @@index([patient_id, deleted, created_at])
+  @@index([medical_event_id, deleted])
+  @@index([self_evaluation_event_id, deleted])
+  @@index([tenant_id, deleted])
 }
 
 model medical_order {
@@ -480,6 +525,12 @@ model medical_order {
   tenant                    tenant?                 @relation(fields: [tenant_id], references: [id])
   user                      user?                   @relation(fields: [userId], references: [id])
   pres_mod_history          pres_mod_history[]
+
+  @@index([patient_id, tenant_id, request_date])
+  @@index([physician_id, tenant_id, request_date])
+  @@index([medical_order_type_id, tenant_id])
+  @@index([patient_id, medical_order_type_id])
+  @@index([physician_id, medical_order_type_id])
 }
 
 model cat_identification_type {
@@ -530,6 +581,9 @@ model subcategories_cie_diez {
   medical_event             medical_event[]
   category_cie_diez         category_cie_diez           @relation(fields: [categoryId], references: [id])
   subcategory_medical_event subcategory_medical_event[]
+
+  @@index([categoryId])
+  @@index([code])
 }
 
 model cat_vital_signs {
