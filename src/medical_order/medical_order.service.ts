@@ -515,82 +515,71 @@ export class MedicalOrderService {
 
       const totalPages = Math.ceil(totalCount / limit);
 
-      // Get the actual orders
+      // Get the actual orders with all necessary data preloaded
       const orders = await this.prisma.medical_order.findMany({
         where: whereClause,
         skip,
         take: limit,
         orderBy: { [orderBy]: orderDirection },
         include: {
-          patient: true,
-          physician: true,
-          medical_order_type: true,
-          tenant: true,
+          patient: {
+            select: {
+              name: true,
+              last_name: true,
+            },
+          },
+          physician: {
+            select: {
+              name: true,
+              last_name: true,
+            },
+          },
+          medical_order_type: {
+            select: {
+              name: true,
+            },
+          },
+          tenant: {
+            include: {
+              organizations: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
         },
       });
 
-      // Format the response according to the required structure
-      const formattedOrders = await Promise.all(
-        orders.map(async (order) => {
-          // Get organization name from tenant
-          let organizationName = 'N/A';
-          if (order.tenant_id) {
-            const org = await this.prisma.organization.findFirst({
-              where: { tenant_id: order.tenant_id },
-              select: { name: true },
-            });
-            if (org) {
-              organizationName = org.name;
-            }
-          }
+      // Format the response using preloaded data
+      const formattedOrders = orders.map((order) => {
+        // Get organization name from preloaded tenant data
+        const organizationName =
+          order.tenant?.organizations?.[0]?.name || 'N/A';
 
-          // Get physician info
-          let physicianName = 'N/A';
-          if (order.physician_id) {
-            const physician = await this.prisma.user.findUnique({
-              where: { id: order.physician_id },
-              select: { name: true, last_name: true },
-            });
-            if (physician) {
-              physicianName = `${physician.name || ''} ${physician.last_name || ''}`;
-            }
-          }
+        // Get physician name from preloaded data
+        const physicianName = order.physician
+          ? `${order.physician.name || ''} ${order.physician.last_name || ''}`.trim()
+          : 'N/A';
 
-          // Get patient info
-          let patientName = 'N/A';
-          if (order.patient_id) {
-            const patient = await this.prisma.user.findUnique({
-              where: { id: order.patient_id },
-              select: { name: true, last_name: true },
-            });
-            if (patient) {
-              patientName = `${patient.name || ''} ${patient.last_name || ''}`;
-            }
-          }
+        // Get patient name from preloaded data
+        const patientName = order.patient
+          ? `${order.patient.name || ''} ${order.patient.last_name || ''}`.trim()
+          : 'N/A';
 
-          // Get order type name
-          let orderTypeName = '';
-          if (order.medical_order_type_id) {
-            const type = await this.prisma.medical_order_type.findUnique({
-              where: { id: order.medical_order_type_id },
-              select: { name: true },
-            });
-            if (type) {
-              orderTypeName = type.name;
-            }
-          }
+        // Get order type name from preloaded data
+        const orderTypeName = order.medical_order_type?.name || '';
 
-          return {
-            id: order.id,
-            url: order.url || '',
-            request_date: order.request_date,
-            organization_name: organizationName,
-            physician_name: physicianName,
-            patient_name: patientName,
-            order_type: orderTypeName,
-          } as MedicalOrderPhysicianResponseDto;
-        }),
-      );
+        return {
+          id: order.id,
+          url: order.url || '',
+          request_date: order.request_date,
+          organization_name: organizationName,
+          physician_name: physicianName,
+          patient_name: patientName,
+          order_type: orderTypeName,
+        } as MedicalOrderPhysicianResponseDto;
+      });
 
       return {
         data: formattedOrders,
@@ -708,76 +697,74 @@ export class MedicalOrderService {
 
       const totalPages = Math.ceil(totalCount / limit);
       console.log(whereClause);
-      // Get the actual orders
+      // Get the actual orders with all necessary data preloaded
       const orders = await this.prisma.medical_order.findMany({
         where: whereClause,
         skip,
         take: limit,
         orderBy: { [orderBy]: orderDirection },
+        include: {
+          physician: {
+            select: {
+              name: true,
+              last_name: true,
+            },
+          },
+          medical_order_type: {
+            select: {
+              name: true,
+            },
+          },
+          tenant: {
+            include: {
+              organizations: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       });
 
-      // Format the response according to the required structure
-      const formattedOrders = await Promise.all(
-        orders.map(async (order) => {
-          // Get organization name from tenant
-          let organizationName = 'N/A';
+      // Format the response using preloaded data
+      const formattedOrders = orders.map((order) => {
+        // Get organization name from preloaded tenant data or JWT data
+        let organizationName = 'N/A';
 
-          // Try to find the tenant info in the JWT first for performance
-          if (userTenants && order.tenant_id) {
-            const matchingTenant = userTenants.find(
-              (t) => t.id === order.tenant_id,
-            );
-            if (matchingTenant) {
-              organizationName = matchingTenant.name;
-            }
+        // Try to find the tenant info in the JWT first for performance
+        if (userTenants && order.tenant_id) {
+          const matchingTenant = userTenants.find(
+            (t) => t.id === order.tenant_id,
+          );
+          if (matchingTenant) {
+            organizationName = matchingTenant.name;
           }
+        }
 
-          // If not found in JWT, query the database
-          if (organizationName === 'N/A' && order.tenant_id) {
-            const org = await this.prisma.organization.findFirst({
-              where: { tenant_id: order.tenant_id },
-              select: { name: true },
-            });
-            if (org) {
-              organizationName = org.name;
-            }
-          }
+        // If not found in JWT, use preloaded data
+        if (organizationName === 'N/A') {
+          organizationName = order.tenant?.organizations?.[0]?.name || 'N/A';
+        }
 
-          // Get physician info
-          let physicianName = 'N/A';
-          if (order.physician_id) {
-            const physician = await this.prisma.user.findUnique({
-              where: { id: order.physician_id },
-              select: { name: true, last_name: true },
-            });
-            if (physician) {
-              physicianName = `${physician.name || ''} ${physician.last_name || ''}`;
-            }
-          }
+        // Get physician name from preloaded data
+        const physicianName = order.physician
+          ? `${order.physician.name || ''} ${order.physician.last_name || ''}`.trim()
+          : 'N/A';
 
-          // Get order type name
-          let orderTypeName = '';
-          if (order.medical_order_type_id) {
-            const type = await this.prisma.medical_order_type.findUnique({
-              where: { id: order.medical_order_type_id },
-              select: { name: true },
-            });
-            if (type) {
-              orderTypeName = type.name;
-            }
-          }
+        // Get order type name from preloaded data
+        const orderTypeName = order.medical_order_type?.name || '';
 
-          return {
-            id: order.id,
-            url: order.url || '',
-            request_date: order.request_date,
-            organization_name: organizationName,
-            physician_name: physicianName,
-            order_type: orderTypeName,
-            tenant_id: order.tenant_id, // Add tenant_id to help frontend display organization info
-          } as MedicalOrderPatientResponseDto;
-        }),
-      );
+        return {
+          id: order.id,
+          url: order.url || '',
+          request_date: order.request_date,
+          organization_name: organizationName,
+          physician_name: physicianName,
+          order_type: orderTypeName,
+          tenant_id: order.tenant_id, // Add tenant_id to help frontend display organization info
+        } as MedicalOrderPatientResponseDto;
+      });
 
       return {
         data: formattedOrders,

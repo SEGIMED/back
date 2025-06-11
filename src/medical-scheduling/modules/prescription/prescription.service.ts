@@ -121,15 +121,33 @@ export class PrescriptionService {
     medicalOrderId?: string,
     isAuthorized: boolean = true,
   ): Promise<void> {
+    // Extraer monodrogas únicas del array de medicaciones
+    const uniqueMonodrugs = [
+      ...new Set(medications.map((med) => med.monodrug)),
+    ];
+
+    // Realizar una única consulta por lotes para todas las prescripciones activas relevantes
+    const existingPrescriptions = await tx.prescription.findMany({
+      where: {
+        patient_id: patientId,
+        monodrug: { in: uniqueMonodrugs },
+        active: true,
+      },
+    });
+
+    // Crear un Map para búsqueda rápida O(1) usando monodrug como clave
+    const prescriptionMap = new Map<
+      string,
+      (typeof existingPrescriptions)[0]
+    >();
+    existingPrescriptions.forEach((prescription) => {
+      prescriptionMap.set(prescription.monodrug, prescription);
+    });
+
+    // Procesar cada medicación usando el Map para búsquedas eficientes
     for (const medication of medications) {
-      // Verificar si ya existe una prescripción activa para este medicamento
-      const existingPrescription = await tx.prescription.findFirst({
-        where: {
-          patient_id: patientId,
-          monodrug: medication.monodrug,
-          active: true,
-        },
-      });
+      // Buscar prescripción existente en el Map (O(1) lookup)
+      const existingPrescription = prescriptionMap.get(medication.monodrug);
 
       if (existingPrescription) {
         // Si ya existe una prescripción activa, crear una nueva entrada en el historial
@@ -178,6 +196,9 @@ export class PrescriptionService {
             duration_units: medication.duration_units,
           },
         });
+
+        // Agregar la nueva prescripción al Map para futuras referencias en el mismo lote
+        prescriptionMap.set(medication.monodrug, newPrescription);
       }
     }
   }
