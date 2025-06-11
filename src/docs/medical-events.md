@@ -43,7 +43,7 @@ El sistema utiliza el `NotificationService` para enviar notificaciones automáti
 Todos los endpoints de este módulo requieren los siguientes headers:
 
 - `Authorization`: `Bearer <JWT_TOKEN>` (Token de autenticación del usuario)
-- `X-Tenant-ID`: `<TENANT_UUID>` (Identificador único del tenant/organización)
+- `X-Tenant-ID`: `<TENANT_UUID>` (Identificador único del tenant/organización, opcional en Swagger)
 
 ---
 

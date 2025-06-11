@@ -1,4 +1,10 @@
-import { IsUUID, IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  IsUUID,
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMedicalEventDto {
@@ -40,9 +46,9 @@ export class CreateMedicalEventDto {
     example: 'A001',
     required: false,
   })
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  main_diagnostic_cie?: string;
+  main_diagnostic_cie?: number;
 
   @ApiProperty({
     description: 'Optional description of the patient_s evolution',

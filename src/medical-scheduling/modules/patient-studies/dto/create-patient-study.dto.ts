@@ -98,3 +98,53 @@ export class CreatePatientStudyDto {
   })
   file?: string;
 }
+
+/**
+ * DTO para pacientes que crean sus propios estudios
+ * Solo requiere campos mínimos, el patient_id y physician_id se toman del token
+ */
+export class CreatePatientOwnStudyDto {
+  @ApiProperty({
+    description: 'Título del estudio',
+    example: 'Radiografía de Tórax',
+  })
+  @IsString({ message: 'El título debe ser una cadena de texto' })
+  @Length(3, 100, { message: 'El título debe tener entre 3 y 100 caracteres' })
+  title: string;
+
+  @ApiProperty({
+    description: 'Descripción del estudio',
+    example: 'Estudio de rutina para control general',
+  })
+  @IsString({ message: 'La descripción debe ser una cadena de texto' })
+  @Length(3, 500, {
+    message: 'La descripción debe tener entre 3 y 500 caracteres',
+  })
+  description: string;
+
+  @ApiProperty({
+    description: 'Tipo de estudio del catálogo',
+    example: 1,
+  })
+  @IsNotEmpty()
+  @IsNumber({}, { message: 'El ID del tipo de estudio debe ser un número' })
+  cat_study_type_id: number;
+
+  @ApiProperty({
+    description: 'URL del archivo del estudio (opcional)',
+    example: 'https://example.com/mi-estudio.pdf',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: 'La URL debe ser una cadena de texto válida' })
+  url?: string;
+
+  @ApiProperty({
+    description: 'Archivo del estudio en formato base64 (opcional)',
+    example: 'data:application/pdf;base64,JVBERi0xLjQKJ...',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: 'El archivo debe ser una cadena de texto' })
+  study_file?: string;
+}

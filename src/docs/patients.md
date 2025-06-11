@@ -13,7 +13,7 @@ El módulo de Pacientes proporciona endpoints para la gestión completa de los p
 Todos los endpoints requieren los siguientes headers:
 
 - `Authorization`: Bearer token JWT para autenticación
-- `tenant-id`: ID del tenant al que pertenece el usuario y los pacientes
+- `X-Tenant-ID`: ID del tenant al que pertenece el usuario y los pacientes
 
 ## Permisos Requeridos
 
@@ -37,7 +37,7 @@ Crea un nuevo paciente en el sistema, incluyendo la información de usuario asoc
 - **Permisos**: `MANAGE_USERS`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Request Body**:
 
 ```json
@@ -91,7 +91,7 @@ Obtiene la lista de todos los pacientes registrados en el sistema para el tenant
 - **Permisos**: `VIEW_PATIENTS_LIST`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de consulta**:
   - `page` (número, opcional): Número de página para paginación, por defecto 1
   - `limit` (número, opcional): Cantidad de registros por página, por defecto 10
@@ -144,7 +144,7 @@ Obtiene los detalles completos de un paciente específico.
 - **Permisos**: `VIEW_PATIENT_DETAILS`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de ruta**:
   - `id` (string, obligatorio): ID del paciente a consultar
 - **Respuesta exitosa**:
@@ -236,7 +236,7 @@ Actualiza la información de un paciente existente.
 - **Permisos**: `EDIT_PATIENT_INFO`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de ruta**:
   - `id` (string, obligatorio): ID del paciente a actualizar
 - **Request Body**: Igual que en la creación, pero todos los campos son opcionales
@@ -266,7 +266,7 @@ Elimina un paciente del sistema.
 - **Permisos**: `DELETE_PATIENTS`
 - **Headers Requeridos**:
   - `Authorization`: Bearer token JWT
-  - `tenant-id`: ID del tenant
+  - `X-Tenant-ID`: ID del tenant
 - **Parámetros de ruta**:
   - `id` (string, obligatorio): ID del paciente a eliminar
 - **Respuesta exitosa**:

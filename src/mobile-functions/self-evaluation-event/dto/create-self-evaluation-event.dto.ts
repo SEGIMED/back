@@ -1,10 +1,10 @@
 import {
-  IsString,
   IsNotEmpty,
   IsUUID,
   IsArray,
   ValidateNested,
   ArrayNotEmpty,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { VitalSignDto } from '../../../medical-scheduling/modules/vital-signs/dto/create-vital-sign.dto';
@@ -30,13 +30,15 @@ export class CreateSelfEvaluationEventDto {
   medical_event_id: string;
 
   @ApiProperty({
-    description: 'ID del inquilino (tenant) en el sistema',
+    description:
+      'ID del inquilino (tenant) en el sistema (opcional para signos vitales propios del paciente)',
     example: 'tid_12345-6789-abcd-ef0123456789',
     format: 'uuid',
+    required: false,
   })
+  @IsOptional()
   @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
-  @IsNotEmpty({ message: 'El ID del inquilino es obligatorio' })
-  tenant_id: string;
+  tenant_id?: string;
 
   @ApiProperty({
     description: 'Array de signos vitales registrados en la autoevaluación',
@@ -47,6 +49,25 @@ export class CreateSelfEvaluationEventDto {
     ],
   })
   @IsArray()
+  @ArrayNotEmpty({ message: 'Debe proporcionar al menos un signo vital' })
+  @ValidateNested({ each: true })
+  @Type(() => VitalSignDto)
+  vital_signs: VitalSignDto[];
+}
+
+// DTO simplificado para autoevaluaciones móviles (solo signos vitales propios)
+export class CreateMobileSelfEvaluationDto {
+  @ApiProperty({
+    description: 'Array de signos vitales registrados por el paciente',
+    type: [VitalSignDto],
+    example: [
+      { vital_sign_id: 1, measure: 36.5 }, // Temperatura corporal en °C
+      { vital_sign_id: 2, measure: 120 }, // Presión sistólica en mmHg
+      { vital_sign_id: 3, measure: 80 }, // Presión diastólica en mmHg
+      { vital_sign_id: 4, measure: 75 }, // Frecuencia cardíaca en bpm
+    ],
+  })
+  @IsArray({ message: 'vital_signs debe ser un array' })
   @ArrayNotEmpty({ message: 'Debe proporcionar al menos un signo vital' })
   @ValidateNested({ each: true })
   @Type(() => VitalSignDto)

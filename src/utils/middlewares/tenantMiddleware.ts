@@ -25,12 +25,6 @@ export class TenantMiddleware implements NestMiddleware {
         return next();
       }
 
-      // Debug headers para identificar problemas
-      console.log('Request path:', req.path);
-      console.log('Request originalUrl:', req.originalUrl);
-      console.log('Request method:', req.method);
-      console.log('Request headers:', JSON.stringify(req.headers));
-
       const authorization = req.headers['authorization'];
       if (!authorization) {
         throw new UnauthorizedException('Authorization header missing');
