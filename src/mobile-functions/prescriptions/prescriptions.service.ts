@@ -15,11 +15,17 @@ import {
   SkipMedicationDoseDto,
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
+import { CancelTrackingDto } from './dto/cancel-tracking.dto';
 import { Prisma } from '@prisma/client';
+import { NotificationService } from '../../services/notification/notification.service';
+import { medicationCancellationHtml } from '../../services/email/templates/medicationCancellationHtml';
 
 @Injectable()
 export class PrescriptionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   /**
    * Obtiene los tenant IDs del paciente de forma optimizada
@@ -806,5 +812,161 @@ export class PrescriptionsService {
         timeSlot: slot,
       };
     });
+  }
+  async cancelTracking(
+    prescriptionId: string,
+    patientId: string,
+    cancelDto: CancelTrackingDto,
+    userTenants?: { id: string; name: string; type: string }[],
+  ) {
+    try {
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: prescriptionId,
+          patient_id: patientId,
+          OR: [
+            { tenant_id: { in: tenantIds } },
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
+        },
+        include: {
+          pres_mod_history: {
+            orderBy: {
+              mod_timestamp: 'desc',
+            },
+            take: 1,
+            include: {
+              physician: {
+                select: {
+                  id: true,
+                  email: true,
+                  name: true,
+                  last_name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      // Verificar si la prescripción fue creada por un médico y obtener datos para notificación
+      if (
+        prescription.created_by_patient === false &&
+        prescription.pres_mod_history.length > 0
+      ) {
+        const latestHistory = prescription.pres_mod_history[0];
+        const physician = latestHistory.physician;
+
+        if (physician && physician.email) {
+          // Obtener datos del paciente
+          const patient = await this.prisma.user.findUnique({
+            where: { id: patientId },
+            select: { name: true, last_name: true },
+          });
+
+          if (patient) {
+            // Preparar datos para el email
+            const physicianName = `${physician.name} ${physician.last_name}`;
+            const patientName = `${patient.name} ${patient.last_name}`;
+            const medicationName =
+              prescription.monodrug || 'Medicación no especificada';
+
+            // Obtener la razón de cancelación
+            let cancelReason = 'No especificado';
+            if (cancelDto.skip_reason_details) {
+              cancelReason = cancelDto.skip_reason_details;
+            } else if (cancelDto.skip_reason_id) {
+              const skipReason =
+                await this.prisma.medication_skip_reason_catalog.findUnique({
+                  where: { id: cancelDto.skip_reason_id },
+                  select: { reason_text: true },
+                });
+              if (skipReason) {
+                cancelReason = skipReason.reason_text;
+              }
+            }
+
+            const cancelDate = new Date().toLocaleDateString('es-ES');
+
+            // Generar HTML del email
+            const emailHtml = medicationCancellationHtml(
+              physicianName,
+              patientName,
+              medicationName,
+              cancelReason,
+              cancelDate,
+            );
+
+            // Enviar notificación por email
+            try {
+              await this.notificationService.sendEmail(
+                physician.email,
+                'Cancelación de Seguimiento de Medicación - Segimed',
+                emailHtml,
+              );
+            } catch (emailError) {
+              // Log del error pero no fallar la operación principal
+              console.error(
+                'Error enviando notificación al médico:',
+                emailError,
+              );
+            }
+          }
+        }
+      }
+
+      const updatedPrescription = await this.prisma.prescription.update({
+        where: {
+          id: prescriptionId,
+        },
+        data: {
+          is_tracking_active: false,
+          reminder_enabled: false,
+          skip_reason_id: cancelDto.skip_reason_id,
+          skip_reason_details: cancelDto.skip_reason_details,
+        },
+      });
+
+      return {
+        ...updatedPrescription,
+        message: 'Tracking cancelled successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error cancelling tracking: ' + error.message,
+      );
+    }
+  }
+
+  async getMedicationSkipReasons() {
+    try {
+      const skipReasons =
+        await this.prisma.medication_skip_reason_catalog.findMany({
+          orderBy: {
+            category: 'asc',
+          },
+        });
+
+      return skipReasons;
+    } catch (error) {
+      throw new BadRequestException(
+        'Error retrieving medication skip reasons: ' + error.message,
+      );
+    }
   }
 }
