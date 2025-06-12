@@ -54,6 +54,14 @@ export class MobileAppointmentsController {
       'If true, returns only the next pending appointment. If false or not specified, returns all appointments grouped by status.',
     example: true,
   })
+  @ApiQuery({
+    name: 'specialty_id',
+    required: false,
+    type: Number,
+    description:
+      'Filter appointments by physician specialty ID. Only shows appointments with physicians that have this specialty.',
+    example: 1,
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Appointments retrieved successfully',

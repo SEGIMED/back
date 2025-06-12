@@ -325,21 +325,34 @@ export class AppointmentsService {
       throw error;
     }
   }
-
   async getAppointmentsByUser(
     userId: string,
-    params: { status?: status_type } & PaginationParams,
+    params: { status?: status_type; specialty_id?: number } & PaginationParams,
   ): Promise<appointment[]> {
     // Desestructurar los parámetros de paginación y ordenación
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(params);
 
     try {
+      // Construir filtros base
+      const whereConditions: any = {
+        OR: [{ patient_id: userId }, { physician_id: userId }],
+        ...(params.status && { status: params.status }),
+      };
+
+      // Si se especifica especialidad, filtrar por médicos que tengan esa especialidad
+      if (params.specialty_id) {
+        whereConditions.physician = {
+          physician_speciality: {
+            some: {
+              speciality_id: params.specialty_id,
+            },
+          },
+        };
+      }
+
       const appointments = await this.prisma.appointment.findMany({
-        where: {
-          OR: [{ patient_id: userId }, { physician_id: userId }],
-          ...(params.status && { status: params.status }),
-        },
+        where: whereConditions,
         skip,
         take,
         orderBy: { [orderBy]: orderDirection },
@@ -397,7 +410,6 @@ export class AppointmentsService {
       throw new Error(`Error al actualizar la cita: ${error.message}`);
     }
   }
-
   async getPhysicianCalendar(
     physicianId: string,
     startDate?: string,
@@ -406,6 +418,7 @@ export class AppointmentsService {
     tenantId?: string,
     month?: number,
     year?: number,
+    specialtyId?: number,
   ) {
     try {
       let start: Date;
@@ -446,6 +459,21 @@ export class AppointmentsService {
 
       if (!physician) {
         throw new BadRequestException('Médico no encontrado');
+      }
+
+      // Validar especialidad del médico si se proporciona specialtyId
+      if (specialtyId) {
+        const specialtyCheck = await this.validatePhysicianSpecialty(
+          physicianId,
+          specialtyId,
+        );
+
+        if (!specialtyCheck.isValid) {
+          throw new BadRequestException(
+            specialtyCheck.reason ||
+              'El médico no tiene la especialidad especificada',
+          );
+        }
       }
 
       // Buscar las citas del médico en el rango de fechas

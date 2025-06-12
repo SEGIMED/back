@@ -43,6 +43,7 @@ import {
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
+
   @Post()
   @ApiOperation({
     summary: 'Crear cita',
@@ -82,6 +83,7 @@ export class AppointmentsController {
       tenant.id,
     );
   }
+
   @Get('user')
   @ApiOperation({
     summary: 'Obtener citas del usuario',
@@ -105,6 +107,12 @@ export class AppointmentsController {
     required: false,
     type: Number,
   })
+  @ApiQuery({
+    name: 'specialty_id',
+    description: 'ID de la especialidad médica para filtrar citas',
+    required: false,
+    type: Number,
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Citas del usuario devueltas exitosamente',
@@ -121,10 +129,12 @@ export class AppointmentsController {
   async getAppointmentsByUser(
     @GetUser() user,
     @GetTenant() tenant,
-    @Query() params: { status?: status_type } & PaginationParams,
+    @Query()
+    params: { status?: status_type; specialty_id?: number } & PaginationParams,
   ) {
     return this.appointmentsService.getAppointmentsByUser(user.id, params);
   }
+
   @Patch(':id/status')
   @ApiOperation({
     summary: 'Actualizar estado de cita',
@@ -186,6 +196,7 @@ export class AppointmentsController {
       tenant,
     );
   }
+
   @Get('physician-calendar')
   @ApiOperation({
     summary: 'Obtener calendario del médico',
@@ -247,8 +258,10 @@ export class AppointmentsController {
       tenant.id,
       params.month,
       params.year,
+      params.specialty_id,
     );
   }
+
   @Get('physician/:physicianId/calendar')
   @ApiOperation({
     summary: 'Get specific physician calendar',
@@ -316,8 +329,10 @@ export class AppointmentsController {
       tenant.id,
       params.month,
       params.year,
+      params.specialty_id,
     );
   }
+
   @Get('statistics')
   @ApiOperation({
     summary: 'Get appointment statistics',

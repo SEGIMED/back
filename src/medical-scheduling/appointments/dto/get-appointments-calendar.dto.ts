@@ -62,4 +62,15 @@ export class GetAppointmentsCalendarDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   year?: number;
+
+  @ApiProperty({
+    description: 'ID de la especialidad médica para filtrar citas',
+    example: 1,
+    type: Number,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
+  specialty_id?: number;
 }
