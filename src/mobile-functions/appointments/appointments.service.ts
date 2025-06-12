@@ -37,7 +37,8 @@ export class MobileAppointmentsService {
         deleted: false,
       },
       select: { tenant_id: true },
-    });    return patientTenants.map((pt) => pt.tenant_id);
+    });
+    return patientTenants.map((pt) => pt.tenant_id);
   }
 
   /**
@@ -99,7 +100,7 @@ export class MobileAppointmentsService {
       });
 
       if (!nextAppointment) {
-        const message = specialtyId 
+        const message = specialtyId
           ? 'No se encontraron citas pendientes para la especialidad especificada'
           : 'No se encontraron citas pendientes';
         return {
@@ -148,7 +149,8 @@ export class MobileAppointmentsService {
       };
     } catch (error) {
       throw new BadRequestException(
-        `Error al obtener el próximo turno: ${error.message}`,      );
+        `Error al obtener el próximo turno: ${error.message}`,
+      );
     }
   }
 
@@ -278,7 +280,8 @@ export class MobileAppointmentsService {
       // Ordenar: pendientes por fecha ascendente, pasadas por fecha descendente
       pending.sort(
         (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
-      );      past.sort(
+      );
+      past.sort(
         (a, b) => new Date(b.start).getTime() - new Date(a.start).getTime(),
       );
 
@@ -289,7 +292,7 @@ export class MobileAppointmentsService {
         past_count: past.length,
       };
 
-      const message = specialtyId 
+      const message = specialtyId
         ? 'Citas filtradas por especialidad obtenidas exitosamente'
         : 'Citas obtenidas exitosamente';
 

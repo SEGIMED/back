@@ -169,7 +169,8 @@ export class MobileAppointmentsController {
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Unauthorized - Invalid or missing JWT token',
-  })  @ApiResponse({
+  })
+  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Forbidden - Insufficient permissions to view appointments',
   })
@@ -193,7 +194,7 @@ export class MobileAppointmentsController {
 
       const patientId = req.user.id;
       const userTenants = req.userTenants; // Tenants del JWT
-      
+
       // Convertir specialty_id de string a number si se proporciona
       const specialty_id = specialtyId ? parseInt(specialtyId, 10) : undefined;
 
