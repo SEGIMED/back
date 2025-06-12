@@ -37,9 +37,7 @@ export class MobileAppointmentsService {
         deleted: false,
       },
       select: { tenant_id: true },
-    });
-
-    return patientTenants.map((pt) => pt.tenant_id);
+    });    return patientTenants.map((pt) => pt.tenant_id);
   }
 
   /**
@@ -48,6 +46,7 @@ export class MobileAppointmentsService {
   async getNextAppointment(
     patientId: string,
     userTenants?: { id: string; name: string; type: string }[],
+    specialtyId?: number,
   ): Promise<NextAppointmentResponseDto> {
     try {
       // Obtener tenant IDs del paciente
@@ -60,16 +59,29 @@ export class MobileAppointmentsService {
         };
       }
 
+      // Construir filtros base
+      const whereConditions: any = {
+        patient_id: patientId,
+        tenant_id: { in: tenantIds },
+        status: 'pendiente',
+        start: { gte: new Date() },
+        deleted: false,
+      };
+
+      // Si se especifica especialidad, filtrar por médicos que tengan esa especialidad
+      if (specialtyId) {
+        whereConditions.physician = {
+          physician_speciality: {
+            some: {
+              speciality_id: specialtyId,
+            },
+          },
+        };
+      }
+
       // Buscar el próximo turno pendiente
-      const now = new Date();
       const nextAppointment = await this.prisma.appointment.findFirst({
-        where: {
-          patient_id: patientId,
-          tenant_id: { in: tenantIds },
-          status: 'pendiente',
-          start: { gte: now },
-          deleted: false,
-        },
+        where: whereConditions,
         orderBy: { start: 'asc' },
         select: {
           id: true,
@@ -87,9 +99,12 @@ export class MobileAppointmentsService {
       });
 
       if (!nextAppointment) {
+        const message = specialtyId 
+          ? 'No se encontraron citas pendientes para la especialidad especificada'
+          : 'No se encontraron citas pendientes';
         return {
           next_appointment: undefined,
-          message: 'No se encontraron citas pendientes',
+          message,
         };
       }
 
@@ -133,8 +148,7 @@ export class MobileAppointmentsService {
       };
     } catch (error) {
       throw new BadRequestException(
-        `Error al obtener el próximo turno: ${error.message}`,
-      );
+        `Error al obtener el próximo turno: ${error.message}`,      );
     }
   }
 
@@ -144,6 +158,7 @@ export class MobileAppointmentsService {
   async getAllAppointments(
     patientId: string,
     userTenants?: { id: string; name: string; type: string }[],
+    specialtyId?: number,
   ): Promise<AllAppointmentsResponseDto> {
     try {
       // Obtener tenant IDs del paciente
@@ -162,13 +177,27 @@ export class MobileAppointmentsService {
         };
       }
 
+      // Construir filtros base
+      const whereConditions: any = {
+        patient_id: patientId,
+        tenant_id: { in: tenantIds },
+        deleted: false,
+      };
+
+      // Si se especifica especialidad, filtrar por médicos que tengan esa especialidad
+      if (specialtyId) {
+        whereConditions.physician = {
+          physician_speciality: {
+            some: {
+              speciality_id: specialtyId,
+            },
+          },
+        };
+      }
+
       // Obtener todas las citas del paciente
       const allAppointments = await this.prisma.appointment.findMany({
-        where: {
-          patient_id: patientId,
-          tenant_id: { in: tenantIds },
-          deleted: false,
-        },
+        where: whereConditions,
         orderBy: { start: 'desc' },
         select: {
           id: true,
@@ -249,8 +278,7 @@ export class MobileAppointmentsService {
       // Ordenar: pendientes por fecha ascendente, pasadas por fecha descendente
       pending.sort(
         (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
-      );
-      past.sort(
+      );      past.sort(
         (a, b) => new Date(b.start).getTime() - new Date(a.start).getTime(),
       );
 
@@ -261,9 +289,13 @@ export class MobileAppointmentsService {
         past_count: past.length,
       };
 
+      const message = specialtyId 
+        ? 'Citas filtradas por especialidad obtenidas exitosamente'
+        : 'Citas obtenidas exitosamente';
+
       return {
         appointments: groupedAppointments,
-        message: 'Citas obtenidas exitosamente',
+        message,
       };
     } catch (error) {
       throw new BadRequestException(

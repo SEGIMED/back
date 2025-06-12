@@ -169,13 +169,13 @@ export class MobileAppointmentsController {
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
     description: 'Unauthorized - Invalid or missing JWT token',
-  })
-  @ApiResponse({
+  })  @ApiResponse({
     status: HttpStatus.FORBIDDEN,
     description: 'Forbidden - Insufficient permissions to view appointments',
   })
   async getAppointments(
     @Query('home') home?: string,
+    @Query('specialty_id') specialtyId?: string,
     @Request() req?: any,
   ): Promise<NextAppointmentResponseDto | AllAppointmentsResponseDto> {
     try {
@@ -193,6 +193,9 @@ export class MobileAppointmentsController {
 
       const patientId = req.user.id;
       const userTenants = req.userTenants; // Tenants del JWT
+      
+      // Convertir specialty_id de string a number si se proporciona
+      const specialty_id = specialtyId ? parseInt(specialtyId, 10) : undefined;
 
       // Determinar si se solicita solo la próxima cita o todas
       const isHomeRequest = home === 'true';
@@ -202,12 +205,14 @@ export class MobileAppointmentsController {
         return await this.mobileAppointmentsService.getNextAppointment(
           patientId,
           userTenants,
+          specialty_id,
         );
       } else {
         // Obtener todas las citas agrupadas
         return await this.mobileAppointmentsService.getAllAppointments(
           patientId,
           userTenants,
+          specialty_id,
         );
       }
     } catch (error) {
