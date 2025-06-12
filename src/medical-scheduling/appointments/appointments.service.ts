@@ -171,6 +171,48 @@ export class AppointmentsService {
     }
   }
 
+  // Method to validate if physician has the required specialty
+  private async validatePhysicianSpecialty(
+    physicianId: string,
+    specialtyId: number,
+  ): Promise<{ isValid: boolean; reason?: string }> {
+    try {
+      // Check if the physician has the specified specialty
+      const physicianSpecialty =
+        await this.prisma.physician_speciality.findFirst({
+          where: {
+            physician: {
+              user_id: physicianId,
+              deleted: false,
+            },
+            speciality_id: specialtyId,
+          },
+          include: {
+            speciality: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        });
+
+      if (!physicianSpecialty) {
+        return {
+          isValid: false,
+          reason: 'El médico seleccionado no tiene la especialidad requerida',
+        };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      console.error('Error validating physician specialty:', error);
+      return {
+        isValid: false,
+        reason: 'Error al validar la especialidad del médico',
+      };
+    }
+  }
+
   async createAppointment(
     data: CreateAppointmentDto,
     tenant: string,
@@ -210,11 +252,25 @@ export class AppointmentsService {
         endDate,
         tenant,
       );
-
       if (!scheduleCheck.isAvailable) {
         throw new BadRequestException(
           scheduleCheck.reason || 'El horario no está disponible',
         );
+      }
+
+      // Validar especialidad del médico si se proporciona
+      if (data.specialty_id) {
+        const specialtyCheck = await this.validatePhysicianSpecialty(
+          data.physician_id,
+          data.specialty_id,
+        );
+
+        if (!specialtyCheck.isValid) {
+          throw new BadRequestException(
+            specialtyCheck.reason ||
+              'El médico no tiene la especialidad requerida',
+          );
+        }
       }
 
       // Verificar conflicto de horarios con otras citas
