@@ -881,4 +881,397 @@ export class PatientService {
       throw new BadRequestException('Error al eliminar el paciente');
     }
   }
+
+  /**
+   * Obtiene los tenant IDs del paciente de forma optimizada
+   */
+  private async getPatientTenantIds(
+    patientId: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<string[]> {
+    // Si los tenants vienen del JWT, usarlos directamente
+    if (userTenants && userTenants.length > 0) {
+      return userTenants.map((tenant) => tenant.id);
+    }
+
+    // Sino, buscar en la DB con el patient_id directamente
+    const patientTenants = await this.prisma.patient_tenant.findMany({
+      where: {
+        patient: {
+          user_id: patientId,
+        },
+        deleted: false,
+      },
+      select: { tenant_id: true },
+    });
+    return patientTenants.map((pt) => pt.tenant_id);
+  }
+
+  /**
+   * Obtiene el perfil completo del paciente autenticado usando su ID
+   * Implementa soporte multitenant para acceder a datos de todas las organizaciones del paciente
+   */
+  async findMyProfile(
+    userId: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<GetPatientDto> {
+    try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(userId, userTenants);
+
+      if (tenantIds.length === 0) {
+        throw new NotFoundException(
+          'No se encontraron organizaciones asociadas al paciente',
+        );
+      }
+
+      // Buscar el paciente usando el user_id
+      const patient = await this.prisma.patient.findFirst({
+        where: {
+          user_id: userId,
+          patient_tenant: {
+            some: {
+              tenant_id: { in: tenantIds },
+              deleted: false,
+            },
+          },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Ejecutar todas las queries independientes en paralelo con soporte multitenant
+      const [
+        files,
+        latestMedicalEvent,
+        latestSelfEvaluation,
+        background,
+        medications,
+        futureMedicalEvents,
+        pastMedicalEvents,
+      ] = await Promise.all([
+        // Get patient files (studies) - Multitenant support
+        this.prisma.patient_study.findMany({
+          where: {
+            patient_id: userId,
+            tenant_id: { in: tenantIds }, // Buscar en todas las organizaciones del paciente
+            is_deleted: false,
+          },
+          select: {
+            id: true,
+            title: true,
+            url: true,
+          },
+        }),
+
+        // Get the latest medical event with status COMPLETED - Multitenant support
+        this.prisma.medical_event.findFirst({
+          where: {
+            patient_id: userId,
+            tenant_id: { in: tenantIds },
+            deleted: false,
+            appointment: {
+              status: 'atendida',
+            },
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          include: {
+            vital_signs: {
+              include: {
+                vital_sign: true,
+              },
+            },
+          },
+        }),
+
+        // Get the latest self evaluation
+        this.prisma.self_evaluation_event.findFirst({
+          where: {
+            patient_id: userId,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          include: {
+            vital_signs: {
+              include: {
+                vital_sign: true,
+              },
+            },
+          },
+        }),
+
+        // Get the latest patient background - Multitenant support
+        this.prisma.background.findFirst({
+          where: {
+            patient_id: userId,
+            tenant_id: { in: tenantIds },
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        }),
+
+        // Get active medications - Multitenant support
+        this.prisma.prescription.findMany({
+          where: {
+            patient_id: userId,
+            tenant_id: { in: tenantIds },
+            active: true,
+          },
+          include: {
+            pres_mod_history: {
+              orderBy: {
+                mod_timestamp: 'desc',
+              },
+              take: 1,
+            },
+          },
+        }),
+
+        // Get future medical events (upcoming appointments) - Multitenant support
+        this.prisma.appointment.findMany({
+          where: {
+            patient_id: userId,
+            tenant_id: { in: tenantIds },
+            status: {
+              in: ['pendiente'],
+            },
+            deleted: false,
+          },
+          orderBy: {
+            start: 'asc',
+          },
+          include: {
+            physician: true,
+          },
+        }),
+
+        // Get past medical events (past appointments) - Multitenant support
+        this.prisma.appointment.findMany({
+          where: {
+            patient_id: userId,
+            tenant_id: { in: tenantIds },
+            start: {
+              lt: new Date(),
+            },
+            status: {
+              in: ['atendida', 'cancelada'],
+            },
+            deleted: false,
+          },
+          orderBy: {
+            start: 'desc',
+          },
+          include: {
+            physician: true,
+          },
+        }),
+      ]);
+
+      const formattedFiles = files.map((file) => ({
+        id: file.id,
+        name: file.title,
+        url: file.url || '',
+      }));
+
+      // Determine which vital signs to use based on business logic:
+      // 1. Priorizar medical events atendidos que tengan signos vitales guardados
+      // 2. Si no, usar el dato de signo vital más reciente independientemente de la fuente
+      let vitalSignsData = [];
+      let vitalSignsSource = null;
+
+      // Verificar si el latest medical event tiene signos vitales y está atendido
+      const medicalEventHasVitalSigns =
+        latestMedicalEvent &&
+        latestMedicalEvent.vital_signs &&
+        latestMedicalEvent.vital_signs.length > 0;
+
+      if (medicalEventHasVitalSigns) {
+        // Priorizar el medical event atendido con signos vitales
+        vitalSignsSource = latestMedicalEvent;
+      } else if (latestMedicalEvent && latestSelfEvaluation) {
+        // Si el medical event no tiene signos vitales, comparar fechas
+        const medicalEventDate = new Date(latestMedicalEvent.created_at);
+        const selfEvalDate = new Date(latestSelfEvaluation.created_at);
+
+        vitalSignsSource =
+          medicalEventDate > selfEvalDate
+            ? latestMedicalEvent
+            : latestSelfEvaluation;
+      } else if (latestMedicalEvent) {
+        vitalSignsSource = latestMedicalEvent;
+      } else if (latestSelfEvaluation) {
+        vitalSignsSource = latestSelfEvaluation;
+      }
+
+      if (
+        vitalSignsSource &&
+        vitalSignsSource.vital_signs &&
+        vitalSignsSource.vital_signs.length > 0
+      ) {
+        // Paso 1: Extraer IDs de Signos Vitales únicos
+        const vitalSignIds: number[] = [];
+        const seenIds = new Set<number>();
+
+        vitalSignsSource.vital_signs.forEach((vs) => {
+          if (
+            vs.vital_sign_id != null &&
+            typeof vs.vital_sign_id === 'number' &&
+            !seenIds.has(vs.vital_sign_id)
+          ) {
+            vitalSignIds.push(vs.vital_sign_id);
+            seenIds.add(vs.vital_sign_id);
+          }
+        });
+
+        // Paso 2: Query única para Unidades de Medida
+        const measureUnitsMap = new Map<number, string>();
+        if (vitalSignIds.length > 0) {
+          const measureUnits = await this.prisma.cat_measure_unit.findMany({
+            where: {
+              cat_vital_signs: {
+                some: {
+                  id: { in: vitalSignIds },
+                },
+              },
+            },
+            include: {
+              cat_vital_signs: {
+                where: {
+                  id: { in: vitalSignIds },
+                },
+                select: {
+                  id: true,
+                },
+              },
+            },
+          });
+
+          // Paso 3: Crear mapa para búsqueda rápida
+          measureUnits.forEach((measureUnit) => {
+            measureUnit.cat_vital_signs.forEach((vitalSign) => {
+              measureUnitsMap.set(vitalSign.id, measureUnit.name);
+            });
+          });
+        }
+
+        // Paso 4: Modificar el mapeo original (ya no asíncrono)
+        vitalSignsData = vitalSignsSource.vital_signs
+          .map((vs) => {
+            if (!vs.vital_sign) return null;
+
+            const measureUnitName = measureUnitsMap.get(vs.vital_sign_id) || '';
+
+            return {
+              id: vs.id,
+              vital_sign_category: vs.vital_sign.name,
+              measure: vs.measure,
+              vital_sign_measure_unit: measureUnitName,
+            };
+          })
+          .filter((item) => item !== null);
+      }
+
+      // Format evaluation from latest medical event
+      const evaluation = latestMedicalEvent
+        ? {
+            id: latestMedicalEvent.id,
+            details: latestMedicalEvent.physician_comments || '',
+            date: latestMedicalEvent.created_at,
+          }
+        : null;
+
+      // Format background
+      const backgroundData = background
+        ? {
+            id: background.id,
+            details: `
+          Vacunas: ${background.vaccinations || ''}
+          Alergias: ${background.allergies || ''}
+          Antecedentes patológicos: ${background.pathological_history || ''}
+          Antecedentes familiares: ${background.family_medical_history || ''}
+          Antecedentes no patológicos: ${background.non_pathological_history || ''}
+          Antecedentes quirúrgicos: ${background.surgical_history || ''}
+          Antecedentes de infancia: ${background.childhood_medical_history || ''}
+          Medicación actual: ${background.current_medication || ''}
+        `,
+            date: background.created_at,
+          }
+        : null;
+
+      // Format medical events
+      const formatMedicalEvents = (events) =>
+        events.map((event) => {
+          // Extract time from date or use a default time
+          const date = new Date(event.start);
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          const timeStr = `${hours}:${minutes}`;
+
+          return {
+            id: event.id,
+            date: date,
+            time: timeStr,
+            doctor: `${event.physician.name || ''} ${event.physician.last_name || ''}`,
+            reason: event.consultation_reason || '',
+            status: event.status,
+          };
+        });
+
+      const user = patient.user;
+
+      return {
+        id: user.id,
+        name: user.name,
+        last_name: user.last_name || '',
+        image: user.image,
+        age: calculateAge(user.birth_date),
+        birth_date: user.birth_date,
+        email: user.email,
+        notes: patient.notes || '',
+        vital_signs: vitalSignsData,
+        files: formattedFiles,
+        evaluation: evaluation,
+        background: backgroundData,
+        current_medication: medications.map((med) => {
+          const lastModification =
+            med.pres_mod_history && med.pres_mod_history.length > 0
+              ? med.pres_mod_history[0]
+              : null;
+          return {
+            id: med.id,
+            name: med.monodrug,
+            dosage: lastModification
+              ? `${lastModification.dose} ${lastModification.dose_units}`
+              : '',
+            instructions: lastModification
+              ? `${lastModification.frecuency}, durante ${lastModification.duration} ${lastModification.duration_units}`
+              : '',
+            active: med.active,
+          };
+        }),
+        future_medical_events: formatMedicalEvents(futureMedicalEvents),
+        past_medical_events: formatMedicalEvents(pastMedicalEvents),
+      };
+    } catch (error) {
+      console.error('Error en findMyProfile:', error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error al obtener el perfil del paciente: ' + error.message,
+      );
+    }
+  }
 }
