@@ -1274,4 +1274,81 @@ export class PatientService {
       );
     }
   }
+
+  /**
+   * Actualiza el perfil del paciente autenticado usando su ID
+   * Implementa soporte multitenant para permitir actualización desde la app móvil
+   */
+  async updateMyProfile(
+    userId: string,
+    updateData: Partial<MedicalPatientDto>,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<{ message: string }> {
+    try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(userId, userTenants);
+
+      if (tenantIds.length === 0) {
+        throw new NotFoundException(
+          'No se encontraron organizaciones asociadas al paciente',
+        );
+      }
+
+      // Buscar el paciente usando el user_id con soporte multitenant
+      const patient = await this.prisma.patient.findFirst({
+        where: {
+          user_id: userId,
+          patient_tenant: {
+            some: {
+              tenant_id: { in: tenantIds },
+              deleted: false,
+            },
+          },
+        },
+      });
+
+      if (!patient) {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+
+      // Ejecutar actualizaciones en una transacción atómica
+      await this.prisma.$transaction(async (transaction) => {
+        // Actualizar datos del usuario si están presentes
+        if (updateData.user) {
+          await transaction.user.update({
+            where: { id: userId },
+            data: {
+              ...updateData.user,
+            },
+          });
+        }
+
+        // Actualizar datos específicos del paciente si están presentes
+        if (updateData.patient) {
+          await transaction.patient.update({
+            where: { user_id: userId },
+            data: {
+              ...updateData.patient,
+            },
+          });
+        }
+      });
+
+      return { message: 'Perfil actualizado correctamente' };
+    } catch (error) {
+      console.error('Error en updateMyProfile:', error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      if (error?.code === 'P2025') {
+        throw new NotFoundException('Paciente no encontrado');
+      }
+      throw new BadRequestException(
+        'Error al actualizar el perfil del paciente: ' + error.message,
+      );
+    }
+  }
 }
