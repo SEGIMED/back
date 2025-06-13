@@ -54,6 +54,14 @@ export class MobileAppointmentsController {
       'If true, returns only the next pending appointment. If false or not specified, returns all appointments grouped by status.',
     example: true,
   })
+  @ApiQuery({
+    name: 'specialty_id',
+    required: false,
+    type: Number,
+    description:
+      'Filter appointments by physician specialty ID. Only shows appointments with physicians that have this specialty.',
+    example: 1,
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Appointments retrieved successfully',
@@ -168,6 +176,7 @@ export class MobileAppointmentsController {
   })
   async getAppointments(
     @Query('home') home?: string,
+    @Query('specialty_id') specialtyId?: string,
     @Request() req?: any,
   ): Promise<NextAppointmentResponseDto | AllAppointmentsResponseDto> {
     try {
@@ -186,6 +195,9 @@ export class MobileAppointmentsController {
       const patientId = req.user.id;
       const userTenants = req.userTenants; // Tenants del JWT
 
+      // Convertir specialty_id de string a number si se proporciona
+      const specialty_id = specialtyId ? parseInt(specialtyId, 10) : undefined;
+
       // Determinar si se solicita solo la próxima cita o todas
       const isHomeRequest = home === 'true';
 
@@ -194,12 +206,14 @@ export class MobileAppointmentsController {
         return await this.mobileAppointmentsService.getNextAppointment(
           patientId,
           userTenants,
+          specialty_id,
         );
       } else {
         // Obtener todas las citas agrupadas
         return await this.mobileAppointmentsService.getAllAppointments(
           patientId,
           userTenants,
+          specialty_id,
         );
       }
     } catch (error) {
