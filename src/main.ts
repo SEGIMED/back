@@ -106,6 +106,10 @@ async function bootstrap() {
       'Patient self-evaluation events from mobile app',
     )
     .addTag(
+      'Mobile - Patient Profile',
+      'Patient profile management for mobile applications - view and update own profile',
+    )
+    .addTag(
       'Catalogs - CIE-10',
       'Management of CIE-10 catalog codes and descriptions',
     )

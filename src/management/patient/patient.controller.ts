@@ -15,6 +15,10 @@ import {
 import { PatientService } from './patient.service';
 import { MedicalPatientDto } from './dto/medical-patient.dto';
 import { PaginationParams } from 'src/utils/pagination.helper';
+import {
+  PatientProfileMobileResponseDto,
+  UpdatePatientProfileMobileResponseDto,
+} from './dto/mobile-patient-profile-response.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
@@ -185,9 +189,9 @@ export class PatientController {
   remove(@Param('id') id: string) {
     return this.patientService.remove(id);
   }
-
   // Mobile endpoints para pacientes
   @Get('my-profile')
+  @ApiTags('Mobile - Patient Profile')
   @RequirePermission(Permission.VIEW_OWN_SETTINGS)
   @ApiOperation({
     summary: 'Get patient own profile with multitenant support',
@@ -197,6 +201,7 @@ export class PatientController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Patient profile retrieved successfully',
+    type: PatientProfileMobileResponseDto,
     content: {
       'application/json': {
         example: {
@@ -206,6 +211,12 @@ export class PatientController {
           image: 'https://example.com/patient.jpg',
           age: 35,
           birth_date: '1989-01-15T00:00:00Z',
+          direction: 'Av. Principal 123, Col. Centro',
+          city: 'Ciudad de México',
+          province: 'CDMX',
+          country: 'México',
+          postal_code: '12345',
+          phone: '+1234567890',
           email: 'juan.perez@example.com',
           notes: 'Notas del paciente',
           vital_signs: [
@@ -230,7 +241,7 @@ export class PatientController {
           },
           background: {
             id: 'uuid-background',
-            details: 'Antecedentes médicos del paciente',
+            details: 'Antecedentes médicos completos',
             date: '2024-01-01T00:00:00Z',
           },
           current_medication: [
@@ -257,8 +268,8 @@ export class PatientController {
               id: 'uuid-past-appointment',
               date: '2024-01-05T14:00:00Z',
               time: '14:00',
-              doctor: 'Dr. Martínez',
-              reason: 'Consulta general',
+              doctor: 'Dr. López',
+              reason: 'Consulta inicial',
               status: 'atendida',
             },
           ],
@@ -336,8 +347,8 @@ export class PatientController {
       );
     }
   }
-
   @Patch('my-profile')
+  @ApiTags('Mobile - Patient Profile')
   @RequirePermission(Permission.UPDATE_OWN_SETTINGS)
   @ApiOperation({
     summary: 'Update patient own profile with multitenant support',
@@ -394,6 +405,7 @@ export class PatientController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Patient profile updated successfully',
+    type: UpdatePatientProfileMobileResponseDto,
     content: {
       'application/json': {
         example: {
