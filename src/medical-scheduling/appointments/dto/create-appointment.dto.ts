@@ -63,14 +63,13 @@ export class CreateAppointmentDto {
   @IsUUID()
   @IsNotEmpty()
   physician_id: string;
-
   @ApiProperty({
     description: 'Estado de la cita',
-    enum: ['atendida', 'cancelada', 'pendiente'],
+    enum: ['atendida', 'cancelada', 'pendiente', 'no_asistida'],
     default: 'pendiente',
     required: false,
   })
-  @IsEnum(['atendida', 'cancelada', 'pendiente'])
+  @IsEnum(['atendida', 'cancelada', 'pendiente', 'no_asistida'])
   @IsOptional()
   status?: status_type;
 
