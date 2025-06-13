@@ -8,7 +8,7 @@ El `AppointmentSchedulerService` es un servicio automatizado que se ejecuta como
 
 ### 1. Procesamiento Automático
 
-- **Cron Job**: Se ejecuta cada hora (`@Cron(CronExpression.EVERY_HOUR)`)
+- **Cron Job**: Se ejecuta diariamente a medianoche (`@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)`)
 - **Función**: Revisa todas las citas con estado "pendiente" cuya fecha/hora de fin ya ha pasado
 - **Acción**: Las marca automáticamente como "no_asistida"
 
@@ -44,7 +44,7 @@ El `AppointmentSchedulerService` es un servicio automatizado que se ejecuta como
 ### Frecuencia del Cron Job
 
 ```typescript
-@Cron(CronExpression.EVERY_HOUR)
+@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
 async processExpiredAppointments(): Promise<void>
 ```
 
@@ -52,8 +52,8 @@ Para cambiar la frecuencia, modifica la expresión cron:
 
 - `CronExpression.EVERY_5_MINUTES` - Cada 5 minutos
 - `CronExpression.EVERY_30_MINUTES` - Cada 30 minutos
-- `CronExpression.EVERY_HOUR` - Cada hora (actual)
-- `CronExpression.EVERY_6_HOURS` - Cada 6 horas
+- `CronExpression.EVERY_HOUR` - Cada hora
+- `CronExpression.EVERY_DAY_AT_MIDNIGHT` - Diariamente a medianoche (actual)
 
 ## Logging
 

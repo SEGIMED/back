@@ -8,12 +8,11 @@ export class AppointmentSchedulerService {
   private readonly logger = new Logger(AppointmentSchedulerService.name);
 
   constructor(private readonly prisma: PrismaService) {}
-
   /**
-   * Cron job que se ejecuta cada hora para revisar citas pendientes que ya han finalizado
+   * Cron job que se ejecuta diariamente para revisar citas pendientes que ya han finalizado
    * y marcarlas como "no_asistida"
    */
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async processExpiredAppointments(): Promise<void> {
     this.logger.log(
       'Iniciando procesamiento de citas expiradas para marcar como no_asistida...',
