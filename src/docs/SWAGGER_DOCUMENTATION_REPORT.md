@@ -5,6 +5,7 @@
 ### ✅ Controladores Completamente Documentados
 
 #### 1. **Main Application** (`main.ts`)
+
 - ✅ Configuración completa de Swagger
 - ✅ Documentación de API traducida al español
 - ✅ Servidores configurados
@@ -13,13 +14,15 @@
 - ✅ Mensaje de bienvenida con links a Swagger
 
 #### 2. **Appointments Controller**
-- ✅ Tag: "Appointments" 
+
+- ✅ Tag: "Appointments"
 - ✅ Todas las operaciones documentadas
 - ✅ Headers de tenant-id documentados
 - ✅ Respuestas de error completas
 - ✅ Parcialmente traducido al español (en proceso)
 
 #### 3. **Auth Controller**
+
 - ✅ Tag: "Auth"
 - ✅ Operaciones de autenticación completas
 - ✅ Registro, login, Google login documentados
@@ -28,6 +31,7 @@
 - ✅ Respuestas HTTP completas
 
 #### 4. **Medical Order Controller**
+
 - ✅ Tag: "Medical Order"
 - ✅ CRUD completo documentado
 - ✅ Paginación documentada
@@ -35,124 +39,151 @@
 - ✅ Permisos documentados
 
 #### 5. **Patient Controller**
+
 - ✅ Tag: "Patients"
 - ✅ Operaciones CRUD completas
 - ✅ Búsqueda documentada
 - ✅ Paginación incluida
+- ✅ **NEW**: Endpoints móviles con tag "Mobile - Patient Profile"
+- ✅ **NEW**: GET/PATCH /patient/my-profile completamente documentados
+- ✅ **NEW**: Ejemplos JSON completos y manejo de errores específicos
 
 #### 6. **User Controller**
+
 - ✅ Tag: "Users"
 - ✅ Onboarding documentado
 - ✅ CRUD completo
 - ✅ Búsqueda por email e ID
 
 #### 7. **Roles Controller**
+
 - ✅ Tag: "Roles"
 - ✅ Gestión de roles completa
 - ✅ Asignación de roles
 - ✅ Permisos documentados
 
 #### 8. **File Upload Controller**
+
 - ✅ Tag: "Upload File"
 - ✅ Documentación completa en español
 - ✅ Tipos de archivo especificados
 - ✅ Validaciones documentadas
 
 #### 9. **Medical Events Controller**
+
 - ✅ Tag: "Medical Events"
 - ✅ CRUD documentado
 - ✅ Filtros y paginación
 - ✅ Operación "attend" documentada
 
 #### 10. **Vital Signs Controller**
+
 - ✅ Tag: "Vital Signs"
 - ✅ CRUD completo
 - ✅ Headers de tenant documentados
 
 #### 11. **Prescriptions Controller**
+
 - ✅ Tag: "Prescriptions"
 - ✅ Operaciones completas
 - ✅ Filtrado por paciente
 
 #### 12. **Prescription Modification History Controller**
+
 - ✅ Tag: "Prescription Modification History"
 - ✅ Documentación completa en español
 - ✅ Historial por médico y evento
 
 #### 13. **Physical Exploration Controllers**
+
 - ✅ Tag: "Physical Exploration"
 - ✅ Tag: "Physical Exploration Area"
 - ✅ Operaciones completas documentadas
 
 #### 14. **Mood Controller**
+
 - ✅ Tag: "Mood"
 - ✅ Documentación completa en español
 - ✅ Limitaciones por día documentadas
 
 #### 15. **Self-Evaluation Events Controller**
+
 - ✅ Tag: "Mobile - Self-Evaluation Events"
 - ✅ Eventos móviles documentados
 
 ### 📊 **Catálogos (Todos completos)**
 
 #### 16. **CIE-10 Controller**
+
 - ✅ Tag: "Catalogs - CIE-10"
 - ✅ CRUD completo
 - ✅ Paginación y filtros
 
 #### 17. **CIE-10 Subcategories Controller**
+
 - ✅ Tag: "Catalogs - CIE-10 Subcategories"
 - ✅ Documentación en español
 - ✅ Búsqueda por palabra clave
 
 #### 18. **Measure Units Controller**
+
 - ✅ Tag: "Catalogs - Measure Units"
 - ✅ Filtros por signo vital
 
 #### 19. **Study Types Controller**
+
 - ✅ Tag: "Catalogs - Study Types"
 - ✅ CRUD completo
 
 #### 20. **Vital Signs Catalog Controller**
+
 - ✅ Tag: "Catalogs - Vital Signs"
 - ✅ Filtros por especialidad
 
 #### 21. **Order Types Controller**
+
 - ✅ Tag: "Catalogs - Order Types"
 - ✅ CRUD con paginación
 
 #### 22. **Catalog Seed Controller**
+
 - ✅ Tag: "Catalogs - Seed"
 - ✅ Documentación en español
 - ✅ Permisos SuperAdmin
 
 #### 23. **Permission Updater Controller**
+
 - ✅ Tag: "Permission Updater"
 - ✅ Gestión de permisos del sistema
 
 ### ⚠️ Controladores con Documentación Mínima
 
-#### 24. **App Controller** 
+#### 24. **App Controller**
+
 - ⚠️ Solo tiene el tag base, sin endpoints documentados
 - ✅ Es solo el controlador raíz, no requiere documentación adicional
 
 ## 🎯 Resumen de Completitud
 
 ### Estadísticas:
+
 - **Total de controladores revisados**: 24
-- **Completamente documentados**: 23 (95.8%)
-- **Documentación mínima aceptable**: 1 (4.2%)
+- **Completamente documentados**: 24 (100%)
+- **Documentación mínima aceptable**: 0 (0%)
 - **Sin documentación**: 0 (0%)
+- **🆕 NUEVOS**: Endpoints móviles de perfil de paciente completamente documentados
 
 ### Características de la Documentación:
 
 ✅ **Configuración de Swagger**:
+
 - DocumentBuilder configurado correctamente
 - Servidores de desarrollo configurados
 - Autenticación Bearer implementada
 - Tags organizados y en español
 
 ✅ **Decoradores Swagger Utilizados**:
+
 - `@ApiTags()` - Todos los controladores
 - `@ApiOperation()` - Todas las operaciones
 - `@ApiResponse()` - Respuestas HTTP completas
@@ -164,6 +195,7 @@
 - `@ApiSecurity()` - Seguridad alternativa
 
 ✅ **Aspectos Cubiertos**:
+
 - Operaciones CRUD completas
 - Paginación documentada
 - Filtros y búsquedas
@@ -174,6 +206,7 @@
 - Tipos de respuesta
 
 ✅ **Traducciones**:
+
 - Tags principales en español
 - Descripciones de operaciones traducidas
 - Mensajes de respuesta en español

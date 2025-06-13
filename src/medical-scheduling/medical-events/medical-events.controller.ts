@@ -56,6 +56,12 @@ export class MedicalEventsController {
     description: 'Filter by physician ID',
   })
   @ApiQuery({
+    name: 'specialty_id',
+    required: false,
+    type: Number,
+    description: 'Filter by medical specialty ID',
+  })
+  @ApiQuery({
     name: 'page',
     required: false,
     type: Number,
@@ -87,6 +93,7 @@ export class MedicalEventsController {
   async getMedicalEvents(
     @Query('patient_id') patient_id?: string,
     @Query('physician_id') physician_id?: string,
+    @Query('specialty_id') specialty_id?: number,
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
     @Query('orderBy') orderBy?: string,
@@ -95,6 +102,7 @@ export class MedicalEventsController {
     const filters = {
       patient_id,
       physician_id,
+      specialty_id,
       page,
       pageSize,
       orderBy,

@@ -4,8 +4,10 @@ import {
   IsNotEmpty,
   IsOptional,
   IsNumber,
+  IsInt,
+  Min,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateMedicalEventDto {
   @ApiProperty({
@@ -67,7 +69,6 @@ export class CreateMedicalEventDto {
   @IsString()
   @IsOptional()
   procedure?: string;
-
   @ApiProperty({
     description: 'Optional description of the treatment provided',
     example: 'Prescribed Amoxicillin 500mg every 8 hours for 7 days.',
@@ -76,4 +77,14 @@ export class CreateMedicalEventDto {
   @IsString()
   @IsOptional()
   treatment?: string;
+
+  @ApiPropertyOptional({
+    description: 'ID of the medical specialty for this event (optional)',
+    example: 1,
+    minimum: 1,
+  })
+  @IsOptional()
+  @IsInt({ message: 'specialty_id debe ser un número entero' })
+  @Min(1, { message: 'specialty_id debe ser mayor a 0' })
+  specialty_id?: number;
 }

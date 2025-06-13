@@ -44,6 +44,7 @@ import { PhysicianScheduleModule } from './medical-scheduling/modules/physician-
 import { TenantAccessGuard } from './auth/guards/tenant-access.guard';
 import { SettingsModule } from './medical-scheduling/modules/settings/settings.module';
 import { MedicationSchedulerModule } from './services/medication-scheduler/medication-scheduler.module';
+import { AppointmentSchedulerModule } from './services/appointment-scheduler/appointment-scheduler.module';
 
 config({ path: '.env' });
 
@@ -104,6 +105,7 @@ config({ path: '.env' });
     PhysicianScheduleModule,
     SettingsModule,
     MedicationSchedulerModule,
+    AppointmentSchedulerModule,
   ],
   controllers: [AppController],
   providers: [

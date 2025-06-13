@@ -26,12 +26,19 @@ export class MedicalEventsService {
     private prescriptionService: PrescriptionService,
     private notificationService: NotificationService,
   ) {}
-
   async createMedicalEvent(
     data: CreateMedicalEventDto,
     tenant_id: string,
   ): Promise<{ message: string }> {
     try {
+      // Validar especialidad del médico si se proporciona specialty_id
+      if (data.specialty_id) {
+        await this.validatePhysicianSpecialty(
+          data.physician_id,
+          data.specialty_id,
+        );
+      }
+
       await this.prisma.medical_event.create({
         data: {
           appointment_id: data.appointment_id,
@@ -53,10 +60,10 @@ export class MedicalEventsService {
       );
     }
   }
-
   async getMedicalEvents(filters?: {
     patient_id?: string;
     physician_id?: string;
+    specialty_id?: number;
     page?: number;
     pageSize?: number;
     orderBy?: string;
@@ -66,14 +73,48 @@ export class MedicalEventsService {
       parsePaginationAndSorting(filters);
 
     try {
+      // Construir whereConditions dinámicamente
+      const whereConditions: any = {};
+
+      if (filters?.patient_id) {
+        whereConditions.patient_id = filters.patient_id;
+      }
+
+      if (filters?.physician_id) {
+        whereConditions.physician_id = filters.physician_id;
+      } // Filtro por especialidad médica
+      if (filters?.specialty_id) {
+        whereConditions.physician = {
+          physician: {
+            physician_speciality: {
+              some: {
+                speciality_id: filters.specialty_id,
+              },
+            },
+          },
+        };
+      }
+
       const medicalEvents = await this.prisma.medical_event.findMany({
-        where: {
-          ...(filters?.patient_id && { patient_id: filters.patient_id }),
-          ...(filters?.physician_id && { physician_id: filters.physician_id }),
-        },
+        where: whereConditions,
         skip,
         take,
         orderBy: { [orderBy]: orderDirection },
+        include: {
+          physician: {
+            include: {
+              physician: {
+                include: {
+                  physician_speciality: {
+                    include: {
+                      speciality: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
       return medicalEvents;
@@ -340,13 +381,59 @@ export class MedicalEventsService {
       );
     }
   }
-
   private _isWithinGracePeriod(date: Date): boolean {
     const gracePeriodHours = 24;
     const now = new Date();
     const gracePeriodMs = gracePeriodHours * 60 * 60 * 1000;
 
     return now.getTime() - date.getTime() <= gracePeriodMs;
+  }
+
+  /**
+   * Valida si un médico tiene la especialidad requerida
+   * @param physicianId ID del médico (user_id)
+   * @param specialtyId ID de la especialidad requerida
+   * @returns Promise con resultado de validación
+   */
+  private async validatePhysicianSpecialty(
+    physicianId: string,
+    specialtyId: number,
+  ): Promise<{ isValid: boolean; reason?: string }> {
+    try {
+      // Verificar que el médico tenga la especialidad especificada
+      const physicianSpecialty =
+        await this.prisma.physician_speciality.findFirst({
+          where: {
+            physician: {
+              user_id: physicianId,
+              deleted: false,
+            },
+            speciality_id: specialtyId,
+          },
+          include: {
+            speciality: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        });
+
+      if (!physicianSpecialty) {
+        return {
+          isValid: false,
+          reason: 'El médico seleccionado no tiene la especialidad requerida',
+        };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      console.error('Error validating physician specialty:', error);
+      return {
+        isValid: false,
+        reason: 'Error al validar la especialidad del médico',
+      };
+    }
   }
 
   private async _sendMedicationNotification(

@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsOptional,
   IsNotEmpty,
+  IsNumber,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { status_type } from '@prisma/client';
@@ -62,14 +63,13 @@ export class CreateAppointmentDto {
   @IsUUID()
   @IsNotEmpty()
   physician_id: string;
-
   @ApiProperty({
     description: 'Estado de la cita',
-    enum: ['atendida', 'cancelada', 'pendiente'],
+    enum: ['atendida', 'cancelada', 'pendiente', 'no_asistida'],
     default: 'pendiente',
     required: false,
   })
-  @IsEnum(['atendida', 'cancelada', 'pendiente'])
+  @IsEnum(['atendida', 'cancelada', 'pendiente', 'no_asistida'])
   @IsOptional()
   status?: status_type;
 
@@ -92,4 +92,17 @@ export class CreateAppointmentDto {
   @IsOptional()
   @IsUUID('4', { message: 'El ID del inquilino debe ser un UUID válido' })
   tenant_id?: string;
+
+  @ApiProperty({
+    description: 'ID de la especialidad médica requerida para la cita',
+    example: 1,
+    type: Number,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber(
+    {},
+    { message: 'El ID de la especialidad debe ser un número válido' },
+  )
+  specialty_id?: number;
 }

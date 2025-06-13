@@ -204,6 +204,8 @@ export class UserRoleManagerService {
               Permission.REGISTER_OWN_VITAL_SIGNS,
               Permission.VIEW_OWN_PRESCRIPTIONS,
               Permission.VIEW_OWN_MEDICAL_EVENTS,
+              Permission.VIEW_OWN_SETTINGS,
+              Permission.UPDATE_OWN_SETTINGS,
             ],
           },
         },

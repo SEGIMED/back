@@ -42,6 +42,13 @@ Este documento describe todos los permisos utilizados en las nuevas funcionalida
 | `GET /mobile/self-evaluation-event/vital-signs/{id}/history` | `VIEW_OWN_VITAL_SIGNS`     | Ver historial de signos vitales    | **Pacientes**   |
 | `POST /mobile/self-evaluation-event`                         | `VIEW_PATIENT_DETAILS`     | Crear autoevaluación (con evento)  | Profesionales   |
 
+### Para Mobile Patient Profile (Perfil de Paciente Móvil) 🆕🆕
+
+| Endpoint                    | Permiso Requerido     | Descripción                | Tipo de Usuario |
+| --------------------------- | --------------------- | -------------------------- | --------------- |
+| `GET /patient/my-profile`   | `VIEW_OWN_SETTINGS`   | Ver perfil completo propio | **Pacientes**   |
+| `PATCH /patient/my-profile` | `UPDATE_OWN_SETTINGS` | Actualizar perfil propio   | **Pacientes**   |
+
 ## Configuración en Permission Updater
 
 Los permisos están configurados en `src/auth/services/permission-updater.service.ts`:
@@ -63,11 +70,27 @@ const physicianPermissions = [
 const patientPermissions = [
   Permission.VIEW_OWN_APPOINTMENTS, // ✅ YA EXISTÍA - Para citas móviles
   Permission.VIEW_OWN_MEDICAL_RECORDS, // ✅ YA EXISTÍA - Para estudios propios
+  Permission.VIEW_OWN_SETTINGS, // 🆕 NUEVO - Para ver perfil propio móvil
+  Permission.UPDATE_OWN_SETTINGS, // 🆕 NUEVO - Para actualizar perfil propio móvil
   // ... otros permisos existentes ...
 ];
 ```
 
 ## Nuevos Permisos Clave
+
+### `UPDATE_OWN_SETTINGS` 🔑🆕
+
+- **Uso**: Permite a los pacientes actualizar su propio perfil
+- **Endpoints**: `PATCH /patient/my-profile`
+- **Funcionalidad**: Actualizaciones parciales con soporte multitenant
+- **Seguridad**: Solo datos del paciente autenticado, transacciones atómicas
+
+### `VIEW_OWN_SETTINGS` 🔑🆕
+
+- **Uso**: Permite a los pacientes ver su perfil completo
+- **Endpoints**: `GET /patient/my-profile`
+- **Funcionalidad**: Consolidación de datos médicos multitenant
+- **Seguridad**: Solo datos del paciente autenticado (ID desde JWT)
 
 ### `VIEW_OWN_MEDICAL_RECORDS` 🔑
 
