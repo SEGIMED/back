@@ -1,5 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
+import { SignOptions } from 'jsonwebtoken';
+import { StringValue } from 'ms';
 
 export class AuthHelper {
   static async hashPassword(
@@ -17,9 +19,13 @@ export class AuthHelper {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  static generateToken(payload: object, expiresIn: string = '7d'): string {
+  static generateToken(
+    payload: object,
+    expiresIn: StringValue | number = '7d',
+  ): string {
     const secret = process.env.JWT_SECRET || 'defaultSecret';
-    return jwt.sign(payload, secret, { expiresIn });
+    const options: SignOptions = { expiresIn };
+    return jwt.sign(payload, secret, options);
   }
 
   static verifyToken(token: string): string | jwt.JwtPayload {

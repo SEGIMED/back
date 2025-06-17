@@ -95,9 +95,9 @@ export class VitalSignsService {
         // Verificar que el tenant del evento de autoevaluación coincide con el tenant proporcionado
         // Solo validar si ambos tienen tenant_id (para signos vitales propios del paciente puede ser null)
         if (
-          selfEvaluationEvent.tenantId &&
+          selfEvaluationEvent.tenant_id &&
           tenant_id &&
-          selfEvaluationEvent.tenantId !== tenant_id
+          selfEvaluationEvent.tenant_id !== tenant_id
         ) {
           throw new BadRequestException(
             'El tenant no coincide con el evento de autoevaluación',
@@ -166,15 +166,21 @@ export class VitalSignsService {
         // Crear nuevos signos vitales
         const createdVitalSigns = [];
         for (const vs of vitalSignsToCreate) {
+          const vitalSignData: any = {
+            patient_id,
+            ...(medical_event_id && { medical_event_id }),
+            ...(self_evaluation_event_id && { self_evaluation_event_id }),
+            vital_sign_id: vs.vital_sign_id,
+            measure: vs.measure,
+          };
+
+          // Solo incluir tenant_id si está presente (para signos vitales propios del paciente puede ser undefined)
+          if (tenant_id) {
+            vitalSignData.tenant_id = tenant_id;
+          }
+
           const newVitalSign = await tx.vital_signs.create({
-            data: {
-              patient_id,
-              tenant_id,
-              ...(medical_event_id && { medical_event_id }),
-              ...(self_evaluation_event_id && { self_evaluation_event_id }),
-              vital_sign_id: vs.vital_sign_id,
-              measure: vs.measure,
-            },
+            data: vitalSignData,
           });
           createdVitalSigns.push(newVitalSign);
         }

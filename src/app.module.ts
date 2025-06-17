@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { ClsModule, ClsMiddleware } from 'nestjs-cls';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './management/user/user.module';
@@ -15,6 +16,7 @@ import { PatientModule } from './management/patient/patient.module';
 import { PatientStudiesModule } from './medical-scheduling/modules/patient-studies/patient-studies.module';
 import { FileUploadModule } from './utils/file_upload/file_upload.module';
 import { CatStudyTypeModule } from './catalogs/cat-study-type/cat-study-type.module';
+import { CatIdentificationTypeModule } from './catalogs/cat-identification-type/cat-identification-type.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailModule } from './services/email/email.module';
 import { TwilioModule } from './services/twilio/twilio.module';
@@ -41,11 +43,24 @@ import { OrderTypeModule } from './catalogs/order-type/order-type.module';
 import { PermissionCheckerService } from './auth/permissions/permission-checker.service';
 import { PhysicianScheduleModule } from './medical-scheduling/modules/physician-schedule/physician-schedule.module';
 import { TenantAccessGuard } from './auth/guards/tenant-access.guard';
+import { SettingsModule } from './medical-scheduling/modules/settings/settings.module';
+import { MedicationSchedulerModule } from './services/medication-scheduler/medication-scheduler.module';
 
 config({ path: '.env' });
 
 @Module({
   imports: [
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: false,
+        generateId: true,
+        setup: (cls) => {
+          // Inicialización básica del contexto
+          cls.set('requestId', cls.getId());
+        },
+      },
+    }),
     GuardAuthModule,
     AppointmentsModule,
     MedicalEventsModule,
@@ -59,6 +74,7 @@ config({ path: '.env' });
     AuthModule,
     FileUploadModule,
     CatStudyTypeModule,
+    CatIdentificationTypeModule,
     CatCieDiezModule,
     SubcatCieDiezModule,
     CatVitalSignsModule,
@@ -86,8 +102,9 @@ config({ path: '.env' });
     SubcatCieDiezModule,
     MedicalOrderModule,
     OrderTypeModule,
-    MedicalOrderModule,
     PhysicianScheduleModule,
+    SettingsModule,
+    MedicationSchedulerModule,
   ],
   controllers: [AppController],
   providers: [
@@ -101,13 +118,8 @@ config({ path: '.env' });
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    // Middleware específico para Swagger que extrae tenant del JWT
-    consumer
-      .apply(SwaggerTenantExtractorMiddleware)
-      .forRoutes(
-        { path: 'api', method: RequestMethod.ALL },
-        { path: 'api/*', method: RequestMethod.ALL },
-      );
+    // Montar ClsMiddleware primero para asegurar que el contexto esté disponible
+    consumer.apply(ClsMiddleware).forRoutes('*');
 
     consumer
       .apply(TenantMiddleware)

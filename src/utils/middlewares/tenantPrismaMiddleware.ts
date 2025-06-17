@@ -15,6 +15,10 @@ export function tenantPrismaMiddleware() {
         actions: ['findMany', 'create', 'update'],
         requireTenantId: true,
       },
+      prescription: {
+        actions: ['findMany', 'create', 'update'],
+        requireTenantId: false,
+      },
       transaction: { actions: ['findMany', 'create'], requireTenantId: true },
       organization: { actions: ['update'], requireTenantId: true },
       patient_tenant: { actions: ['create', 'delete'], requireTenantId: true },
@@ -60,6 +64,18 @@ export function tenantPrismaMiddleware() {
       }
 
       if (['findMany', 'findFirst', 'findUnique'].includes(params.action)) {
+        // Para prescripciones, no aplicar filtro automático de tenant si ya hay lógica OR
+        // que incluye consultas multitenant o auto-asignadas
+        if (
+          params.model === 'prescription' &&
+          params.args?.where?.OR &&
+          Array.isArray(params.args.where.OR)
+        ) {
+          // Si ya hay lógica OR en la consulta de prescripciones, no modificar
+          // (esto indica que es una consulta multitenant manejada manualmente)
+          return next(params, params.args);
+        }
+
         params.args.where = {
           ...params.args.where,
           tenant_id: tenant_id,

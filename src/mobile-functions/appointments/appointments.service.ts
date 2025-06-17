@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   NextAppointmentResponseDto,
@@ -6,6 +10,7 @@ import {
   AppointmentDto,
   GroupedAppointmentsDto,
 } from './dto/mobile-appointments-response.dto';
+import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 
 @Injectable()
 export class MobileAppointmentsService {
@@ -55,7 +60,7 @@ export class MobileAppointmentsService {
         };
       }
 
-      // Buscar el próximo turno pendiente con especialidad en una sola consulta
+      // Buscar el próximo turno pendiente
       const now = new Date();
       const nextAppointment = await this.prisma.appointment.findFirst({
         where: {
@@ -88,7 +93,7 @@ export class MobileAppointmentsService {
         };
       }
 
-      // Obtener especialidad del médico en consulta separada pero optimizada
+      // Obtener especialidad del médico en una consulta optimizada con los datos preexistentes
       const physicianInfo = await this.prisma.physician.findUnique({
         where: { user_id: nextAppointment.physician.id },
         select: {
@@ -263,6 +268,98 @@ export class MobileAppointmentsService {
     } catch (error) {
       throw new BadRequestException(
         `Error al obtener las citas: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Cancela una cita del paciente
+   */
+  async cancelAppointment(
+    appointmentId: string,
+    patientId: string,
+    cancelDto: CancelAppointmentDto,
+    userTenants?: { id: string; name: string; type: string }[],
+  ) {
+    try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
+      // Verificar que la cita existe y pertenece al paciente
+      const appointment = await this.prisma.appointment.findFirst({
+        where: {
+          id: appointmentId,
+          patient_id: patientId,
+          tenant_id: { in: tenantIds },
+          deleted: false,
+        },
+        include: {
+          physician: {
+            select: {
+              name: true,
+              last_name: true,
+            },
+          },
+        },
+      });
+
+      if (!appointment) {
+        throw new NotFoundException(
+          'Cita no encontrada o no tienes permisos para cancelarla',
+        );
+      }
+
+      // Verificar que la cita esté pendiente
+      if (appointment.status !== 'pendiente') {
+        throw new BadRequestException(
+          'Solo se pueden cancelar citas pendientes',
+        );
+      }
+
+      // Verificar que la cita sea futura
+      const now = new Date();
+      if (appointment.start <= now) {
+        throw new BadRequestException('No se pueden cancelar citas pasadas');
+      }
+
+      // Actualizar el estado de la cita a cancelada
+      const updatedAppointment = await this.prisma.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          status: 'cancelada',
+          // Usar el campo correcto para la razón de cancelación
+          ...(cancelDto.reason && { cancelation_reason: cancelDto.reason }),
+        },
+        include: {
+          physician: {
+            select: {
+              name: true,
+              last_name: true,
+            },
+          },
+        },
+      });
+
+      return {
+        id: updatedAppointment.id,
+        status: updatedAppointment.status,
+        start: updatedAppointment.start,
+        physician: {
+          name: updatedAppointment.physician.name,
+          last_name: updatedAppointment.physician.last_name,
+        },
+        message: 'Cita cancelada exitosamente',
+        cancelled_reason: cancelDto.reason,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        `Error al cancelar la cita: ${error.message}`,
       );
     }
   }

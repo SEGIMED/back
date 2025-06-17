@@ -203,12 +203,18 @@ export class PatientService {
       this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
     );
 
+    // Pre-hash the password outside the transaction to avoid CPU-intensive operations within the transaction
+    const hashedPassword = await AuthHelper.hashPassword(
+      newPassword,
+      saltRounds,
+    );
+
     await this.prisma.$transaction(async (transaction) => {
       const newUser = await transaction.user.create({
         data: {
           ...userData,
           role: 'patient',
-          password: await AuthHelper.hashPassword(newPassword, saltRounds),
+          password: hashedPassword,
         },
       });
 
@@ -253,10 +259,17 @@ export class PatientService {
   async findAll(
     pagination: PaginationParams,
     searchQuery?: string,
-  ): Promise<GetPatientsDto[]> {
+  ): Promise<{
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    data: GetPatientsDto[];
+  }> {
     try {
       const { skip, take, orderBy, orderDirection } =
         parsePaginationAndSorting(pagination);
+
+      const page = pagination.page ? parseInt(String(pagination.page), 10) : 1;
 
       const tenant_id = global.tenant_id;
 
@@ -292,57 +305,62 @@ export class PatientService {
         };
       }
 
-      const patients = await this.prisma.patient.findMany({
-        where: {
-          patient_tenant: {
-            some: {
-              tenant_id: tenant_id,
-              deleted: false,
-            },
+      const where: Prisma.patientWhereInput = {
+        patient_tenant: {
+          some: {
+            tenant_id: tenant_id,
+            deleted: false,
           },
-          user: {
-            role: 'patient',
-          },
-          ...searchFilter,
         },
-        include: {
-          user: {
-            include: {
-              identification_type: true,
-              medical_event_patient: {
-                select: {
-                  main_diagnostic_cie: true,
-                },
-                where: {
-                  deleted: false,
-                  appointment: {
-                    status: 'atendida',
+        user: {
+          role: 'patient',
+        },
+        ...searchFilter,
+      };
+
+      const [patients, totalItems] = await this.prisma.$transaction([
+        this.prisma.patient.findMany({
+          where,
+          include: {
+            user: {
+              include: {
+                identification_type: true,
+                medical_event_patient: {
+                  select: {
+                    main_diagnostic_cie: true,
                   },
+                  where: {
+                    deleted: false,
+                    appointment: {
+                      status: 'atendida',
+                    },
+                  },
+                  orderBy: {
+                    updated_at: 'desc',
+                  },
+                  take: 1,
                 },
-                orderBy: {
-                  updated_at: 'desc',
-                },
-                take: 1,
               },
             },
           },
-        },
-        skip,
-        take,
-        orderBy:
-          orderBy === 'name' ||
-          orderBy === 'last_name' ||
-          orderBy === 'email' ||
-          orderBy === 'dni'
-            ? { user: { [orderBy]: orderDirection } }
-            : { [orderBy]: orderDirection },
-      });
+          skip,
+          take,
+          orderBy:
+            orderBy === 'name' ||
+            orderBy === 'last_name' ||
+            orderBy === 'email' ||
+            orderBy === 'dni'
+              ? { user: { [orderBy]: orderDirection } }
+              : { [orderBy]: orderDirection },
+        }),
+        this.prisma.patient.count({
+          where,
+        }),
+      ]);
 
-      if (patients.length === 0) {
-        return [];
-      }
+      const totalPages = Math.ceil(totalItems / take);
 
-      return patients.map((patient) => {
+      const data = patients.map((patient) => {
         const user = patient.user;
         return {
           id: user.id,
@@ -362,6 +380,13 @@ export class PatientService {
             '',
         };
       });
+
+      return {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        data,
+      };
     } catch (error) {
       console.error('Error en findAll:', error);
       if (error instanceof NotFoundException) {
@@ -398,6 +423,24 @@ export class PatientService {
         throw new NotFoundException('Paciente no encontrado en este tenant');
       }
 
+      // Obtener tenant IDs del paciente
+      const patientTenants = await this.prisma.patient_tenant.findMany({
+        where: {
+          patient: {
+            user_id: id,
+          },
+          deleted: false,
+        },
+        select: { tenant_id: true },
+      });
+
+      const tenantIds = patientTenants.map((pt) => pt.tenant_id);
+
+      // Si no hay organizaciones asociadas, incluir el tenant actual como fallback
+      if (!tenantIds.includes(tenant_id)) {
+        tenantIds.push(tenant_id);
+      }
+
       // Ejecutar todas las queries independientes en paralelo
       const [
         files,
@@ -408,11 +451,11 @@ export class PatientService {
         futureMedicalEvents,
         pastMedicalEvents,
       ] = await Promise.all([
-        // Get patient files (studies)
+        // Get patient files (studies) - Multitenant support
         this.prisma.patient_study.findMany({
           where: {
             patient_id: id,
-            tenant_id,
+            tenant_id: { in: tenantIds }, // Buscar en todas las organizaciones del paciente
             is_deleted: false,
           },
           select: {

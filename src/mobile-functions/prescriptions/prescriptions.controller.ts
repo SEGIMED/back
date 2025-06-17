@@ -22,6 +22,9 @@ import {
   SkipMedicationDoseDto,
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
+import { CancelTrackingDto } from './dto/cancel-tracking.dto';
+import { UpdatePrescriptionScheduleDto } from './dto/update-prescription-schedule.dto';
+import { MedicationAdherenceStatsDto } from '../../medical-scheduling/modules/prescription/dto/medication-tracking-response.dto';
 import { RequirePermission } from '../../auth/decorators/require-permission.decorator';
 import { Permission } from '../../auth/permissions/permission.enum';
 import { PermissionGuard } from '../../auth/guards/permission.guard';
@@ -84,9 +87,11 @@ export class PrescriptionsController {
     @Query() query: TrackingQueryDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.getPrescriptionsForTracking(
       patientId,
       query.date,
+      userTenants,
     );
   }
   @Patch(':prescription_id/activate-tracking')
@@ -115,10 +120,12 @@ export class PrescriptionsController {
     @Body() activateDto: ActivateTrackingDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.activateTracking(
       prescriptionId,
       patientId,
       activateDto,
+      userTenants,
     );
   }
   @Patch(':prescription_id/toggle-reminder')
@@ -148,10 +155,12 @@ export class PrescriptionsController {
     @Body() toggleDto: ToggleReminderDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.toggleReminder(
       prescriptionId,
       patientId,
       toggleDto,
+      userTenants,
     );
   }
 
@@ -176,9 +185,11 @@ export class PrescriptionsController {
     @Body() createDto: CreateMedicationDoseLogDto,
   ) {
     const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
     return this.prescriptionsService.createMedicationDoseLog(
       patientId,
       createDto,
+      userTenants,
     );
   }
 
@@ -214,7 +225,6 @@ export class PrescriptionsController {
       skipDto,
     );
   }
-
   @Patch('medication-dose-log/:log_id/adjust-time')
   @ApiOperation({ summary: 'Adjust actual taken time for a dose' })
   @ApiParam({
@@ -245,6 +255,129 @@ export class PrescriptionsController {
       patientId,
       logId,
       adjustDto,
+    );
+  }
+
+  @Patch(':prescription_id/cancel-tracking')
+  @ApiOperation({ summary: 'Cancel tracking for a prescription' })
+  @ApiParam({
+    name: 'prescription_id',
+    description: 'Prescription ID to cancel tracking for',
+  })
+  @ApiBody({ type: CancelTrackingDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Tracking cancelled successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input or tracking not active',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Prescription not found',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async cancelTracking(
+    @Request() req,
+    @Param('prescription_id') prescriptionId: string,
+    @Body() cancelDto: CancelTrackingDto,
+  ) {
+    const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
+    return this.prescriptionsService.cancelTracking(
+      prescriptionId,
+      patientId,
+      cancelDto,
+      userTenants,
+    );
+  }
+
+  @Patch(':prescription_id/schedule')
+  @ApiOperation({ summary: 'Update prescription schedule' })
+  @ApiParam({
+    name: 'prescription_id',
+    description: 'Prescription ID to update schedule for',
+  })
+  @ApiBody({ type: UpdatePrescriptionScheduleDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Prescription schedule updated successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Invalid input or tracking not active',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Prescription not found',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async updateSchedule(
+    @Request() req,
+    @Param('prescription_id') prescriptionId: string,
+    @Body() updateDto: UpdatePrescriptionScheduleDto,
+  ) {
+    const patientId = req.user.id;
+    const userTenants = req.userTenants || [];
+    return this.prescriptionsService.updateSchedule(
+      prescriptionId,
+      patientId,
+      updateDto,
+      userTenants,
+    );
+  }
+
+  @Get('medication-skip-reasons')
+  @ApiOperation({ summary: 'Get medication skip reasons catalog' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns medication skip reasons catalog',
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async getMedicationSkipReasons() {
+    return this.prescriptionsService.getMedicationSkipReasons();
+  }
+
+  @Get('medication-adherence')
+  @ApiOperation({ summary: 'Get medication adherence statistics' })
+  @ApiQuery({
+    name: 'period_start',
+    required: false,
+    description: 'Start date for adherence calculation (ISO 8601 format)',
+  })
+  @ApiQuery({
+    name: 'period_end',
+    required: false,
+    description: 'End date for adherence calculation (ISO 8601 format)',
+  })
+  @ApiQuery({
+    name: 'prescription_id',
+    required: false,
+    description: 'Specific prescription ID to calculate adherence for',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns medication adherence statistics',
+    type: MedicationAdherenceStatsDto,
+  })
+  @RequirePermission(Permission.VIEW_OWN_PRESCRIPTIONS)
+  async getMedicationAdherence(
+    @Request() req,
+    @Query('period_start') periodStart?: string,
+    @Query('period_end') periodEnd?: string,
+    @Query('prescription_id') prescriptionId?: string,
+  ) {
+    const patientId = req.user.id;
+
+    const periodStartDate = periodStart ? new Date(periodStart) : undefined;
+    const periodEndDate = periodEnd ? new Date(periodEnd) : undefined;
+
+    return this.prescriptionsService.calculateMedicationAdherence(
+      patientId,
+      prescriptionId,
+      periodStartDate,
+      periodEndDate,
     );
   }
 }

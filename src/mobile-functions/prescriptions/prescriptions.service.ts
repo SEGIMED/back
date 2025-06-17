@@ -15,11 +15,47 @@ import {
   SkipMedicationDoseDto,
   AdjustDoseTimeDto,
 } from './dto/medication-dose-log.dto';
+import { CancelTrackingDto } from './dto/cancel-tracking.dto';
+import {
+  UpdatePrescriptionScheduleDto,
+  ScheduleUpdateScope,
+} from './dto/update-prescription-schedule.dto';
 import { Prisma } from '@prisma/client';
+import { NotificationService } from '../../services/notification/notification.service';
+import { medicationCancellationHtml } from '../../services/email/templates/medicationCancellationHtml';
 
 @Injectable()
 export class PrescriptionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
+
+  /**
+   * Obtiene los tenant IDs del paciente de forma optimizada
+   */
+  private async getPatientTenantIds(
+    patientId: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ): Promise<string[]> {
+    // Si los tenants vienen del JWT, usarlos directamente
+    if (userTenants && userTenants.length > 0) {
+      return userTenants.map((tenant) => tenant.id);
+    }
+
+    // Sino, buscar en la DB con el patient_id directamente
+    const patientTenants = await this.prisma.patient_tenant.findMany({
+      where: {
+        patient: {
+          user_id: patientId,
+        },
+        deleted: false,
+      },
+      select: { tenant_id: true },
+    });
+
+    return patientTenants.map((pt) => pt.tenant_id);
+  }
 
   async createSelfAssignedPrescription(
     patientId: string,
@@ -43,6 +79,8 @@ export class PrescriptionsService {
           reminder_enabled: true,
           first_dose_taken_at: createDto.first_dose_time,
           time_of_day_slots: timeOfDaySlots,
+          // Las prescripciones creadas por el paciente no tienen tenant_id
+          // ya que son auto-asignadas y no pertenecen a una organización específica
         },
       });
 
@@ -74,7 +112,11 @@ export class PrescriptionsService {
     }
   }
 
-  async getPrescriptionsForTracking(patientId: string, date?: string) {
+  async getPrescriptionsForTracking(
+    patientId: string,
+    date?: string,
+    userTenants?: { id: string; name: string; type: string }[],
+  ) {
     try {
       const targetDate = date ? new Date(date) : new Date();
 
@@ -82,17 +124,24 @@ export class PrescriptionsService {
         throw new BadRequestException('Invalid date format. Use YYYY-MM-DD');
       }
 
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
       // Get all prescriptions that are either:
       // 1. Active tracking (is_tracking_active = true)
       // 2. Prescribed by a physician but not yet activated (created_by_patient = false AND is_tracking_active = false)
+      // Incluye tanto prescripciones de organizaciones (con tenant_id) como auto-asignadas (sin tenant_id)
       const prescriptions = await this.prisma.prescription.findMany({
         where: {
           patient_id: patientId,
           OR: [
+            // Prescripciones con tracking activo (incluye auto-asignadas y de organizaciones)
             { is_tracking_active: true },
+            // Prescripciones de médicos no activadas de las organizaciones del paciente
             {
               created_by_patient: false,
               is_tracking_active: false,
+              tenant_id: { in: tenantIds },
             },
           ],
         },
@@ -112,7 +161,9 @@ export class PrescriptionsService {
             },
           },
         },
-      }); // For each prescription, calculate the scheduled doses for the date
+      });
+
+      // For each prescription, calculate the scheduled doses for the date
       const result = prescriptions.map((prescription) => {
         const latestModHistory = prescription.pres_mod_history[0];
 
@@ -199,12 +250,26 @@ export class PrescriptionsService {
     prescriptionId: string,
     patientId: string,
     activateDto: ActivateTrackingDto,
+    userTenants?: { id: string; name: string; type: string }[],
   ) {
+    console.log('activateTracking', prescriptionId, patientId, activateDto);
     try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
       const prescription = await this.prisma.prescription.findFirst({
         where: {
           id: prescriptionId,
           patient_id: patientId,
+          OR: [
+            // Prescripciones de organizaciones del paciente
+            { tenant_id: { in: tenantIds } },
+            // Prescripciones auto-asignadas (sin tenant_id)
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
         },
         include: {
           pres_mod_history: {
@@ -225,7 +290,6 @@ export class PrescriptionsService {
           'Tracking is already active for this prescription',
         );
       }
-
       const latestModHistory = prescription.pres_mod_history[0];
       if (!latestModHistory) {
         throw new BadRequestException('No prescription details found');
@@ -294,13 +358,26 @@ export class PrescriptionsService {
     prescriptionId: string,
     patientId: string,
     toggleDto: ToggleReminderDto,
+    userTenants?: { id: string; name: string; type: string }[],
   ) {
     try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
       // Find the prescription for the patient
       const prescription = await this.prisma.prescription.findFirst({
         where: {
           id: prescriptionId,
           patient_id: patientId,
+          OR: [
+            // Prescripciones de organizaciones del paciente
+            { tenant_id: { in: tenantIds } },
+            // Prescripciones auto-asignadas (sin tenant_id)
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
         },
       });
 
@@ -351,14 +428,27 @@ export class PrescriptionsService {
   async createMedicationDoseLog(
     patientId: string,
     createDto: CreateMedicationDoseLogDto,
+    userTenants?: { id: string; name: string; type: string }[],
   ) {
     try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
       // Verify the prescription belongs to the patient
       const prescription = await this.prisma.prescription.findFirst({
         where: {
           id: createDto.prescription_id,
           patient_id: patientId,
           is_tracking_active: true,
+          OR: [
+            // Prescripciones de organizaciones del paciente
+            { tenant_id: { in: tenantIds } },
+            // Prescripciones auto-asignadas (sin tenant_id)
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
         },
       });
 
@@ -726,5 +816,420 @@ export class PrescriptionsService {
         timeSlot: slot,
       };
     });
+  }
+  async cancelTracking(
+    prescriptionId: string,
+    patientId: string,
+    cancelDto: CancelTrackingDto,
+    userTenants?: { id: string; name: string; type: string }[],
+  ) {
+    try {
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: prescriptionId,
+          patient_id: patientId,
+          OR: [
+            { tenant_id: { in: tenantIds } },
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
+        },
+        include: {
+          pres_mod_history: {
+            orderBy: {
+              mod_timestamp: 'desc',
+            },
+            take: 1,
+            include: {
+              physician: {
+                select: {
+                  id: true,
+                  email: true,
+                  name: true,
+                  last_name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      // Verificar si la prescripción fue creada por un médico y obtener datos para notificación
+      if (
+        prescription.created_by_patient === false &&
+        prescription.pres_mod_history.length > 0
+      ) {
+        const latestHistory = prescription.pres_mod_history[0];
+        const physician = latestHistory.physician;
+
+        if (physician && physician.email) {
+          // Obtener datos del paciente
+          const patient = await this.prisma.user.findUnique({
+            where: { id: patientId },
+            select: { name: true, last_name: true },
+          });
+
+          if (patient) {
+            // Preparar datos para el email
+            const physicianName = `${physician.name} ${physician.last_name}`;
+            const patientName = `${patient.name} ${patient.last_name}`;
+            const medicationName =
+              prescription.monodrug || 'Medicación no especificada';
+
+            // Obtener la razón de cancelación
+            let cancelReason = 'No especificado';
+            if (cancelDto.skip_reason_details) {
+              cancelReason = cancelDto.skip_reason_details;
+            } else if (cancelDto.skip_reason_id) {
+              const skipReason =
+                await this.prisma.medication_skip_reason_catalog.findUnique({
+                  where: { id: cancelDto.skip_reason_id },
+                  select: { reason_text: true },
+                });
+              if (skipReason) {
+                cancelReason = skipReason.reason_text;
+              }
+            }
+
+            const cancelDate = new Date().toLocaleDateString('es-ES');
+
+            // Generar HTML del email
+            const emailHtml = medicationCancellationHtml(
+              physicianName,
+              patientName,
+              medicationName,
+              cancelReason,
+              cancelDate,
+            );
+
+            // Enviar notificación por email
+            try {
+              await this.notificationService.sendEmail(
+                physician.email,
+                'Cancelación de Seguimiento de Medicación - Segimed',
+                emailHtml,
+              );
+            } catch (emailError) {
+              // Log del error pero no fallar la operación principal
+              console.error(
+                'Error enviando notificación al médico:',
+                emailError,
+              );
+            }
+          }
+        }
+      }
+
+      const updatedPrescription = await this.prisma.prescription.update({
+        where: {
+          id: prescriptionId,
+        },
+        data: {
+          is_tracking_active: false,
+          reminder_enabled: false,
+          skip_reason_id: cancelDto.skip_reason_id,
+          skip_reason_details: cancelDto.skip_reason_details,
+        },
+      });
+
+      return {
+        ...updatedPrescription,
+        message: 'Tracking cancelled successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error cancelling tracking: ' + error.message,
+      );
+    }
+  }
+  /**
+   * Calculate medication adherence for a patient
+   */
+  async calculateMedicationAdherence(
+    patientId: string,
+    prescriptionId?: string,
+    periodStart?: Date,
+    periodEnd?: Date,
+  ) {
+    try {
+      // Consultar prescripciones con is_tracking_active = true
+      const whereCondition: any = {
+        patient_id: patientId,
+        is_tracking_active: true,
+      };
+
+      if (prescriptionId) {
+        whereCondition.id = prescriptionId;
+      }
+
+      const prescriptions = await this.prisma.prescription.findMany({
+        where: whereCondition,
+        include: {
+          medication_dose_logs: {
+            where: {
+              ...(periodStart && { scheduled_time: { gte: periodStart } }),
+              ...(periodEnd && { scheduled_time: { lte: periodEnd } }),
+            },
+          },
+        },
+      });
+
+      if (prescriptions.length === 0) {
+        return {
+          patient_id: patientId,
+          prescription_id: prescriptionId || null,
+          total_scheduled_doses: 0,
+          doses_taken: 0,
+          doses_missed_automatic: 0,
+          doses_missed_reported: 0,
+          doses_skipped_by_user: 0,
+          adherence_percentage: 0,
+          period_start: periodStart || new Date(),
+          period_end: periodEnd || new Date(),
+          skip_reasons_breakdown: {},
+        };
+      }
+
+      // Contar dosis por estado basado en los status de MedicationDoseLog
+      let totalScheduledDoses = 0;
+      let dosesTaken = 0;
+      let dosesMissedAutomatic = 0;
+      let dosesMissedReported = 0;
+      let dosesSkippedByUser = 0;
+      const skipReasonsBreakdown: {
+        [category: string]: {
+          count: number;
+          reasons: Array<{ reason_text: string; count: number }>;
+        };
+      } = {};
+
+      for (const prescription of prescriptions) {
+        for (const log of prescription.medication_dose_logs) {
+          totalScheduledDoses++;
+
+          switch (log.status) {
+            case 'TAKEN':
+              dosesTaken++;
+              break;
+            case 'MISSED_AUTOMATIC':
+              dosesMissedAutomatic++;
+              break;
+            case 'MISSED_REPORTED':
+              dosesMissedReported++;
+              break;
+            case 'SKIPPED_BY_USER':
+              dosesSkippedByUser++;
+
+              // Procesar skip reasons para el breakdown
+              if (log.skip_reason_id) {
+                try {
+                  const skipReason =
+                    await this.prisma.medication_skip_reason_catalog.findUnique(
+                      {
+                        where: { id: log.skip_reason_id },
+                      },
+                    );
+
+                  if (skipReason) {
+                    const category = skipReason.category;
+                    const reasonText = skipReason.reason_text;
+
+                    if (!skipReasonsBreakdown[category]) {
+                      skipReasonsBreakdown[category] = {
+                        count: 0,
+                        reasons: [],
+                      };
+                    }
+
+                    skipReasonsBreakdown[category].count++;
+
+                    const existingReason = skipReasonsBreakdown[
+                      category
+                    ].reasons.find((r) => r.reason_text === reasonText);
+                    if (existingReason) {
+                      existingReason.count++;
+                    } else {
+                      skipReasonsBreakdown[category].reasons.push({
+                        reason_text: reasonText,
+                        count: 1,
+                      });
+                    }
+                  }
+                } catch (error) {
+                  // Continue processing even if skip reason lookup fails
+                  console.warn(
+                    `Could not fetch skip reason for ID ${log.skip_reason_id}:`,
+                    error.message,
+                  );
+                }
+              }
+              break;
+          }
+        }
+      }
+
+      // Implementar fórmula: adherence_percentage = (doses_taken / total_scheduled_doses) * 100
+      const adherencePercentage =
+        totalScheduledDoses > 0
+          ? Math.round((dosesTaken / totalScheduledDoses) * 100 * 100) / 100
+          : 0;
+
+      return {
+        patient_id: patientId,
+        prescription_id: prescriptionId || null,
+        total_scheduled_doses: totalScheduledDoses,
+        doses_taken: dosesTaken,
+        doses_missed_automatic: dosesMissedAutomatic,
+        doses_missed_reported: dosesMissedReported,
+        doses_skipped_by_user: dosesSkippedByUser,
+        adherence_percentage: adherencePercentage,
+        period_start: periodStart || new Date(),
+        period_end: periodEnd || new Date(),
+        skip_reasons_breakdown: skipReasonsBreakdown,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Error calculating medication adherence: ' + error.message,
+      );
+    }
+  }
+
+  /**
+   * Update prescription schedule
+   */
+  async updateSchedule(
+    prescriptionId: string,
+    patientId: string,
+    updateDto: UpdatePrescriptionScheduleDto,
+    userTenants?: { id: string; name: string; type: string }[],
+  ) {
+    try {
+      // Obtener tenant IDs del paciente
+      const tenantIds = await this.getPatientTenantIds(patientId, userTenants);
+
+      // Find the prescription and validate it belongs to the patient
+      const prescription = await this.prisma.prescription.findFirst({
+        where: {
+          id: prescriptionId,
+          patient_id: patientId,
+          OR: [
+            // Prescripciones de organizaciones del paciente
+            { tenant_id: { in: tenantIds } },
+            // Prescripciones auto-asignadas (sin tenant_id)
+            {
+              created_by_patient: true,
+              tenant_id: null,
+            },
+          ],
+        },
+        include: {
+          pres_mod_history: {
+            orderBy: {
+              mod_timestamp: 'desc',
+            },
+            take: 1,
+          },
+        },
+      });
+
+      if (!prescription) {
+        throw new NotFoundException('Prescription not found');
+      }
+
+      // Validate that tracking is active
+      if (!prescription.is_tracking_active) {
+        throw new BadRequestException(
+          'Cannot update schedule for prescriptions without active tracking',
+        );
+      }
+
+      // Prepare data to update based on scope
+      const dataToUpdate: any = {};
+
+      // Always update time_of_day_slots if provided
+      if (updateDto.time_of_day_slots) {
+        // Validate time slot format (HH:MM)
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        for (const slot of updateDto.time_of_day_slots) {
+          if (!timeRegex.test(slot)) {
+            throw new BadRequestException(
+              `Invalid time slot format: ${slot}. Use HH:MM format.`,
+            );
+          }
+        }
+        dataToUpdate.time_of_day_slots = updateDto.time_of_day_slots;
+      }
+
+      // Handle scope-specific logic
+      if (updateDto.scope === ScheduleUpdateScope.PERMANENT) {
+        // For permanent changes, also update first_dose_taken_at if provided
+        if (updateDto.first_dose_taken_at) {
+          // Validate date
+          if (isNaN(updateDto.first_dose_taken_at.getTime())) {
+            throw new BadRequestException('Invalid first dose date format');
+          }
+          dataToUpdate.first_dose_taken_at = updateDto.first_dose_taken_at;
+        }
+      }
+      // For FUTURE_ONLY scope, we only update time_of_day_slots
+      // The first_dose_taken_at remains unchanged
+
+      // Update the prescription
+      const updatedPrescription = await this.prisma.prescription.update({
+        where: {
+          id: prescriptionId,
+        },
+        data: dataToUpdate,
+      });
+
+      return {
+        id: updatedPrescription.id,
+        time_of_day_slots: updatedPrescription.time_of_day_slots,
+        first_dose_taken_at: updatedPrescription.first_dose_taken_at,
+        scope: updateDto.scope,
+        message: `Schedule updated successfully (${updateDto.scope.toLowerCase()})`,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(
+        'Error updating prescription schedule: ' + error.message,
+      );
+    }
+  }
+
+  async getMedicationSkipReasons() {
+    try {
+      const skipReasons =
+        await this.prisma.medication_skip_reason_catalog.findMany({
+          orderBy: {
+            category: 'asc',
+          },
+        });
+
+      return skipReasons;
+    } catch (error) {
+      throw new BadRequestException(
+        'Error retrieving medication skip reasons: ' + error.message,
+      );
+    }
   }
 }
