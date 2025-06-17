@@ -5,20 +5,10 @@ import { AuthHelper } from '../../utils/auth.helper';
 
 @Injectable()
 export class SwaggerTenantExtractorMiddleware implements NestMiddleware {
+  // NOTA: A pesar del nombre "Swagger", este middleware ahora funciona para todas las rutas autenticadas
+  // Extrae automáticamente el tenant del JWT eliminando la necesidad de headers manuales
   constructor(private prisma: PrismaService) {}
-
   async use(req: Request, res: Response, next: NextFunction) {
-    // Solo procesar rutas de Swagger si hay un token Bearer
-    const isSwaggerRequest =
-      req.path === '/api' ||
-      req.path.startsWith('/api/') ||
-      req.originalUrl === '/api' ||
-      req.originalUrl.startsWith('/api/');
-
-    if (!isSwaggerRequest) {
-      return next();
-    }
-
     // Obtener el token de autorización
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -35,8 +25,17 @@ export class SwaggerTenantExtractorMiddleware implements NestMiddleware {
       }
 
       // Extraer información del usuario del token
-      const userId = payload.sub;
+      const userId = payload.sub || payload.id; // Soportar tanto 'sub' como 'id'
+      console.log('🔍 DEBUG: Payload del token:', {
+        sub: payload.sub,
+        id: payload.id,
+        userId,
+        role: payload.role,
+        tenant_id: payload.tenant_id,
+      });
+
       if (!userId) {
+        console.log('❌ DEBUG: No se encontró userId en el token');
         return next();
       }
 
@@ -53,8 +52,17 @@ export class SwaggerTenantExtractorMiddleware implements NestMiddleware {
       });
 
       if (!user) {
+        console.log('❌ DEBUG: Usuario no encontrado en BD con ID:', userId);
         return next();
       }
+
+      console.log('✅ DEBUG: Usuario encontrado en BD:', {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tenant_id: user.tenant_id,
+        is_superadmin: user.is_superadmin,
+      });
 
       // Agregar usuario al request
       req['user'] = user;
@@ -96,18 +104,57 @@ export class SwaggerTenantExtractorMiddleware implements NestMiddleware {
           global.tenant_id = firstTenant.id;
         }
       } else {
-        // Para usuarios regulares, usar el tenant_id del token o del usuario
-        const tenantId = payload.tenant_id || user.tenant_id;
+        // Para usuarios regulares (admin/superadmin), usar el tenant_id del token o del usuario
+        console.log('🔍 DEBUG: Usuario no-paciente detectado:', {
+          userId: user.id,
+          role: user.role,
+          is_superadmin: user.is_superadmin,
+          user_tenant_id: user.tenant_id,
+          payload_tenant_id: payload.tenant_id,
+        });
 
-        if (tenantId) {
-          const tenant = await this.prisma.tenant.findUnique({
-            where: { id: tenantId },
+        // Si es superadmin y no hay tenant_id en el token, usar el tenant por defecto o cualquier tenant
+        if (user.is_superadmin && !payload.tenant_id && !user.tenant_id) {
+          console.log(
+            '⚡ DEBUG: Superadmin sin tenant específico, buscando cualquier tenant...',
+          );
+
+          // Para superadmins, obtener cualquier tenant disponible como fallback
+          const anyTenant = await this.prisma.tenant.findFirst({
             select: { id: true, type: true, db_name: true },
           });
 
-          if (tenant) {
-            req['tenant'] = tenant;
-            global.tenant_id = tenant.id;
+          if (anyTenant) {
+            req['tenant'] = anyTenant;
+            global.tenant_id = anyTenant.id;
+            console.log(
+              '✅ DEBUG: Tenant por defecto asignado a superadmin:',
+              anyTenant,
+            );
+          } else {
+            console.log('❌ DEBUG: No hay tenants disponibles en el sistema');
+          }
+        } else {
+          // Lógica normal para usuarios con tenant específico
+          const tenantId = payload.tenant_id || user.tenant_id;
+
+          if (tenantId) {
+            const tenant = await this.prisma.tenant.findUnique({
+              where: { id: tenantId },
+              select: { id: true, type: true, db_name: true },
+            });
+
+            if (tenant) {
+              req['tenant'] = tenant;
+              global.tenant_id = tenant.id;
+              console.log('✅ DEBUG: Tenant asignado exitosamente:', tenant);
+            } else {
+              console.log('❌ DEBUG: Tenant no encontrado en BD:', tenantId);
+            }
+          } else {
+            console.log(
+              '❌ DEBUG: No se encontró tenant_id en token ni usuario',
+            );
           }
         }
       }

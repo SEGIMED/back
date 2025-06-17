@@ -73,6 +73,7 @@ async function bootstrap() {
       'access-token',
     )
     .addTag('Auth', 'Authentication operations')
+    .addTag('System', 'System health check and status operations')
     .addTag(
       'Users',
       'User management operations including registration, onboarding, and user profile management',
@@ -102,9 +103,18 @@ async function bootstrap() {
     .addTag('Physician Schedule', 'Physician schedule management operations')
     .addTag('Mood', 'Patient mood tracking')
     .addTag(
-      'Mobile - Self-Evaluation Events',
-      'Patient self-evaluation events from mobile app',
+      'Mobile - Self-Evaluation Events (Signos Vitales)',
+      'Patient self-evaluation events and vital signs tracking from mobile app',
     )
+    .addTag(
+      'Mobile - Appointments',
+      'Mobile appointment management for patients - view and cancel appointments',
+    )
+    .addTag(
+      'Mobile Prescriptions',
+      'Mobile prescription management for patients - view prescriptions and medication tracking',
+    )
+    .addTag('Settings', 'System configuration and settings management')
     .addTag(
       'Catalogs - CIE-10',
       'Management of CIE-10 catalog codes and descriptions',
@@ -112,6 +122,10 @@ async function bootstrap() {
     .addTag(
       'Catalogs - CIE-10 Subcategories',
       'Management of CIE-10 subcategories associated with main categories',
+    )
+    .addTag(
+      'Catalogs - Identification Types',
+      'Management of identification document types (DNI, Passport, etc.)',
     )
     .addTag(
       'Catalogs - Measure Units',

@@ -155,5 +155,23 @@ export class AppModule {
         { path: 'auth/create-superadmin', method: RequestMethod.POST },
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
+
+    // Middleware que extrae tenant del JWT para todas las rutas autenticadas
+    consumer
+      .apply(SwaggerTenantExtractorMiddleware)
+      .exclude(
+        { path: 'api', method: RequestMethod.GET },
+        { path: 'api/(.*)', method: RequestMethod.GET },
+        { path: 'auth/register', method: RequestMethod.POST },
+        { path: 'auth', method: RequestMethod.POST },
+        { path: 'auth/google', method: RequestMethod.POST },
+        { path: 'auth/request-password', method: RequestMethod.POST },
+        { path: 'auth/reset-password', method: RequestMethod.POST },
+        { path: 'auth/send-otp', method: RequestMethod.POST },
+        { path: 'auth/verify-otp', method: RequestMethod.POST },
+        { path: 'user/onboarding', method: RequestMethod.POST },
+        { path: 'auth/create-superadmin', method: RequestMethod.POST },
+      )
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
