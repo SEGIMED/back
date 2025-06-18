@@ -12,10 +12,20 @@ El módulo de Pacientes proporciona endpoints para la gestión completa de los p
 
 ## Requerimientos de Headers
 
-Todos los endpoints requieren los siguientes headers:
+### Para usuarios con permisos de administrador/profesional:
 
 - `Authorization`: Bearer token JWT para autenticación
 - `X-Tenant-ID`: ID del tenant al que pertenece el usuario y los pacientes
+
+### Para usuarios móviles/pacientes:
+
+- `Authorization`: Bearer token JWT para autenticación
+- ⚠️ **NO requiere X-Tenant-ID** - Se extrae automáticamente del JWT
+
+### Para Swagger UI:
+
+- `Authorization`: Bearer token JWT para autenticación
+- ⚠️ **NO requiere X-Tenant-ID** - Se extrae automáticamente del JWT
 
 ## Permisos Requeridos
 
@@ -592,4 +602,99 @@ Información detallada de un paciente incluyendo datos médicos:
 - Los pacientes son usuarios con el rol `patient` en el sistema.
 - Cada paciente puede estar asociado a múltiples tenants a través de la tabla `patient_tenant`.
 - El sistema implementa paginación para las consultas de listado de pacientes.
-- **Los endpoints móviles** (`/patient/my-profile`) están optimizados para aplicaciones móviles y manejan automáticamente la funcionalidad multitenant sin requerir headers de tenant-id explícitos.
+
+## Endpoints Móviles
+
+### Obtener Mi Perfil (GET)
+
+Permite a un paciente obtener su propia información de perfil.
+
+- **URL**: `/patient/my-profile`
+- **Método**: `GET`
+- **Descripción**: Obtiene el perfil del paciente autenticado
+- **Permisos**: `MOBILE_VIEW_OWN_PROFILE`
+- **Headers Requeridos**:
+  - `Authorization`: Bearer token JWT
+  - ⚠️ **NO requiere X-Tenant-ID** - Se extrae automáticamente del JWT
+- **Response**:
+
+```json
+{
+  "id": "uuid",
+  "name": "string",
+  "last_name": "string",
+  "email": "string",
+  "phone": "string",
+  "dni": "string",
+  "birth_date": "YYYY-MM-DD",
+  "tenant_id": "uuid"
+}
+```
+
+### Actualizar Mi Perfil (PATCH)
+
+Permite a un paciente actualizar su propia información de perfil.
+
+- **URL**: `/patient/my-profile`
+- **Método**: `PATCH`
+- **Descripción**: Actualiza el perfil del paciente autenticado
+- **Permisos**: `MOBILE_EDIT_OWN_PROFILE`
+- **Headers Requeridos**:
+  - `Authorization`: Bearer token JWT
+  - ⚠️ **NO requiere X-Tenant-ID** - Se extrae automáticamente del JWT
+- **Request Body** (campos opcionales):
+
+```json
+{
+  "name": "string",
+  "last_name": "string",
+  "phone": "string",
+  "birth_date": "YYYY-MM-DD"
+}
+```
+
+- **Response**:
+
+```json
+{
+  "message": "Perfil actualizado exitosamente",
+  "data": {
+    "id": "uuid",
+    "name": "string",
+    "last_name": "string",
+    "email": "string",
+    "phone": "string",
+    "dni": "string",
+    "birth_date": "YYYY-MM-DD",
+    "tenant_id": "uuid"
+  }
+}
+```
+
+## Integración Móvil
+
+### Características Especiales
+
+1. **Extracción Automática de Tenant**: Los endpoints móviles (`/mobile/*` y `/patient/my-profile`) utilizan el middleware `SwaggerTenantExtractorMiddleware` que:
+
+   - Extrae automáticamente el `tenant_id` del JWT
+   - Elimina la necesidad de enviar el header `X-Tenant-ID` manualmente
+   - Funciona tanto en Swagger UI como en aplicaciones móviles
+
+2. **Autenticación Simplificada**: Solo se requiere el token JWT en el header `Authorization: Bearer <token>`
+
+3. **Compatibilidad con Swagger**: Al autorizar en Swagger UI con el token JWT, todos los endpoints móviles funcionan automáticamente sin requerir headers adicionales
+
+### Permisos Móviles
+
+| Endpoint                    | Permiso Requerido         | Descripción          | Usuario Tipo  |
+| --------------------------- | ------------------------- | -------------------- | ------------- |
+| `GET /patient/my-profile`   | `MOBILE_VIEW_OWN_PROFILE` | Ver perfil propio    | **Pacientes** |
+| `PATCH /patient/my-profile` | `MOBILE_EDIT_OWN_PROFILE` | Editar perfil propio | **Pacientes** |
+
+### Notas de Integración Móvil
+
+- ✅ **Tenant automático**: No es necesario obtener o enviar manualmente el tenant_id
+- ✅ **Compatibilidad Swagger**: Funciona perfectamente en la documentación interactiva
+- ✅ **Seguridad**: Cada paciente solo puede acceder a su propia información
+- ✅ **Multi-tenant**: Maneja automáticamente múltiples tenants por paciente

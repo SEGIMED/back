@@ -29,6 +29,7 @@ import {
   ApiSecurity,
   ApiHeader,
 } from '@nestjs/swagger';
+import { ApiOptionalTenantHeader } from '../decorators/tenant-header.decorator';
 
 interface CreateRoleDto {
   name: string;
@@ -117,11 +118,7 @@ export class RolesController {
   @ApiOperation({
     summary: 'Obtiene todos los permisos disponibles en el sistema',
   })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant para verificar acceso',
-    required: true,
-  })
+  @ApiOptionalTenantHeader()
   @ApiResponse({
     status: 200,
     description: 'Lista de permisos recuperada exitosamente',
@@ -137,11 +134,7 @@ export class RolesController {
   @UseGuards(TenantAccessGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Obtiene todos los roles disponibles' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant para verificar acceso',
-    required: true,
-  })
+  @ApiOptionalTenantHeader()
   @ApiQuery({
     name: 'tenantId',
     required: false,
