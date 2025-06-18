@@ -231,9 +231,10 @@
 ### Estadísticas:
 
 - **Total de controladores revisados**: 24
-- **Completamente documentados**: 23 (95.8%)
-- **Documentación mínima aceptable**: 1 (4.2%)
+- **Completamente documentados**: 24 (100%)
+- **Documentación mínima aceptable**: 0 (0%)
 - **Sin documentación**: 0 (0%)
+- **🆕 NUEVOS**: Endpoints móviles de perfil de paciente completamente documentados
 
 ### Características de la Documentación:
 

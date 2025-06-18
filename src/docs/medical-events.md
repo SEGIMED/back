@@ -64,7 +64,8 @@ Crea un nuevo evento médico. Este endpoint se utiliza generalmente al iniciar u
   "main_diagnostic_cie": "A00.1",
   "evolution": "Evolución inicial del paciente.",
   "procedure": "Procedimiento inicial realizado.",
-  "treatment": "Tratamiento inicial indicado."
+  "treatment": "Tratamiento inicial indicado.",
+  "specialty_id": 1
 }
 ```
 
@@ -132,6 +133,7 @@ Obtiene una lista de eventos médicos, con opciones de filtrado y paginación.
 
 - `patient_id` (string, opcional): Filtrar por ID del paciente (UUID).
 - `physician_id` (string, opcional): Filtrar por ID del médico (UUID).
+- `specialty_id` (number, opcional): Filtrar por ID de la especialidad médica.
 - `page` (number, opcional): Número de página para paginación.
 - `pageSize` (number, opcional): Número de eventos por página.
 - `orderBy` (string, opcional): Campo por el cual ordenar (ej. `created_at`).
@@ -141,6 +143,15 @@ Obtiene una lista de eventos médicos, con opciones de filtrado y paginación.
 
 ```http
 GET /medical-events?patient_id=b5191b80-2a8d-4eb2-9958-9273a0708025&pageSize=10&page=1
+Host: localhost:3000
+Authorization: Bearer <JWT_TOKEN>
+X-Tenant-ID: <TENANT_UUID>
+```
+
+**Ejemplo de Petición con Filtro por Especialidad:**
+
+```http
+GET /medical-events?physician_id=dbacf6c6-6918-41e0-8923-4de0ce59eb84&specialty_id=1&pageSize=10&page=1
 Host: localhost:3000
 Authorization: Bearer <JWT_TOKEN>
 X-Tenant-ID: <TENANT_UUID>
@@ -310,6 +321,7 @@ Usado para crear un evento médico.
 - `evolution?: string` (Opcional) - Evolución del paciente.
 - `procedure?: string` (Opcional) - Procedimientos realizados.
 - `treatment?: string` (Opcional) - Tratamiento indicado.
+- `specialty_id?: number` (Opcional) - ID de la especialidad médica para validación.
 
 ### `AttendMedicalEventDto`
 

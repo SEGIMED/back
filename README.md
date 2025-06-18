@@ -152,6 +152,7 @@ src/
 - [Guía Multitenant](src/docs/MULTITENANT_GUIDE.md)
 - [Patient Studies API](src/docs/patient-studies.md)
 - [Mobile Appointments API](src/docs/mobile-appointments.md)
+- [Mobile Patient Profile API](src/docs/mobile-patient-profile.md)
 - [Catalog Identification Types API](src/docs/cat-identification-type.md)
 
 ### Swagger/OpenAPI
@@ -176,6 +177,8 @@ http://localhost:3000/api
 - `PATCH /mobile/appointments/{id}/cancel` - Cancelar cita
 - `GET /mobile/prescriptions/tracking` - Seguimiento de medicamentos
 - `GET /vital-signs/by-patient/{id}` - Signos vitales del paciente
+- `GET /patient/my-profile` - Perfil completo del paciente autenticado
+- `PATCH /patient/my-profile` - Actualizar perfil del paciente autenticado
 
 ### Patient Studies
 

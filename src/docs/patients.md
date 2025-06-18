@@ -4,6 +4,8 @@
 
 El módulo de Pacientes proporciona endpoints para la gestión completa de los pacientes en la plataforma Segimed. Permite realizar operaciones como crear, listar, modificar y eliminar pacientes, así como gestionar toda la información asociada a ellos.
 
+**Incluye endpoints móviles especializados** que permiten a los pacientes autenticados acceder y actualizar su propio perfil de manera segura desde aplicaciones móviles, con soporte automático multitenant.
+
 ## Base URL
 
 `/patient`
@@ -29,11 +31,18 @@ El módulo de Pacientes proporciona endpoints para la gestión completa de los p
 
 Los endpoints del módulo de pacientes requieren permisos específicos:
 
+### Para Gestión de Pacientes (Profesionales)
+
 - `MANAGE_USERS`: Para crear pacientes
 - `VIEW_PATIENTS_LIST`: Para listar pacientes
 - `VIEW_PATIENT_DETAILS`: Para ver los detalles de un paciente
 - `EDIT_PATIENT_INFO`: Para editar la información de un paciente
 - `DELETE_PATIENTS`: Para eliminar pacientes
+
+### Para Endpoints Móviles (Pacientes) 📱
+
+- `VIEW_OWN_SETTINGS`: Para que los pacientes vean su propio perfil completo
+- `UPDATE_OWN_SETTINGS`: Para que los pacientes actualicen su propio perfil
 
 ## Endpoints
 
@@ -288,9 +297,223 @@ Elimina un paciente del sistema.
   - **Código**: 404 Not Found
     - Paciente no encontrado
   - **Código**: 401 Unauthorized
-    - No autenticado
-  - **Código**: 403 Forbidden
+    - No autenticado - **Código**: 403 Forbidden
     - Permisos insuficientes
+
+## Endpoints Móviles para Pacientes 📱
+
+Los siguientes endpoints están diseñados específicamente para aplicaciones móviles y permiten a los pacientes autenticados gestionar su información personal de manera segura y eficiente.
+
+### Obtener Mi Perfil (Mobile)
+
+Permite a un paciente autenticado obtener su perfil completo incluyendo datos de todas sus organizaciones.
+
+- **URL**: `/patient/my-profile`
+- **Método**: `GET`
+- **Descripción**: Obtiene el perfil completo del paciente autenticado con soporte multitenant
+- **Permisos**: `VIEW_OWN_SETTINGS`
+- **Headers Requeridos**:
+  - `Authorization`: Bearer token JWT (el patient_id se extrae automáticamente del token)
+- **Características especiales**:
+
+  - ✅ **ID automático**: El patient_id se obtiene del JWT token, no requiere parámetros
+  - ✅ **Multitenant**: Accede automáticamente a datos de todas las organizaciones del paciente
+  - ✅ **Datos consolidados**: Unifica información médica de múltiples fuentes
+  - ✅ **Optimizado para móvil**: Respuesta estructurada para consumo móvil
+
+- **Respuesta exitosa**:
+
+  - **Código**: 200 OK
+  - **Contenido**: Objeto con el perfil completo del paciente
+
+  ```json
+  {
+    "id": "uuid-patient",
+    "name": "Juan",
+    "last_name": "Pérez",
+    "image": "https://example.com/patient.jpg",
+    "age": 35,
+    "birth_date": "1989-01-15T00:00:00Z",
+    "direction": "Av. Principal 123, Col. Centro",
+    "city": "Ciudad de México",
+    "province": "CDMX",
+    "country": "México",
+    "postal_code": "12345",
+    "phone": "+1234567890",
+    "email": "juan.perez@example.com",
+    "notes": "Notas del paciente",
+    "vital_signs": [
+      {
+        "id": "uuid-vital-sign",
+        "vital_sign_category": "Presión Arterial",
+        "measure": 120,
+        "vital_sign_measure_unit": "mmHg"
+      }
+    ],
+    "files": [
+      {
+        "id": "uuid-file",
+        "name": "Radiografía de Tórax",
+        "url": "https://example.com/file.pdf"
+      }
+    ],
+    "evaluation": {
+      "id": "uuid-evaluation",
+      "details": "Evaluación médica reciente",
+      "date": "2024-01-10T15:30:00Z"
+    },
+    "background": {
+      "id": "uuid-background",
+      "details": "Antecedentes médicos completos",
+      "date": "2024-01-01T00:00:00Z"
+    },
+    "current_medication": [
+      {
+        "id": "uuid-medication",
+        "name": "Aspirina",
+        "dosage": "100 mg",
+        "instructions": "Cada 8 horas, durante 7 días",
+        "active": true
+      }
+    ],
+    "future_medical_events": [
+      {
+        "id": "uuid-appointment",
+        "date": "2024-01-20T10:00:00Z",
+        "time": "10:00",
+        "doctor": "Dr. García",
+        "reason": "Control general",
+        "status": "pendiente"
+      }
+    ],
+    "past_medical_events": [
+      {
+        "id": "uuid-past-appointment",
+        "date": "2024-01-05T14:00:00Z",
+        "time": "14:00",
+        "doctor": "Dr. Martínez",
+        "reason": "Consulta general",
+        "status": "atendida"
+      }
+    ]
+  }
+  ```
+
+- **Respuestas de error**:
+  - **Código**: 400 Bad Request
+    - Usuario no autenticado
+    - Usuario no es paciente
+  - **Código**: 401 Unauthorized
+    - Token JWT inválido o faltante
+  - **Código**: 403 Forbidden
+    - Permisos insuficientes para ver configuraciones propias
+  - **Código**: 404 Not Found
+    - No se encontraron organizaciones asociadas al paciente
+
+### Actualizar Mi Perfil (Mobile)
+
+Permite a un paciente autenticado actualizar su información personal con soporte para actualizaciones parciales.
+
+- **URL**: `/patient/my-profile`
+- **Método**: `PATCH`
+- **Descripción**: Actualiza el perfil del paciente autenticado con soporte multitenant
+- **Permisos**: `UPDATE_OWN_SETTINGS`
+- **Headers Requeridos**:
+  - `Authorization`: Bearer token JWT (el patient_id se extrae automáticamente del token)
+  - `Content-Type`: application/json
+- **Características especiales**:
+
+  - ✅ **ID automático**: El patient_id se obtiene del JWT token, no requiere parámetros
+  - ✅ **Actualizaciones parciales**: Soporte para `Partial<MedicalPatientDto>`
+  - ✅ **Transacciones atómicas**: Garantiza consistencia en las actualizaciones
+  - ✅ **Flexibilidad**: Permite actualizar datos de usuario y/o paciente por separado
+
+- **Request Body**: Permite actualizaciones parciales de información personal y médica
+
+  **Ejemplo 1 - Actualizar solo información personal:**
+
+  ```json
+  {
+    "user": {
+      "name": "Juan Carlos",
+      "last_name": "Pérez García",
+      "phone": "+1234567890",
+      "phone_prefix": "+52"
+    }
+  }
+  ```
+
+  **Ejemplo 2 - Actualizar solo información de paciente:**
+
+  ```json
+  {
+    "patient": {
+      "direction": "Nueva Av. Principal 123",
+      "city": "Ciudad de México",
+      "province": "CDMX",
+      "country": "México",
+      "postal_code": "12345"
+    }
+  }
+  ```
+
+  **Ejemplo 3 - Actualizar ambos tipos de información:**
+
+  ```json
+  {
+    "user": {
+      "name": "Juan Carlos",
+      "phone": "+1234567890"
+    },
+    "patient": {
+      "direction": "Nueva Av. Principal 123",
+      "city": "Ciudad de México"
+    }
+  }
+  ```
+
+- **Respuesta exitosa**:
+
+  - **Código**: 200 OK
+  - **Contenido**: Mensaje de confirmación
+
+  ```json
+  {
+    "message": "Perfil actualizado correctamente"
+  }
+  ```
+
+- **Respuestas de error**:
+  - **Código**: 400 Bad Request
+    - Datos de actualización inválidos
+    - Usuario no autenticado
+    - Usuario no es paciente
+  - **Código**: 401 Unauthorized
+    - Token JWT inválido o faltante
+  - **Código**: 403 Forbidden
+    - Permisos insuficientes para actualizar configuraciones propias
+  - **Código**: 404 Not Found
+    - No se encontraron organizaciones asociadas al paciente
+
+### Características de Seguridad (Endpoints Móviles)
+
+Los endpoints móviles implementan las siguientes medidas de seguridad:
+
+- **Autenticación automática**: Extracción del patient_id desde el JWT token
+- **Validación de rol**: Solo usuarios con rol `patient` pueden acceder
+- **Aislamiento de datos**: Los pacientes solo pueden acceder a sus propios datos
+- **Soporte multitenant**: Acceso automático a datos de todas las organizaciones del paciente
+- **Permisos granulares**: Diferentes permisos para lectura (`VIEW_OWN_SETTINGS`) y escritura (`UPDATE_OWN_SETTINGS`)
+
+### Integración con Aplicaciones Móviles
+
+Estos endpoints están específicamente diseñados para:
+
+1. **Pantallas de perfil**: Mostrar información completa del paciente
+2. **Formularios de edición**: Actualizar información personal
+3. **Historial médico**: Visualizar eventos y medicaciones
+4. **Archivos médicos**: Acceder a estudios y documentos
+5. **Signos vitales**: Ver últimas mediciones
 
 ## Modelos de Datos
 
@@ -372,8 +595,9 @@ Información detallada de un paciente incluyendo datos médicos:
 ## Notas Adicionales
 
 - Los endpoints de pacientes están etiquetados como `Patients` en la documentación Swagger.
+- Los endpoints móviles específicos están etiquetados como `Mobile - Patient Profile` en Swagger.
 - Todas las operaciones requieren autenticación mediante JWT.
-- El sistema utiliza un modelo multi-tenant, por lo que es necesario especificar el tenant-id en todas las operaciones.
+- El sistema utiliza un modelo multi-tenant, por lo que es necesario especificar el tenant-id en todas las operaciones (excepto endpoints móviles que lo manejan automáticamente).
 - Al crear un paciente, se genera automáticamente una contraseña y se envía por correo electrónico al usuario.
 - Los pacientes son usuarios con el rol `patient` en el sistema.
 - Cada paciente puede estar asociado a múltiples tenants a través de la tabla `patient_tenant`.

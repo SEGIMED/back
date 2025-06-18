@@ -769,6 +769,7 @@ enum status_type {
   atendida
   cancelada
   pendiente
+  no_asistida
 }
 
 enum tenant_type {
