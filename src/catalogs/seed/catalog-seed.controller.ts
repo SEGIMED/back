@@ -3,7 +3,6 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiHeader,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CatalogSeedService } from './catalog-seed.service';
@@ -13,11 +12,6 @@ import { Permission } from '../../auth/permissions/permission.enum';
 
 @ApiTags('Catalogs - Seed')
 @ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'ID del tenant',
-  required: true,
-})
 @Controller('catalogs/seed')
 export class CatalogSeedController {
   constructor(private readonly catalogSeedService: CatalogSeedService) {}

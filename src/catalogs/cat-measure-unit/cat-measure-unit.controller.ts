@@ -16,7 +16,7 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
-  ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CatMeasureUnitService } from './cat-measure-unit.service';
 import { CreateCatMeasureUnitDto } from './dto/create-cat-measure-unit.dto';
@@ -27,11 +27,7 @@ import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
 import { SuperAdminGuard } from '../../auth/guards/superadmin.guard';
 
 @ApiTags('Catalogs - Measure Units')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'Tenant ID',
-  required: true,
-})
+@ApiBearerAuth('access-token')
 @Controller('cat-measure-unit')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class CatMeasureUnitController {

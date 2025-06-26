@@ -52,6 +52,10 @@ export class UserController {
     description: 'Lista de todos los usuarios del tenant actual',
   })
   findAll(@GetTenant() tenant_id: string) {
+    console.log(
+      '🔍 DEBUG UserController.findAll: tenant_id recibido:',
+      tenant_id,
+    );
     return this.userService.findAll(tenant_id);
   }
 

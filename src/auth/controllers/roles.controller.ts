@@ -26,7 +26,6 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
-  ApiHeader,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ApiOptionalTenantHeader } from '../decorators/tenant-header.decorator';
@@ -62,11 +61,6 @@ export class RolesController {
   @UseGuards(TenantAdminGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Elimina un rol de un usuario' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant al que pertenece el usuario',
-    required: true,
-  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -152,11 +146,6 @@ export class RolesController {
   @UseGuards(TenantAccessGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Obtiene un rol específico por su ID' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant para verificar acceso',
-    required: true,
-  })
   @ApiParam({ name: 'id', description: 'ID del rol a consultar' })
   @ApiResponse({ status: 200, description: 'Rol recuperado exitosamente' })
   @ApiResponse({ status: 404, description: 'Rol no encontrado' })
@@ -177,11 +166,6 @@ export class RolesController {
   @UseGuards(TenantAdminGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Crea un nuevo rol' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant al que pertenecerá el rol',
-    required: true,
-  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -222,11 +206,6 @@ export class RolesController {
   @UseGuards(TenantAdminGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Actualiza un rol existente' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant al que pertenece el rol',
-    required: true,
-  })
   @ApiParam({ name: 'id', description: 'ID del rol a actualizar' })
   @ApiBody({
     schema: {
@@ -271,11 +250,6 @@ export class RolesController {
   @UseGuards(TenantAdminGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Elimina un rol' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant al que pertenece el rol',
-    required: true,
-  })
   @ApiParam({ name: 'id', description: 'ID del rol a eliminar' })
   @ApiResponse({ status: 200, description: 'Rol eliminado exitosamente' })
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
@@ -303,11 +277,6 @@ export class RolesController {
   @UseGuards(TenantAdminGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Asigna un rol a un usuario' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant al que pertenece el usuario',
-    required: true,
-  })
   @ApiBody({
     schema: {
       type: 'object',
@@ -358,11 +327,6 @@ export class RolesController {
   @UseGuards(TenantAccessGuard)
   @RequirePermission(Permission.CONFIGURE_USER_PERMISSIONS)
   @ApiOperation({ summary: 'Obtiene todos los roles asignados a un usuario' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant al que pertenece el usuario',
-    required: true,
-  })
   @ApiParam({ name: 'userId', description: 'ID del usuario' })
   @ApiResponse({
     status: 200,

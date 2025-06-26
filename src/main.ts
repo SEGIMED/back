@@ -171,15 +171,8 @@ async function bootstrap() {
       defaultModelsExpandDepth: -1,
       displayRequestDuration: true,
       tryItOutEnabled: true,
-      withCredentials: true,
-      requestInterceptor: (req) => {
-        // Asegurarse de que todas las peticiones incluyan el token de autorización si existe
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          req.headers.Authorization = `Bearer ${token}`;
-        }
-        return req;
-      },
+      withCredentials: false,
+      // Removed requestInterceptor that was causing issues with localStorage
     },
     customSiteTitle: 'SEGIMED API Documentation',
     customCss: '.swagger-ui .topbar { display: none }',
