@@ -34,14 +34,14 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBody,
-  ApiSecurity,
   ApiHeader,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Mobile Prescriptions')
-@ApiSecurity('bearer')
+@ApiBearerAuth('access-token')
 @ApiHeader({
   name: 'tenant_id',
   description: 'Tenant ID',

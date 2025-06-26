@@ -16,12 +16,14 @@ import {
   ApiResponse,
   ApiParam,
   ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { OnboardingDto } from './dto/onboarding-user.dto';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
 import { GetTenant } from '../../auth/decorators/get-tenant.decorator';
 
 @ApiTags('Users')
+@ApiBearerAuth()
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

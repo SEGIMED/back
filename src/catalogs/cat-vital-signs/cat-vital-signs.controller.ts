@@ -20,17 +20,17 @@ import {
   ApiBody,
   ApiParam,
   ApiQuery,
-  ApiSecurity,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - Vital Signs')
+@ApiBearerAuth('access-token')
 @Controller('cat-vital-signs')
 export class CatVitalSignsController {
   constructor(private readonly catVitalSignsService: CatVitalSignsService) {}
 
   @Post()
   @UseGuards(SuperAdminGuard)
-  @ApiSecurity('access-token')
   @ApiOperation({ summary: 'Create a new vital sign' })
   @ApiBody({ type: CreateCatVitalSignsDto })
   @ApiResponse({
@@ -114,7 +114,6 @@ export class CatVitalSignsController {
 
   @Delete(':id')
   @UseGuards(SuperAdminGuard)
-  @ApiSecurity('access-token')
   @ApiOperation({ summary: 'Delete a vital sign' })
   @ApiParam({
     name: 'id',

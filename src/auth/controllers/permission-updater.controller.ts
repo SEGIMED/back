@@ -5,11 +5,11 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiSecurity,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Permission Updater')
-@ApiSecurity('access-token')
+@ApiBearerAuth('access-token')
 @Controller('permission-updater')
 export class PermissionUpdaterController {
   constructor(

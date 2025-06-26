@@ -26,8 +26,8 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
-  ApiSecurity,
   ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ApiOptionalTenantHeader } from '../decorators/tenant-header.decorator';
 
@@ -50,7 +50,7 @@ interface AssignRoleDto {
 }
 
 @ApiTags('Roles')
-@ApiSecurity('access-token')
+@ApiBearerAuth('access-token')
 @Controller('roles')
 @UseGuards(PermissionGuard)
 export class RolesController {

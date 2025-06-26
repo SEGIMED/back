@@ -3,8 +3,8 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiSecurity,
   ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CatalogSeedService } from './catalog-seed.service';
 import { SuperAdminGuard } from '../../auth/guards/superadmin.guard';
@@ -12,7 +12,7 @@ import { RequirePermission } from '../../auth/decorators/require-permission.deco
 import { Permission } from '../../auth/permissions/permission.enum';
 
 @ApiTags('Catalogs - Seed')
-@ApiSecurity('access-token')
+@ApiBearerAuth('access-token')
 @ApiHeader({
   name: 'tenant_id',
   description: 'ID del tenant',

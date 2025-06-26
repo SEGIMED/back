@@ -19,12 +19,12 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
-  ApiSecurity,
   ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - CIE-10 Subcategories')
-@ApiSecurity('access-token')
+@ApiBearerAuth('access-token')
 @ApiHeader({
   name: 'tenant_id',
   description: 'ID del tenant',

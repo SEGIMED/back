@@ -18,12 +18,12 @@ import {
   ApiBody,
   ApiParam,
   ApiQuery,
-  ApiSecurity,
   ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - Order Types')
-@ApiSecurity('access-token')
+@ApiBearerAuth('access-token')
 @ApiHeader({
   name: 'tenant_id',
   description: 'ID del tenant',

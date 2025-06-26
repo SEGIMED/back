@@ -7,12 +7,12 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
-  ApiSecurity,
   ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Prescription Modification History')
-@ApiSecurity('access-token')
+@ApiBearerAuth('access-token')
 @ApiHeader({
   name: 'tenant_id',
   description: 'ID del tenant',
