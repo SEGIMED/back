@@ -16,17 +16,11 @@ import {
   ApiResponse,
   ApiTags,
   ApiBearerAuth,
-  ApiHeader,
   ApiBody,
 } from '@nestjs/swagger';
 
 @ApiTags('Mood')
 @ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant-id',
-  description: 'ID del tenant al que pertenece el usuario',
-  required: true,
-})
 @Controller('mobile/mood')
 @UseGuards(TenantAccessGuard)
 export class MoodController {

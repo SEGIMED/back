@@ -81,6 +81,10 @@ async function bootstrap() {
     .addTag('Patients', 'Patient management operations')
     .addTag('Appointments', 'Appointment scheduling operations')
     .addTag(
+      'appointment-scheduler',
+      'Automated appointment scheduling services and background processes',
+    )
+    .addTag(
       'Medical Order',
       'Medical order management including prescriptions, study authorizations, certifications, hospitalization requests, appointment requests, and medication authorizations',
     )

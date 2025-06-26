@@ -26,7 +26,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
   ApiBody,
   ApiQuery,
   ApiParam,
@@ -34,11 +33,6 @@ import {
 
 @ApiTags('Appointments')
 @ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant-id',
-  description: 'ID del tenant al que pertenecen las citas',
-  required: true,
-})
 @Controller('appointments')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class AppointmentsController {

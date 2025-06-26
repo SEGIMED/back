@@ -27,7 +27,6 @@ import {
   ApiResponse,
   ApiBody,
   ApiBearerAuth,
-  ApiHeader,
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
@@ -43,11 +42,6 @@ export class SelfEvaluationEventController {
 
   @Post()
   @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant',
-    required: true,
-  })
   @ApiOperation({
     summary: 'Crear un evento de autoevaluación (para profesionales)',
     description:

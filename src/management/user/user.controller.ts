@@ -15,7 +15,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiParam,
-  ApiHeader,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { OnboardingDto } from './dto/onboarding-user.dto';
@@ -48,11 +47,6 @@ export class UserController {
   @Get()
   @UseGuards(TenantAccessGuard)
   @ApiOperation({ summary: 'Obtiene todos los usuarios del tenant actual' })
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant',
-    required: true,
-  })
   @ApiResponse({
     status: 200,
     description: 'Lista de todos los usuarios del tenant actual',
