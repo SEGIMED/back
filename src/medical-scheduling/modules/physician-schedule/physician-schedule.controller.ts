@@ -22,9 +22,11 @@ import {
   ApiBody,
   ApiQuery,
   ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Physician Schedule')
+@ApiBearerAuth()
 @ApiHeader({
   name: 'tenant_id',
   description: 'Tenant ID',
