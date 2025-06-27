@@ -17,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Physical Exploration Area')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('physical-exploration-areas')
 export class PhysicalExplorationAreaController {
   constructor(

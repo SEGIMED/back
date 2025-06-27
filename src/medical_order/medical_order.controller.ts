@@ -33,7 +33,7 @@ import {
 import { MedicalOrderPaginatedResponseDto } from './dto/medical-order-response.dto';
 
 @ApiTags('Medical Order')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('medical-order')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class MedicalOrderController {

@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - Order Types')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('order-type')
 export class OrderTypeController {
   constructor(private readonly orderTypeService: OrderTypeService) {}

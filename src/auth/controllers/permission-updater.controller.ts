@@ -9,7 +9,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Permission Updater')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('permission-updater')
 export class PermissionUpdaterController {
   constructor(

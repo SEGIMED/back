@@ -22,7 +22,7 @@ import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
 import { GetTenant } from '../../auth/decorators/get-tenant.decorator';
 
 @ApiTags('Users')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -52,10 +52,6 @@ export class UserController {
     description: 'Lista de todos los usuarios del tenant actual',
   })
   findAll(@GetTenant() tenant_id: string) {
-    console.log(
-      '🔍 DEBUG UserController.findAll: tenant_id recibido:',
-      tenant_id,
-    );
     return this.userService.findAll(tenant_id);
   }
 

@@ -34,7 +34,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Patients')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('patient')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class PatientController {

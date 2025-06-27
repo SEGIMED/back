@@ -49,7 +49,7 @@ interface AssignRoleDto {
 }
 
 @ApiTags('Roles')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('roles')
 @UseGuards(PermissionGuard)
 export class RolesController {

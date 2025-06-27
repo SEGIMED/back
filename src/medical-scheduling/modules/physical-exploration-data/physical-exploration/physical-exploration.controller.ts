@@ -12,7 +12,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Physical Exploration')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('physical-explorations')
 export class PhysicalExplorationController {
   constructor(

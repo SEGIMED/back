@@ -11,7 +11,7 @@ import { RequirePermission } from '../../auth/decorators/require-permission.deco
 import { Permission } from '../../auth/permissions/permission.enum';
 
 @ApiTags('Catalogs - Seed')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('catalogs/seed')
 export class CatalogSeedController {
   constructor(private readonly catalogSeedService: CatalogSeedService) {}

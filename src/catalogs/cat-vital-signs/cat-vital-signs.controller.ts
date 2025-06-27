@@ -24,7 +24,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - Vital Signs')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('cat-vital-signs')
 export class CatVitalSignsController {
   constructor(private readonly catVitalSignsService: CatVitalSignsService) {}

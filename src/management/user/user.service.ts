@@ -100,24 +100,13 @@ export class UserService {
     }
   }
   async findAll(tenant_id: string): Promise<any[]> {
-    console.log(
-      '🔍 DEBUG UserService.findAll: iniciando con tenant_id:',
-      tenant_id,
-    );
-
     try {
       const users = await this.prisma.user.findMany({
         where: { tenant_id },
       });
 
-      console.log(
-        '✅ DEBUG UserService.findAll: encontrados',
-        users.length,
-        'usuarios',
-      );
       return users;
     } catch (error) {
-      console.error('❌ DEBUG UserService.findAll: error:', error);
       throw error;
     }
   }

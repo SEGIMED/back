@@ -41,7 +41,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Mobile Prescriptions')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @ApiHeader({
   name: 'tenant_id',
   description: 'Tenant ID',

@@ -32,7 +32,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Mobile - Self-Evaluation Events (Signos Vitales)')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('mobile/self-evaluation-event')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class SelfEvaluationEventController {

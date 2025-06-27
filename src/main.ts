@@ -66,11 +66,8 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        name: 'Authorization',
-        description: 'Enter JWT token',
-        in: 'header',
       },
-      'access-token',
+      'JWT',
     )
     .addTag('Auth', 'Authentication operations')
     .addTag('System', 'System health check and status operations')
@@ -165,18 +162,11 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
-      tagsSorter: 'alpha',
-      operationsSorter: 'alpha',
-      docExpansion: 'none',
-      defaultModelsExpandDepth: -1,
-      displayRequestDuration: true,
       tryItOutEnabled: true,
-      withCredentials: false,
-      // Removed requestInterceptor that was causing issues with localStorage
+      filter: true,
+      displayRequestDuration: true,
     },
     customSiteTitle: 'SEGIMED API Documentation',
-    customCss: '.swagger-ui .topbar { display: none }',
-    swaggerUrl: '/api-json',
   });
 
   const port = process.env.PORT ?? 3000;

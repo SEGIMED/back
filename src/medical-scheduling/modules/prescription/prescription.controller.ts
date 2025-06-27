@@ -24,7 +24,7 @@ export class PrescriptionController {
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
     return this.prescriptionService.create(createPrescriptionDto);
   }
@@ -41,7 +41,7 @@ export class PrescriptionController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Patient not found.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   @ApiParam({
     name: 'id',
     type: 'string',
@@ -64,7 +64,7 @@ export class PrescriptionController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   findAll() {
     return this.prescriptionService.findAll();
   }
@@ -79,7 +79,7 @@ export class PrescriptionController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Prescription not found.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   @ApiParam({
     name: 'id',
     type: 'string',

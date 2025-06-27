@@ -42,7 +42,7 @@ export class VitalSignsController {
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
@@ -77,7 +77,7 @@ export class VitalSignsController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Patient not found.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',
@@ -112,7 +112,7 @@ export class VitalSignsController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Vital sign record not found.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   @ApiHeader({
     name: 'X-Tenant-ID',
     description: 'Tenant ID',

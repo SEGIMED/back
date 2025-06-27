@@ -27,7 +27,7 @@ import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
 import { SuperAdminGuard } from '../../auth/guards/superadmin.guard';
 
 @ApiTags('Catalogs - Measure Units')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('cat-measure-unit')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class CatMeasureUnitController {

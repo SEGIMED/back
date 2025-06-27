@@ -23,7 +23,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - CIE-10 Subcategories')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('subcat-cie-diez')
 export class SubcatCieDiezController {
   constructor(private readonly subcatCieDiezService: SubcatCieDiezService) {}

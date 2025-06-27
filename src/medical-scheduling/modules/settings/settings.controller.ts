@@ -24,7 +24,7 @@ import { RequirePermission } from '../../../auth/decorators/require-permission.d
 import { Permission } from '../../../auth/permissions/permission.enum';
 
 @ApiTags('Settings')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @ApiHeader({
   name: 'tenant_id',
   description: 'Tenant ID',

@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Mood')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('mobile/mood')
 @UseGuards(TenantAccessGuard)
 export class MoodController {

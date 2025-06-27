@@ -29,7 +29,7 @@ import { PermissionGuard } from '../../auth/guards/permission.guard';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
 
 @ApiTags('Catalogs - Identification Types')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('cat-identification-type')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class CatIdentificationTypeController {

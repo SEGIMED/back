@@ -32,7 +32,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Appointments')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('appointments')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class AppointmentsController {

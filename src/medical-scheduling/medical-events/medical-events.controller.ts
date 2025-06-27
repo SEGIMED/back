@@ -17,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('Medical Events')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('medical-events')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class MedicalEventsController {
