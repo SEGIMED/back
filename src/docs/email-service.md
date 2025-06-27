@@ -341,7 +341,8 @@ async sendNotification(patient: Patient, message: string, type: string) {
     ));
   }
 
-  if (patient.whatsapp_notifications_enabled) {
+  // Nota: whatsapp_enabled coincide con la nomenclatura del Settings Module
+  if (patient.whatsapp_enabled) {
     promises.push(this.twilioService.sendOtp(patient.phone, message));
   }
 

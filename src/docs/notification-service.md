@@ -55,7 +55,22 @@ enum NotificationType {
 }
 ```
 
-### Interfaces
+### Interfaces Principales
+
+#### `NotificationData`
+
+```typescript
+interface NotificationData {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  data?: any;
+  channels?: NotificationChannel[];
+  priority?: 'low' | 'normal' | 'high' | 'urgent';
+  scheduled_for?: Date;
+}
+```
 
 #### `PatientNotificationData`
 
@@ -67,6 +82,28 @@ interface PatientNotificationData {
   email?: string;
   phone?: string;
   is_phone_verified?: boolean;
+}
+```
+
+#### `UserNotificationPreferences`
+
+```typescript
+interface UserNotificationPreferences {
+  user_id: string;
+  email_enabled: boolean;
+  whatsapp_enabled: boolean;
+  sms_enabled: boolean;
+  push_enabled: boolean;
+  appointment_reminders: boolean;
+  medication_reminders: boolean;
+  prescription_notifications: boolean;
+  marketing_emails: boolean;
+  quiet_hours: {
+    enabled: boolean;
+    start_time: string; // "22:00"
+    end_time: string; // "08:00"
+  };
+  timezone: string;
 }
 ```
 

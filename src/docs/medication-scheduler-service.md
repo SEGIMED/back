@@ -54,7 +54,7 @@ async processScheduledReminders(): Promise<void> {
 
   try {
     const activePrescriptions = await this.getActivePrescriptions();
-    this.logger.log(`Encontradas ${activePrescriptions.length} prescriptions activas`);
+    this.logger.log(`Encontradas ${activePrescriptions.length} prescripciones activas`);
 
     for (const prescription of activePrescriptions) {
       await this.processPrescriptionReminder(prescription);

@@ -82,7 +82,7 @@ await twilioService.sendWhatsAppWithMedia(
 
 ```typescript
 // Recordatorio de toma de medicamento
-await twilioService.sendOtp(
+await twilioService.sendWhatsAppMessage(
   patient.phone,
   `Recordatorio: Es hora de tomar ${medicationName}`,
 );
@@ -106,7 +106,7 @@ await twilioService.sendWhatsAppWithMedia(
 Todos los números de teléfono deben estar en formato internacional:
 
 ```
-+[código_país][número_sin_espacios]
+[código_país][número_sin_espacios]
 ```
 
 ### Ejemplos Válidos

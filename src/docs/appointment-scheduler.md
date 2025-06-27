@@ -97,6 +97,67 @@ No requiere body de request.
 
 ## Funcionalidades Automáticas
 
+### 1. Proceso de Citas Expiradas
+
+#### Configuración Automática
+
+```typescript
+@Cron(CronExpression.EVERY_5_MINUTES)
+async processExpiredAppointments(): Promise<void>
+```
+
+#### Lógica de Procesamiento
+
+1. **Identificación de Citas Expiradas:**
+
+   - Busca citas con estado `pending`
+   - Verifica que la hora programada + 30 minutos < hora actual
+   - Filtra por tenant del contexto actual
+
+2. **Actualización de Estado:**
+
+   - Cambia estado de `pending` a `no_asistida`
+   - Registra timestamp de actualización
+   - Añade nota explicativa del cambio
+
+3. **Notificaciones:**
+   - Notifica al médico sobre la cita perdida
+   - Registra en el historial del paciente
+   - Actualiza métricas del sistema
+
+#### Criterios de Expiración
+
+```typescript
+const expiredAppointments = await this.prisma.appointment.findMany({
+  where: {
+    status: 'pending',
+    scheduled_date: {
+      lt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutos atrás
+    },
+    tenant_id: currentTenantId,
+  },
+});
+```
+
+### 2. Recordatorios Automáticos
+
+#### Notificaciones Previas
+
+- **24 horas antes**: Email y SMS de confirmación
+- **2 horas antes**: Recordatorio por WhatsApp
+- **30 minutos antes**: Notificación push final
+
+#### Configuración de Recordatorios
+
+```typescript
+@Cron(CronExpression.EVERY_HOUR)
+async sendAppointmentReminders(): Promise<void> {
+  await this.send24HourReminders();
+  await this.send2HourReminders();
+  await this.send30MinuteReminders();
+}
+```
+
 ## Archivos Implementados
 
 ### Core Service
