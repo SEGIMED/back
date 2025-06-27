@@ -27,7 +27,7 @@ export class BackgroundController {
   })
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @ApiBearerAuth('access-token')
+  @ApiBearerAuth('JWT')
   async createBackground(@Body() data: CreateBackgroundDto) {
     try {
       return await this.backgroundService.createBackground(data);

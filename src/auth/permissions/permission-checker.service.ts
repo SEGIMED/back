@@ -1,9 +1,11 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Permission } from './permission.enum';
 
 @Injectable()
 export class PermissionCheckerService {
+  private readonly logger = new Logger(PermissionCheckerService.name);
+
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -81,26 +83,44 @@ export class PermissionCheckerService {
    * Verifica si un usuario tiene acceso a un tenant específico
    */
   async hasAccessToTenant(userId: string, tenantId: string): Promise<boolean> {
+    this.logger.debug('🔍 PermissionChecker.hasAccessToTenant: Iniciando', {
+      userId,
+      tenantId,
+    });
+
     try {
       // Verificar si el usuario existe
+      this.logger.debug('🔍 PermissionChecker: Buscando usuario...');
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
       });
 
+      this.logger.debug('🔍 PermissionChecker: Usuario encontrado', {
+        exists: !!user,
+        is_superadmin: user?.is_superadmin,
+        tenant_id: user?.tenant_id,
+      });
+
       if (!user) {
+        this.logger.warn('❌ PermissionChecker: Usuario no encontrado');
         throw new ForbiddenException('Usuario no encontrado');
       }
 
       // Si el usuario es superadmin, tiene acceso a todos los tenants
       if (user.is_superadmin) {
+        this.logger.debug('✅ PermissionChecker: Superadmin, acceso permitido');
         return true;
       }
 
       // Si el usuario pertenece al tenant, tiene acceso
       if (user.tenant_id === tenantId) {
+        this.logger.debug('✅ PermissionChecker: Usuario pertenece al tenant');
         return true;
       }
 
+      this.logger.debug(
+        '🔍 PermissionChecker: Verificando roles del usuario...',
+      );
       // Verificar si el usuario tiene roles asociados al tenant
       const userRoles = await this.prisma.user_role.findMany({
         where: { user_id: userId },
@@ -109,12 +129,28 @@ export class PermissionCheckerService {
         },
       });
 
+      this.logger.debug('🔍 PermissionChecker: Roles encontrados', {
+        count: userRoles.length,
+        roles: userRoles.map((ur) => ({
+          roleName: ur.role.name,
+          roleTenantId: ur.role.tenant_id,
+          isSystem: ur.role.is_system,
+        })),
+      });
+
       // Verificar si alguno de los roles del usuario está asociado al tenant
-      return userRoles.some(
+      const hasAccess = userRoles.some(
         (userRole) =>
           userRole.role.tenant_id === tenantId || userRole.role.is_system,
       );
+
+      this.logger.debug('🔍 PermissionChecker: Resultado final', hasAccess);
+      return hasAccess;
     } catch (error) {
+      this.logger.error(
+        '❌ PermissionChecker: Error en hasAccessToTenant',
+        error,
+      );
       if (error instanceof ForbiddenException) {
         throw error;
       }

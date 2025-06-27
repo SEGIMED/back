@@ -13,11 +13,10 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiHeader,
 } from '@nestjs/swagger';
 
 @ApiTags('Physical Exploration Area')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('physical-exploration-areas')
 export class PhysicalExplorationAreaController {
   constructor(
@@ -54,12 +53,6 @@ export class PhysicalExplorationAreaController {
       'Conflict - An area with the same name or library name already exists.',
   })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @ApiHeader({
-    name: 'x-tenant-id',
-    description:
-      'Tenant ID for multi-tenant support (if applicable to this resource)',
-    required: false, // Adjust if tenant context is strictly required
-  })
   async createPhysicalExplorationArea(
     @Body() data: CreatePhysicalExplorationAreaDto,
   ) {

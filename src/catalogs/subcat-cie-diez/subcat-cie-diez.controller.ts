@@ -19,17 +19,11 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
-  ApiSecurity,
-  ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - CIE-10 Subcategories')
-@ApiSecurity('access-token')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'ID del tenant',
-  required: true,
-})
+@ApiBearerAuth('JWT')
 @Controller('subcat-cie-diez')
 export class SubcatCieDiezController {
   constructor(private readonly subcatCieDiezService: SubcatCieDiezService) {}

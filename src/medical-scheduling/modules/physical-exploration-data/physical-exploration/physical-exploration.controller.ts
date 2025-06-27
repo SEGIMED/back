@@ -8,11 +8,10 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiHeader,
 } from '@nestjs/swagger';
 
 @ApiTags('Physical Exploration')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('physical-explorations')
 export class PhysicalExplorationController {
   constructor(
@@ -62,11 +61,6 @@ export class PhysicalExplorationController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 500, description: 'Internal server error.' })
-  @ApiHeader({
-    name: 'x-tenant-id',
-    description: 'Tenant ID for multi-tenant support',
-    required: false,
-  })
   async createPhysicalExploration(
     @Body() data: CreatePhysicalExplorationDto | UpdatePhysicalExplorationDto,
   ) {

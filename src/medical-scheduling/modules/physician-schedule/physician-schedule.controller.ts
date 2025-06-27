@@ -21,15 +21,11 @@ import {
   ApiParam,
   ApiBody,
   ApiQuery,
-  ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Physician Schedule')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'Tenant ID',
-  required: true,
-})
+@ApiBearerAuth('JWT')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 @Controller('physicians')
 export class PhysicianScheduleController {

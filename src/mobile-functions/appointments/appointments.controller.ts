@@ -31,7 +31,7 @@ import {
 import { CancelAppointmentDto } from './dto/cancel-appointment.dto';
 
 @ApiTags('Mobile - Appointments')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('mobile/appointments')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class MobileAppointmentsController {

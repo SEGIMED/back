@@ -18,17 +18,11 @@ import {
   ApiBody,
   ApiParam,
   ApiQuery,
-  ApiSecurity,
-  ApiHeader,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Catalogs - Order Types')
-@ApiSecurity('access-token')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'ID del tenant',
-  required: true,
-})
+@ApiBearerAuth('JWT')
 @Controller('order-type')
 export class OrderTypeController {
   constructor(private readonly orderTypeService: OrderTypeService) {}

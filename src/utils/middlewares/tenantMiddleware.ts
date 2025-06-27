@@ -31,6 +31,17 @@ export class TenantMiddleware implements NestMiddleware {
 
       const authorization = req.headers['authorization'];
       if (!authorization) {
+        // Log detallado para debugging
+        console.error('❌ Authorization header missing:', {
+          path: req.path,
+          originalUrl: req.originalUrl,
+          method: req.method,
+          userAgent: req.headers['user-agent'],
+          referer: req.headers['referer'],
+          host: req.headers['host'],
+          timestamp: new Date().toISOString(),
+          headers: Object.keys(req.headers),
+        });
         throw new UnauthorizedException('Authorization header missing');
       }
 

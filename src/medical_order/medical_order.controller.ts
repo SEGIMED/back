@@ -29,17 +29,11 @@ import {
   ApiQuery,
   ApiParam,
   ApiBearerAuth,
-  ApiHeader,
 } from '@nestjs/swagger';
 import { MedicalOrderPaginatedResponseDto } from './dto/medical-order-response.dto';
 
 @ApiTags('Medical Order')
-@ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant-id',
-  description: 'ID del tenant al que pertenecen las órdenes médicas',
-  required: true,
-})
+@ApiBearerAuth('JWT')
 @Controller('medical-order')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class MedicalOrderController {

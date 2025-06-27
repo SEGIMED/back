@@ -18,7 +18,6 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
-  ApiHeader,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { PatientStudiesService } from './patient-studies.service';
@@ -35,12 +34,7 @@ import { RequirePermission } from '../../../auth/decorators/require-permission.d
 import { Permission } from '../../../auth/permissions/permission.enum';
 
 @ApiTags('Patient Studies')
-@ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'Tenant ID',
-  required: true,
-})
+@ApiBearerAuth('JWT')
 @Controller('patient-studies')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class PatientStudiesController {

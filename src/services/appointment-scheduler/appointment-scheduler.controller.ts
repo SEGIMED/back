@@ -11,7 +11,7 @@ import { TenantAccessGuard } from 'src/auth/guards/tenant-access.guard';
 @ApiTags('appointment-scheduler')
 @Controller('appointment-scheduler')
 @UseGuards(TenantAccessGuard)
-@ApiBearerAuth()
+@ApiBearerAuth('JWT')
 export class AppointmentSchedulerController {
   constructor(
     private readonly appointmentSchedulerService: AppointmentSchedulerService,

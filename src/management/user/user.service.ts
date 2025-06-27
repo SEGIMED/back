@@ -103,6 +103,7 @@ export class UserService {
     const users = await this.prisma.user.findMany({
       where: { tenant_id },
     });
+
     return users;
   }
 
