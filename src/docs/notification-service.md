@@ -1,22 +1,59 @@
-# NotificationService - Servicio Centralizado de Notificaciones
+# Notification Service - Documentación Completa
 
-## Descripción General
+## Descripción
 
-El `NotificationService` es un servicio centralizado que maneja todas las notificaciones a pacientes en el sistema SEGIMED. Este servicio unifica la lógica de envío de emails y mensajes de WhatsApp, proporcionando una interfaz consistente para diferentes tipos de notificaciones médicas.
+El Notification Service es el servicio central para el manejo de notificaciones en la plataforma SEGIMED. Proporciona una interfaz unificada para enviar notificaciones a través de múltiples canales: email, WhatsApp, SMS y notificaciones push. Integra los servicios de Twilio y Email para ofrecer comunicación omnicanal con los pacientes y personal médico.
 
 ## Ubicación
 
 - **Servicio**: `src/services/notification/notification.service.ts`
 - **Módulo**: `src/services/notification/notification.module.ts`
 
-## Arquitectura
+## Funcionalidades Principales
 
-### Dependencias
+- **Notificaciones Multi-canal**: Email, WhatsApp, SMS, Push
+- **Gestión de Preferencias**: Respeta las configuraciones de notificación de cada usuario
+- **Plantillas Personalizadas**: Sistema de plantillas para diferentes tipos de notificaciones
+- **Manejo de Archivos Adjuntos**: Soporte para PDFs y documentos médicos
+- **Gestión de Errores Robusta**: Estrategia de fallback sin interrumpir flujos principales
+- **Logging Completo**: Registro detallado para auditoría y debugging
 
-El `NotificationService` inyecta y utiliza:
+## Arquitectura del Servicio
 
-- **EmailService**: Para el envío de correos electrónicos con plantillas HTML
-- **TwilioService**: Para el envío de mensajes de WhatsApp
+### Dependencias Principales
+
+```typescript
+@Injectable()
+export class NotificationService {
+  constructor(
+    private readonly emailService: EmailService,
+    private readonly twilioService: TwilioService,
+    private readonly prisma: PrismaService,
+    private readonly logger: Logger,
+  ) {}
+}
+```
+
+### Canales de Notificación
+
+```typescript
+enum NotificationChannel {
+  EMAIL = 'email',
+  WHATSAPP = 'whatsapp',
+  SMS = 'sms',
+  PUSH = 'push',
+}
+
+enum NotificationType {
+  MEDICAL_ORDER = 'medical_order',
+  MEDICATION_UPDATE = 'medication_update',
+  APPOINTMENT_REMINDER = 'appointment_reminder',
+  PRESCRIPTION_READY = 'prescription_ready',
+  APPOINTMENT_CONFIRMATION = 'appointment_confirmation',
+  OTP_VERIFICATION = 'otp_verification',
+  WELCOME = 'welcome',
+}
+```
 
 ### Interfaces
 
