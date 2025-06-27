@@ -100,15 +100,11 @@ export class UserService {
     }
   }
   async findAll(tenant_id: string): Promise<any[]> {
-    try {
-      const users = await this.prisma.user.findMany({
-        where: { tenant_id },
-      });
+    const users = await this.prisma.user.findMany({
+      where: { tenant_id },
+    });
 
-      return users;
-    } catch (error) {
-      throw error;
-    }
+    return users;
   }
 
   async findOneById(id: string, tenant_id: string) {

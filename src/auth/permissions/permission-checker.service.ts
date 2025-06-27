@@ -1,9 +1,11 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Permission } from './permission.enum';
 
 @Injectable()
 export class PermissionCheckerService {
+  private readonly logger = new Logger(PermissionCheckerService.name);
+
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -81,43 +83,43 @@ export class PermissionCheckerService {
    * Verifica si un usuario tiene acceso a un tenant específico
    */
   async hasAccessToTenant(userId: string, tenantId: string): Promise<boolean> {
-    console.log('🔍 DEBUG PermissionChecker.hasAccessToTenant: Iniciando', {
+    this.logger.debug('🔍 PermissionChecker.hasAccessToTenant: Iniciando', {
       userId,
       tenantId,
     });
 
     try {
       // Verificar si el usuario existe
-      console.log('🔍 DEBUG PermissionChecker: Buscando usuario...');
+      this.logger.debug('🔍 PermissionChecker: Buscando usuario...');
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
       });
 
-      console.log('🔍 DEBUG PermissionChecker: Usuario encontrado:', {
+      this.logger.debug('🔍 PermissionChecker: Usuario encontrado', {
         exists: !!user,
         is_superadmin: user?.is_superadmin,
         tenant_id: user?.tenant_id,
       });
 
       if (!user) {
-        console.log('❌ DEBUG PermissionChecker: Usuario no encontrado');
+        this.logger.warn('❌ PermissionChecker: Usuario no encontrado');
         throw new ForbiddenException('Usuario no encontrado');
       }
 
       // Si el usuario es superadmin, tiene acceso a todos los tenants
       if (user.is_superadmin) {
-        console.log('✅ DEBUG PermissionChecker: Superadmin, acceso permitido');
+        this.logger.debug('✅ PermissionChecker: Superadmin, acceso permitido');
         return true;
       }
 
       // Si el usuario pertenece al tenant, tiene acceso
       if (user.tenant_id === tenantId) {
-        console.log('✅ DEBUG PermissionChecker: Usuario pertenece al tenant');
+        this.logger.debug('✅ PermissionChecker: Usuario pertenece al tenant');
         return true;
       }
 
-      console.log(
-        '🔍 DEBUG PermissionChecker: Verificando roles del usuario...',
+      this.logger.debug(
+        '🔍 PermissionChecker: Verificando roles del usuario...',
       );
       // Verificar si el usuario tiene roles asociados al tenant
       const userRoles = await this.prisma.user_role.findMany({
@@ -127,7 +129,7 @@ export class PermissionCheckerService {
         },
       });
 
-      console.log('🔍 DEBUG PermissionChecker: Roles encontrados:', {
+      this.logger.debug('🔍 PermissionChecker: Roles encontrados', {
         count: userRoles.length,
         roles: userRoles.map((ur) => ({
           roleName: ur.role.name,
@@ -142,11 +144,11 @@ export class PermissionCheckerService {
           userRole.role.tenant_id === tenantId || userRole.role.is_system,
       );
 
-      console.log('🔍 DEBUG PermissionChecker: Resultado final:', hasAccess);
+      this.logger.debug('🔍 PermissionChecker: Resultado final', hasAccess);
       return hasAccess;
     } catch (error) {
-      console.error(
-        '❌ DEBUG PermissionChecker: Error en hasAccessToTenant:',
+      this.logger.error(
+        '❌ PermissionChecker: Error en hasAccessToTenant',
         error,
       );
       if (error instanceof ForbiddenException) {

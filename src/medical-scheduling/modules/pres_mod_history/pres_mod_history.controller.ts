@@ -7,17 +7,11 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
-  ApiHeader,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Prescription Modification History')
 @ApiBearerAuth('JWT')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'ID del tenant',
-  required: true,
-})
 @Controller('pres-mod-history')
 export class PresModHistoryController {
   constructor(private readonly presModHistoryService: PresModHistoryService) {}

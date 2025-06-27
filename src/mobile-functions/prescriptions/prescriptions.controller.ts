@@ -34,7 +34,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBody,
-  ApiHeader,
   ApiParam,
   ApiQuery,
   ApiBearerAuth,
@@ -42,11 +41,6 @@ import {
 
 @ApiTags('Mobile Prescriptions')
 @ApiBearerAuth('JWT')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'Tenant ID',
-  required: true,
-})
 @Controller('mobile/prescriptions')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class PrescriptionsController {

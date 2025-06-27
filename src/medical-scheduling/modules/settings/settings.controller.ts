@@ -14,7 +14,6 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiBody,
-  ApiHeader,
 } from '@nestjs/swagger';
 import { SettingsService } from './settings.service';
 import { UpdatePatientReminderSettingsDto } from '../prescription/dto/medication-tracking.dto';
@@ -25,11 +24,6 @@ import { Permission } from '../../../auth/permissions/permission.enum';
 
 @ApiTags('Settings')
 @ApiBearerAuth('JWT')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'Tenant ID',
-  required: true,
-})
 @Controller('settings')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class SettingsController {
