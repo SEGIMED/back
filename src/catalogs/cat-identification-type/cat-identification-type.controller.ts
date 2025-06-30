@@ -18,7 +18,6 @@ import {
   ApiBody,
   ApiQuery,
   ApiBearerAuth,
-  ApiHeader,
 } from '@nestjs/swagger';
 import { CatIdentificationTypeService } from './cat-identification-type.service';
 import { CreateCatIdentificationTypeDto } from './dto/create-cat-identification-type.dto';
@@ -30,12 +29,7 @@ import { PermissionGuard } from '../../auth/guards/permission.guard';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
 
 @ApiTags('Catalogs - Identification Types')
-@ApiBearerAuth('access-token')
-@ApiHeader({
-  name: 'tenant-id',
-  description: 'Tenant ID for multi-organization support',
-  required: true,
-})
+@ApiBearerAuth('JWT')
 @Controller('cat-identification-type')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class CatIdentificationTypeController {

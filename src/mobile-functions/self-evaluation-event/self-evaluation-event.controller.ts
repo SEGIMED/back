@@ -27,13 +27,12 @@ import {
   ApiResponse,
   ApiBody,
   ApiBearerAuth,
-  ApiHeader,
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
 
 @ApiTags('Mobile - Self-Evaluation Events (Signos Vitales)')
-@ApiBearerAuth('access-token')
+@ApiBearerAuth('JWT')
 @Controller('mobile/self-evaluation-event')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class SelfEvaluationEventController {
@@ -43,11 +42,6 @@ export class SelfEvaluationEventController {
 
   @Post()
   @RequirePermission(Permission.VIEW_PATIENT_DETAILS)
-  @ApiHeader({
-    name: 'tenant-id',
-    description: 'ID del tenant',
-    required: true,
-  })
   @ApiOperation({
     summary: 'Crear un evento de autoevaluación (para profesionales)',
     description:

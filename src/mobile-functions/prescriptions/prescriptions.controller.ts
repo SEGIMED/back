@@ -34,19 +34,13 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBody,
-  ApiSecurity,
-  ApiHeader,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 
 @ApiTags('Mobile Prescriptions')
-@ApiSecurity('bearer')
-@ApiHeader({
-  name: 'tenant_id',
-  description: 'Tenant ID',
-  required: true,
-})
+@ApiBearerAuth('JWT')
 @Controller('mobile/prescriptions')
 @UseGuards(TenantAccessGuard, PermissionGuard)
 export class PrescriptionsController {

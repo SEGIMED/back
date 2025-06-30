@@ -22,7 +22,6 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiHeader,
   ApiParam,
 } from '@nestjs/swagger';
 
@@ -42,12 +41,7 @@ export class VitalSignsController {
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
-  @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: false,
-  })
+  @ApiBearerAuth('JWT')
   @RequirePermission(Permission.VIEW_PATIENT_DETAILS) // Should this be CREATE_VITAL_SIGNS or similar?
   async create(
     @Body() createVitalSignDto: CreateVitalSignDto,
@@ -77,12 +71,7 @@ export class VitalSignsController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Patient not found.' })
-  @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: false,
-  })
+  @ApiBearerAuth('JWT')
   @ApiParam({
     name: 'patientId',
     type: 'string',
@@ -112,12 +101,7 @@ export class VitalSignsController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Forbidden resource.' })
   @ApiResponse({ status: 404, description: 'Vital sign record not found.' })
-  @ApiBearerAuth('access-token')
-  @ApiHeader({
-    name: 'X-Tenant-ID',
-    description: 'Tenant ID',
-    required: false,
-  })
+  @ApiBearerAuth('JWT')
   @ApiParam({
     name: 'id',
     type: 'string',

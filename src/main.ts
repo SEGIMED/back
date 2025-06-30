@@ -66,11 +66,8 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        name: 'Authorization',
-        description: 'Enter JWT token',
-        in: 'header',
       },
-      'access-token',
+      'JWT',
     )
     .addTag('Auth', 'Authentication operations')
     .addTag('System', 'System health check and status operations')
@@ -80,6 +77,10 @@ async function bootstrap() {
     )
     .addTag('Patients', 'Patient management operations')
     .addTag('Appointments', 'Appointment scheduling operations')
+    .addTag(
+      'appointment-scheduler',
+      'Automated appointment scheduling services and background processes',
+    )
     .addTag(
       'Medical Order',
       'Medical order management including prescriptions, study authorizations, certifications, hospitalization requests, appointment requests, and medication authorizations',
@@ -161,25 +162,11 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
-      tagsSorter: 'alpha',
-      operationsSorter: 'alpha',
-      docExpansion: 'none',
-      defaultModelsExpandDepth: -1,
-      displayRequestDuration: true,
       tryItOutEnabled: true,
-      withCredentials: true,
-      requestInterceptor: (req) => {
-        // Asegurarse de que todas las peticiones incluyan el token de autorización si existe
-        const token = localStorage.getItem('access_token');
-        if (token) {
-          req.headers.Authorization = `Bearer ${token}`;
-        }
-        return req;
-      },
+      filter: true,
+      displayRequestDuration: true,
     },
     customSiteTitle: 'SEGIMED API Documentation',
-    customCss: '.swagger-ui .topbar { display: none }',
-    swaggerUrl: '/api-json',
   });
 
   const port = process.env.PORT ?? 3000;
