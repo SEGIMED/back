@@ -56,6 +56,7 @@ export enum Permission {
   VIEW_OWN_APPOINTMENTS = 'ver_citas_propias',
   SCHEDULE_OWN_APPOINTMENT = 'agendar_citas_propias',
   VIEW_OWN_MEDICAL_RECORDS = 'ver_historial_medico_propio',
+  DELETE_OWN_MEDICAL_RECORDS = 'eliminar_registros_medicos_propios',
   SUBMIT_SELF_EVALUATION = 'enviar_evaluaciones_propias',
   VIEW_OWN_VITAL_SIGNS = 'ver_signos_vitales_propios',
   REGISTER_OWN_VITAL_SIGNS = 'registrar_signos_vitales_propios',

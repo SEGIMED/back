@@ -108,6 +108,11 @@ export class PermissionsService {
       [Permission.AUTOMATIC_REMINDERS]: 'Recordatorios automáticos de citas',
 
       [Permission.MANAGE_CATALOGS]: 'Gestionar catálogos del sistema',
+
+      [Permission.VIEW_OWN_MEDICAL_RECORDS]: 'Ver historial médico propio',
+      [Permission.DELETE_OWN_MEDICAL_RECORDS]:
+        'Eliminar registros médicos propios',
+      [Permission.SUBMIT_SELF_EVALUATION]: 'Enviar evaluaciones propias',
     };
 
     return descriptions[permissionName] || permissionName;
