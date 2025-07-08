@@ -6,10 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import {
-  PaginationParams,
-  parsePaginationAndSorting,
-} from 'src/utils/pagination.helper';
+import { PaginationParams } from 'src/utils/pagination.helper';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { appointment, status_type } from '@prisma/client';
 import * as moment from 'moment';
@@ -344,7 +341,7 @@ export class AppointmentsService {
   ): Promise<{ data: AppointmentWithRelations[]; total: number }> {
     // Desestructurar los parámetros de paginación y ordenación
     const { skip, take, orderBy, orderDirection } =
-      parsePaginationAndSorting(params);
+      this.parseAppointmentsPaginationAndSorting(params);
 
     try {
       // Construir filtros base
@@ -401,6 +398,42 @@ export class AppointmentsService {
         `Error al obtener las citas: ${error.message}`,
       );
     }
+  }
+
+  // Método específico para validar y parsear parámetros de paginación de appointments
+  private parseAppointmentsPaginationAndSorting(params: PaginationParams) {
+    const page =
+      params.page && Number(params.page) > 0 ? Number(params.page) : 1;
+    const pageSize =
+      params.pageSize && Number(params.pageSize) > 0
+        ? Number(params.pageSize)
+        : 10;
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    // Campos válidos para ordenamiento en appointments
+    const validOrderFields = [
+      'start',
+      'end',
+      'created_at',
+      'updated_at',
+      'status',
+      'consultation_reason',
+    ];
+
+    // Validar y establecer campo de ordenamiento
+    const orderBy =
+      params.orderBy && validOrderFields.includes(params.orderBy)
+        ? params.orderBy
+        : 'start'; // Por defecto ordenar por fecha de inicio de la cita
+
+    // Validar dirección de ordenamiento
+    const orderDirection =
+      params.orderDirection === 'asc' || params.orderDirection === 'desc'
+        ? params.orderDirection
+        : 'desc'; // Por defecto mostrar las citas más recientes primero
+
+    return { skip, take, orderBy, orderDirection };
   }
 
   async getAppointmentById(

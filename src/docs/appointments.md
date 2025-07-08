@@ -58,9 +58,17 @@ Devuelve las citas asociadas al usuario actual con estructura paginada.
   - `tenant-id`: ID del tenant
 - **Parámetros de consulta**:
   - `status` (opcional): Filtrar por estado (`atendida`, `cancelada`, `pendiente`)
-  - `page` (opcional): Número de página para paginación
-  - `limit` (opcional): Número de elementos por página
+  - `page` (opcional): Número de página para paginación (por defecto: 1)
+  - `pageSize` (opcional): Número de elementos por página (por defecto: 10)
   - `specialty_id` (opcional): ID de la especialidad médica para filtrar citas
+  - `orderBy` (opcional): Campo por el cual ordenar los resultados. Valores permitidos:
+    - `start` (por defecto): Fecha y hora de inicio de la cita
+    - `end`: Fecha y hora de fin de la cita
+    - `created_at`: Fecha de creación de la cita
+    - `updated_at`: Fecha de última actualización
+    - `status`: Estado de la cita
+    - `consultation_reason`: Razón de la consulta
+  - `orderDirection` (opcional): Dirección del ordenamiento (`asc` o `desc`, por defecto: `desc`)
 - **Respuesta exitosa** (`200 OK`):
   ```json
   {
@@ -94,6 +102,31 @@ Devuelve las citas asociadas al usuario actual con estructura paginada.
 - **Otras respuestas**:
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
+
+#### Ejemplos de uso con ordenamiento:
+
+1. **Obtener citas más recientes primero:**
+
+   ```
+   GET /appointments/user?orderBy=start&orderDirection=desc
+   ```
+
+2. **Obtener citas ordenadas por estado:**
+
+   ```
+   GET /appointments/user?orderBy=status&orderDirection=asc
+   ```
+
+3. **Obtener citas paginadas ordenadas por fecha de creación:**
+
+   ```
+   GET /appointments/user?page=2&pageSize=5&orderBy=created_at&orderDirection=desc
+   ```
+
+4. **Filtrar por estado y ordenar por fecha de cita:**
+   ```
+   GET /appointments/user?status=pendiente&orderBy=start&orderDirection=asc
+   ```
 
 ### 3. Obtener Cita por ID
 

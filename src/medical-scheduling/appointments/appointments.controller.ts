@@ -109,6 +109,27 @@ export class AppointmentsController {
     required: false,
     type: Number,
   })
+  @ApiQuery({
+    name: 'orderBy',
+    description: 'Campo por el cual ordenar los resultados',
+    required: false,
+    enum: [
+      'start',
+      'end',
+      'created_at',
+      'updated_at',
+      'status',
+      'consultation_reason',
+    ],
+    example: 'start',
+  })
+  @ApiQuery({
+    name: 'orderDirection',
+    description: 'Dirección del ordenamiento',
+    required: false,
+    enum: ['asc', 'desc'],
+    example: 'desc',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Citas del usuario devueltas exitosamente',
