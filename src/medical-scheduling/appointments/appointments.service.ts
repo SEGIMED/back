@@ -14,6 +14,18 @@ import { appointment, status_type } from '@prisma/client';
 import * as moment from 'moment';
 import { GroupBy, StatisticsType } from './dto/get-statistics.dto';
 
+type AppointmentWithRelations = appointment & {
+  patient: {
+    name: string;
+    last_name: string;
+    email: string;
+  };
+  physician: {
+    name: string;
+    last_name: string;
+  };
+};
+
 @Injectable()
 export class AppointmentsService {
   constructor(private prisma: PrismaService) {}
@@ -328,7 +340,7 @@ export class AppointmentsService {
   async getAppointmentsByUser(
     userId: string,
     params: { status?: status_type; specialty_id?: number } & PaginationParams,
-  ): Promise<{ data: appointment[]; total: number }> {
+  ): Promise<{ data: AppointmentWithRelations[]; total: number }> {
     // Desestructurar los parámetros de paginación y ordenación
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(params);
@@ -358,6 +370,21 @@ export class AppointmentsService {
           skip,
           take,
           orderBy: { [orderBy]: orderDirection },
+          include: {
+            patient: {
+              select: {
+                name: true,
+                last_name: true,
+                email: true,
+              },
+            },
+            physician: {
+              select: {
+                name: true,
+                last_name: true,
+              },
+            },
+          },
         }),
         this.prisma.appointment.count({
           where: whereConditions,

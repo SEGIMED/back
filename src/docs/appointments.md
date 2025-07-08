@@ -73,7 +73,19 @@ Devuelve las citas asociadas al usuario actual con estructura paginada.
         "patient_id": "uuid-paciente",
         "physician_id": "uuid-medico",
         "status": "pendiente",
-        "comments": "Revisión mensual"
+        "comments": "Revisión mensual",
+        "tenant_id": "uuid-tenant",
+        "created_at": "2025-07-08T09:00:00.000Z",
+        "updated_at": "2025-07-08T09:15:00.000Z",
+        "patient": {
+          "name": "Juan Carlos",
+          "last_name": "Pérez García",
+          "email": "juan.perez@email.com"
+        },
+        "physician": {
+          "name": "Dr. María",
+          "last_name": "González López"
+        }
       }
     ],
     "total": 25

@@ -1,15 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { appointment } from '@prisma/client';
+import { AppointmentWithRelationsDto } from './appointment-with-relations.dto';
 
 export class PaginatedAppointmentsResponseDto {
   @ApiProperty({
     description: 'Lista de citas para la página actual',
-    type: 'array',
-    items: {
-      type: 'object',
-    },
+    type: [AppointmentWithRelationsDto],
   })
-  data: appointment[];
+  data: AppointmentWithRelationsDto[];
 
   @ApiProperty({
     description: 'Número total de citas que coinciden con los filtros',
