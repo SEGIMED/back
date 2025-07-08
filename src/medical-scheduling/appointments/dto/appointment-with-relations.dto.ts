@@ -63,7 +63,12 @@ export class AppointmentWithRelationsDto {
     properties: {
       name: { type: 'string' },
       last_name: { type: 'string' },
-      email: { type: 'string' },
+      email: { type: 'string', required: false },
+    },
+    example: {
+      name: 'Juan',
+      last_name: 'Pérez',
+      email: 'juan.perez@email.com',
     },
   })
   patient: {
@@ -78,6 +83,10 @@ export class AppointmentWithRelationsDto {
     properties: {
       name: { type: 'string' },
       last_name: { type: 'string' },
+    },
+    example: {
+      name: 'Dr. Ana',
+      last_name: 'García',
     },
   })
   physician: {

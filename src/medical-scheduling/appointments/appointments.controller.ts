@@ -154,6 +154,7 @@ export class AppointmentsController {
   }
 
   @Get(':id')
+  @UseGuards(TenantAccessGuard)
   @ApiOperation({
     summary: 'Obtener cita por ID',
     description: 'Devuelve los detalles completos de una cita específica',
