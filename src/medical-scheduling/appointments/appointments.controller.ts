@@ -10,6 +10,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { PaginatedAppointmentsResponseDto } from './dto/paginated-appointments-response.dto';
+import { AppointmentWithRelationsDto } from './dto/appointment-with-relations.dto';
 import { AppointmentsService } from './appointments.service';
 import { status_type } from '@prisma/client';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
@@ -107,9 +109,31 @@ export class AppointmentsController {
     required: false,
     type: Number,
   })
+  @ApiQuery({
+    name: 'orderBy',
+    description: 'Campo por el cual ordenar los resultados',
+    required: false,
+    enum: [
+      'start',
+      'end',
+      'created_at',
+      'updated_at',
+      'status',
+      'consultation_reason',
+    ],
+    example: 'start',
+  })
+  @ApiQuery({
+    name: 'orderDirection',
+    description: 'Dirección del ordenamiento',
+    required: false,
+    enum: ['asc', 'desc'],
+    example: 'desc',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Citas del usuario devueltas exitosamente',
+    type: PaginatedAppointmentsResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,
@@ -127,6 +151,43 @@ export class AppointmentsController {
     params: { status?: status_type; specialty_id?: number } & PaginationParams,
   ) {
     return this.appointmentsService.getAppointmentsByUser(user.id, params);
+  }
+
+  @Get(':id')
+  @UseGuards(TenantAccessGuard)
+  @ApiOperation({
+    summary: 'Obtener cita por ID',
+    description: 'Devuelve los detalles completos de una cita específica',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID único de la cita',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Cita encontrada exitosamente',
+    type: AppointmentWithRelationsDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Cita no encontrada o sin permisos para acceder',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'No autorizado',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Prohibido - Permisos insuficientes',
+  })
+  @RequirePermission(Permission.SCHEDULE_APPOINTMENTS)
+  async getAppointmentById(
+    @Param('id') id: string,
+    @GetUser() user,
+    @GetTenant() tenant,
+  ) {
+    return this.appointmentsService.getAppointmentById(id, user.id, tenant.id);
   }
 
   @Patch(':id/status')

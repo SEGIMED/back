@@ -2,17 +2,27 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
-import {
-  PaginationParams,
-  parsePaginationAndSorting,
-} from 'src/utils/pagination.helper';
+import { PaginationParams } from 'src/utils/pagination.helper';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { appointment, status_type } from '@prisma/client';
 import * as moment from 'moment';
 import { GroupBy, StatisticsType } from './dto/get-statistics.dto';
+
+type AppointmentWithRelations = appointment & {
+  patient: {
+    name: string;
+    last_name: string;
+    email: string;
+  };
+  physician: {
+    name: string;
+    last_name: string;
+  };
+};
 
 @Injectable()
 export class AppointmentsService {
@@ -328,10 +338,10 @@ export class AppointmentsService {
   async getAppointmentsByUser(
     userId: string,
     params: { status?: status_type; specialty_id?: number } & PaginationParams,
-  ): Promise<appointment[]> {
+  ): Promise<{ data: AppointmentWithRelations[]; total: number }> {
     // Desestructurar los parámetros de paginación y ordenación
     const { skip, take, orderBy, orderDirection } =
-      parsePaginationAndSorting(params);
+      this.parseAppointmentsPaginationAndSorting(params);
 
     try {
       // Construir filtros base
@@ -351,17 +361,125 @@ export class AppointmentsService {
         };
       }
 
-      const appointments = await this.prisma.appointment.findMany({
-        where: whereConditions,
-        skip,
-        take,
-        orderBy: { [orderBy]: orderDirection },
-      });
+      // Ejecutar consultas en paralelo para mejor performance
+      const [appointments, total] = await Promise.all([
+        this.prisma.appointment.findMany({
+          where: whereConditions,
+          skip,
+          take,
+          orderBy: { [orderBy]: orderDirection },
+          include: {
+            patient: {
+              select: {
+                name: true,
+                last_name: true,
+                email: true,
+              },
+            },
+            physician: {
+              select: {
+                name: true,
+                last_name: true,
+              },
+            },
+          },
+        }),
+        this.prisma.appointment.count({
+          where: whereConditions,
+        }),
+      ]);
 
-      return appointments;
+      return {
+        data: appointments,
+        total,
+      };
     } catch (error) {
       throw new InternalServerErrorException(
         `Error al obtener las citas: ${error.message}`,
+      );
+    }
+  }
+
+  // Método específico para validar y parsear parámetros de paginación de appointments
+  private parseAppointmentsPaginationAndSorting(params: PaginationParams) {
+    const page =
+      params.page && Number(params.page) > 0 ? Number(params.page) : 1;
+    const pageSize =
+      params.pageSize && Number(params.pageSize) > 0
+        ? Number(params.pageSize)
+        : 10;
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    // Campos válidos para ordenamiento en appointments
+    const validOrderFields = [
+      'start',
+      'end',
+      'created_at',
+      'updated_at',
+      'status',
+      'consultation_reason',
+    ];
+
+    // Validar y establecer campo de ordenamiento
+    const orderBy =
+      params.orderBy && validOrderFields.includes(params.orderBy)
+        ? params.orderBy
+        : 'start'; // Por defecto ordenar por fecha de inicio de la cita
+
+    // Validar dirección de ordenamiento
+    const orderDirection =
+      params.orderDirection === 'asc' || params.orderDirection === 'desc'
+        ? params.orderDirection
+        : 'desc'; // Por defecto mostrar las citas más recientes primero
+
+    return { skip, take, orderBy, orderDirection };
+  }
+
+  async getAppointmentById(
+    id: string,
+    userId: string,
+    tenantId: string,
+  ): Promise<AppointmentWithRelations> {
+    try {
+      const appointment = await this.prisma.appointment.findFirst({
+        where: {
+          id,
+          tenant_id: tenantId,
+          deleted: false,
+          // Verificar que el usuario sea el paciente o el médico de la cita
+          OR: [{ patient_id: userId }, { physician_id: userId }],
+        },
+        include: {
+          patient: {
+            select: {
+              name: true,
+              last_name: true,
+              email: true,
+            },
+          },
+          physician: {
+            select: {
+              name: true,
+              last_name: true,
+            },
+          },
+        },
+      });
+
+      if (!appointment) {
+        throw new NotFoundException(
+          'Cita no encontrada o no tienes permisos para acceder a ella',
+        );
+      }
+
+      return appointment;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Error al obtener la cita: ${error.message}`,
       );
     }
   }

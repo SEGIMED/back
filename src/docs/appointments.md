@@ -49,7 +49,7 @@ Crea una nueva cita en el sistema.
 
 ### 2. Obtener Citas del Usuario
 
-Devuelve las citas asociadas al usuario actual.
+Devuelve las citas asociadas al usuario actual con estructura paginada.
 
 - **URL**: `GET /appointments/user`
 - **Permisos**: `SCHEDULE_APPOINTMENTS`
@@ -58,14 +58,118 @@ Devuelve las citas asociadas al usuario actual.
   - `tenant-id`: ID del tenant
 - **Parámetros de consulta**:
   - `status` (opcional): Filtrar por estado (`atendida`, `cancelada`, `pendiente`)
-  - `page` (opcional): Número de página para paginación
-  - `limit` (opcional): Número de elementos por página
-- **Respuestas**:
-  - `200 OK`: Citas devueltas correctamente
+  - `page` (opcional): Número de página para paginación (por defecto: 1)
+  - `pageSize` (opcional): Número de elementos por página (por defecto: 10)
+  - `specialty_id` (opcional): ID de la especialidad médica para filtrar citas
+  - `orderBy` (opcional): Campo por el cual ordenar los resultados. Valores permitidos:
+    - `start` (por defecto): Fecha y hora de inicio de la cita
+    - `end`: Fecha y hora de fin de la cita
+    - `created_at`: Fecha de creación de la cita
+    - `updated_at`: Fecha de última actualización
+    - `status`: Estado de la cita
+    - `consultation_reason`: Razón de la consulta
+  - `orderDirection` (opcional): Dirección del ordenamiento (`asc` o `desc`, por defecto: `desc`)
+- **Respuesta exitosa** (`200 OK`):
+  ```json
+  {
+    "data": [
+      {
+        "id": "uuid-cita",
+        "consultation_reason": "Consulta de control",
+        "start": "2025-07-08T10:00:00.000Z",
+        "end": "2025-07-08T10:30:00.000Z",
+        "patient_id": "uuid-paciente",
+        "physician_id": "uuid-medico",
+        "status": "pendiente",
+        "comments": "Revisión mensual",
+        "tenant_id": "uuid-tenant",
+        "created_at": "2025-07-08T09:00:00.000Z",
+        "updated_at": "2025-07-08T09:15:00.000Z",
+        "patient": {
+          "name": "Juan Carlos",
+          "last_name": "Pérez García",
+          "email": "juan.perez@email.com"
+        },
+        "physician": {
+          "name": "Dr. María",
+          "last_name": "González López"
+        }
+      }
+    ],
+    "total": 25
+  }
+  ```
+- **Otras respuestas**:
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 3. Actualizar Estado de Cita
+#### Ejemplos de uso con ordenamiento:
+
+1. **Obtener citas más recientes primero:**
+
+   ```
+   GET /appointments/user?orderBy=start&orderDirection=desc
+   ```
+
+2. **Obtener citas ordenadas por estado:**
+
+   ```
+   GET /appointments/user?orderBy=status&orderDirection=asc
+   ```
+
+3. **Obtener citas paginadas ordenadas por fecha de creación:**
+
+   ```
+   GET /appointments/user?page=2&pageSize=5&orderBy=created_at&orderDirection=desc
+   ```
+
+4. **Filtrar por estado y ordenar por fecha de cita:**
+   ```
+   GET /appointments/user?status=pendiente&orderBy=start&orderDirection=asc
+   ```
+
+### 3. Obtener Cita por ID
+
+Obtiene los detalles completos de una cita específica.
+
+- **URL**: `GET /appointments/{id}`
+- **Permisos**: `SCHEDULE_APPOINTMENTS`
+- **Headers**:
+  - `Authorization`: Bearer token
+  - `tenant-id`: ID del tenant
+- **Parámetros de ruta**:
+  - `id`: ID único de la cita
+- **Respuesta exitosa** (`200 OK`):
+  ```json
+  {
+    "id": "uuid-cita",
+    "consultation_reason": "Consulta de control",
+    "start": "2025-07-08T10:00:00.000Z",
+    "end": "2025-07-08T10:30:00.000Z",
+    "patient_id": "uuid-paciente",
+    "physician_id": "uuid-medico",
+    "status": "pendiente",
+    "comments": "Revisión mensual",
+    "tenant_id": "uuid-tenant",
+    "created_at": "2025-07-08T09:00:00.000Z",
+    "updated_at": "2025-07-08T09:15:00.000Z",
+    "patient": {
+      "name": "Juan Carlos",
+      "last_name": "Pérez García",
+      "email": "juan.perez@email.com"
+    },
+    "physician": {
+      "name": "Dr. María",
+      "last_name": "González López"
+    }
+  }
+  ```
+- **Otras respuestas**:
+  - `404 Not Found`: Cita no encontrada o sin permisos para acceder
+  - `401 Unauthorized`: No autorizado
+  - `403 Forbidden`: Permisos insuficientes
+
+### 4. Actualizar Estado de Cita
 
 Actualiza el estado de una cita existente.
 
@@ -90,7 +194,7 @@ Actualiza el estado de una cita existente.
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 4. Calendario del Médico Actual
+### 5. Calendario del Médico Actual
 
 Devuelve los datos de calendario para el médico actual.
 
@@ -110,7 +214,7 @@ Devuelve los datos de calendario para el médico actual.
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 5. Calendario de un Médico Específico
+### 6. Calendario de un Médico Específico
 
 Devuelve los datos de calendario para un médico específico.
 
@@ -133,7 +237,7 @@ Devuelve los datos de calendario para un médico específico.
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 6. Estadísticas de Citas
+### 7. Estadísticas de Citas
 
 Devuelve estadísticas sobre las citas.
 
