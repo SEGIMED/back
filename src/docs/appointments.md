@@ -95,7 +95,48 @@ Devuelve las citas asociadas al usuario actual con estructura paginada.
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 3. Actualizar Estado de Cita
+### 3. Obtener Cita por ID
+
+Obtiene los detalles completos de una cita específica.
+
+- **URL**: `GET /appointments/{id}`
+- **Permisos**: `SCHEDULE_APPOINTMENTS`
+- **Headers**:
+  - `Authorization`: Bearer token
+  - `tenant-id`: ID del tenant
+- **Parámetros de ruta**:
+  - `id`: ID único de la cita
+- **Respuesta exitosa** (`200 OK`):
+  ```json
+  {
+    "id": "uuid-cita",
+    "consultation_reason": "Consulta de control",
+    "start": "2025-07-08T10:00:00.000Z",
+    "end": "2025-07-08T10:30:00.000Z",
+    "patient_id": "uuid-paciente",
+    "physician_id": "uuid-medico",
+    "status": "pendiente",
+    "comments": "Revisión mensual",
+    "tenant_id": "uuid-tenant",
+    "created_at": "2025-07-08T09:00:00.000Z",
+    "updated_at": "2025-07-08T09:15:00.000Z",
+    "patient": {
+      "name": "Juan Carlos",
+      "last_name": "Pérez García",
+      "email": "juan.perez@email.com"
+    },
+    "physician": {
+      "name": "Dr. María",
+      "last_name": "González López"
+    }
+  }
+  ```
+- **Otras respuestas**:
+  - `404 Not Found`: Cita no encontrada o sin permisos para acceder
+  - `401 Unauthorized`: No autorizado
+  - `403 Forbidden`: Permisos insuficientes
+
+### 4. Actualizar Estado de Cita
 
 Actualiza el estado de una cita existente.
 
@@ -120,7 +161,7 @@ Actualiza el estado de una cita existente.
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 4. Calendario del Médico Actual
+### 5. Calendario del Médico Actual
 
 Devuelve los datos de calendario para el médico actual.
 
@@ -140,7 +181,7 @@ Devuelve los datos de calendario para el médico actual.
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 5. Calendario de un Médico Específico
+### 6. Calendario de un Médico Específico
 
 Devuelve los datos de calendario para un médico específico.
 
@@ -163,7 +204,7 @@ Devuelve los datos de calendario para un médico específico.
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
-### 6. Estadísticas de Citas
+### 7. Estadísticas de Citas
 
 Devuelve estadísticas sobre las citas.
 

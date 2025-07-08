@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -398,6 +399,54 @@ export class AppointmentsService {
     } catch (error) {
       throw new InternalServerErrorException(
         `Error al obtener las citas: ${error.message}`,
+      );
+    }
+  }
+
+  async getAppointmentById(
+    id: string,
+    userId: string,
+    tenantId: string,
+  ): Promise<AppointmentWithRelations> {
+    try {
+      const appointment = await this.prisma.appointment.findFirst({
+        where: {
+          id,
+          tenant_id: tenantId,
+          deleted: false,
+          // Verificar que el usuario sea el paciente o el médico de la cita
+          OR: [{ patient_id: userId }, { physician_id: userId }],
+        },
+        include: {
+          patient: {
+            select: {
+              name: true,
+              last_name: true,
+              email: true,
+            },
+          },
+          physician: {
+            select: {
+              name: true,
+              last_name: true,
+            },
+          },
+        },
+      });
+
+      if (!appointment) {
+        throw new NotFoundException(
+          'Cita no encontrada o no tienes permisos para acceder a ella',
+        );
+      }
+
+      return appointment;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Error al obtener la cita: ${error.message}`,
       );
     }
   }
