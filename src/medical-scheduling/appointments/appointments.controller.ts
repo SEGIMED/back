@@ -10,6 +10,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { PaginatedAppointmentsResponseDto } from './dto/paginated-appointments-response.dto';
 import { AppointmentsService } from './appointments.service';
 import { status_type } from '@prisma/client';
 import { TenantAccessGuard } from '../../auth/guards/tenant-access.guard';
@@ -110,6 +111,7 @@ export class AppointmentsController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Citas del usuario devueltas exitosamente',
+    type: PaginatedAppointmentsResponseDto,
   })
   @ApiResponse({
     status: HttpStatus.UNAUTHORIZED,

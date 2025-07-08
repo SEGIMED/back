@@ -328,7 +328,7 @@ export class AppointmentsService {
   async getAppointmentsByUser(
     userId: string,
     params: { status?: status_type; specialty_id?: number } & PaginationParams,
-  ): Promise<appointment[]> {
+  ): Promise<{ data: appointment[]; total: number }> {
     // Desestructurar los parámetros de paginación y ordenación
     const { skip, take, orderBy, orderDirection } =
       parsePaginationAndSorting(params);
@@ -351,14 +351,23 @@ export class AppointmentsService {
         };
       }
 
-      const appointments = await this.prisma.appointment.findMany({
-        where: whereConditions,
-        skip,
-        take,
-        orderBy: { [orderBy]: orderDirection },
-      });
+      // Ejecutar consultas en paralelo para mejor performance
+      const [appointments, total] = await Promise.all([
+        this.prisma.appointment.findMany({
+          where: whereConditions,
+          skip,
+          take,
+          orderBy: { [orderBy]: orderDirection },
+        }),
+        this.prisma.appointment.count({
+          where: whereConditions,
+        }),
+      ]);
 
-      return appointments;
+      return {
+        data: appointments,
+        total,
+      };
     } catch (error) {
       throw new InternalServerErrorException(
         `Error al obtener las citas: ${error.message}`,

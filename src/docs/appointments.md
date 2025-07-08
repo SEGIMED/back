@@ -49,7 +49,7 @@ Crea una nueva cita en el sistema.
 
 ### 2. Obtener Citas del Usuario
 
-Devuelve las citas asociadas al usuario actual.
+Devuelve las citas asociadas al usuario actual con estructura paginada.
 
 - **URL**: `GET /appointments/user`
 - **Permisos**: `SCHEDULE_APPOINTMENTS`
@@ -60,8 +60,26 @@ Devuelve las citas asociadas al usuario actual.
   - `status` (opcional): Filtrar por estado (`atendida`, `cancelada`, `pendiente`)
   - `page` (opcional): Número de página para paginación
   - `limit` (opcional): Número de elementos por página
-- **Respuestas**:
-  - `200 OK`: Citas devueltas correctamente
+  - `specialty_id` (opcional): ID de la especialidad médica para filtrar citas
+- **Respuesta exitosa** (`200 OK`):
+  ```json
+  {
+    "data": [
+      {
+        "id": "uuid-cita",
+        "consultation_reason": "Consulta de control",
+        "start": "2025-07-08T10:00:00.000Z",
+        "end": "2025-07-08T10:30:00.000Z",
+        "patient_id": "uuid-paciente",
+        "physician_id": "uuid-medico",
+        "status": "pendiente",
+        "comments": "Revisión mensual"
+      }
+    ],
+    "total": 25
+  }
+  ```
+- **Otras respuestas**:
   - `401 Unauthorized`: No autorizado
   - `403 Forbidden`: Permisos insuficientes
 
