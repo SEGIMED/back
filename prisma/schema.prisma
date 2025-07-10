@@ -50,6 +50,7 @@ model user {
   birth_date                     DateTime?
   phone_prefix                   String?
   phone                          String?
+  marital_status                 marital_status?
   is_phone_verified              Boolean                  @default(false)
   image                          String                   @default("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")
   created_at                     DateTime                 @default(now())
@@ -138,6 +139,18 @@ model patient {
   medication_reminder_max_retries      Int?             @default(3)
   user                                 user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
   patient_tenant                       patient_tenant[]
+}
+
+model emergency_contact {
+  id         String    @id @default(uuid())
+  patient_id String
+  contact_name String
+  relationship String
+  email String?
+  
+  phone_prefix       String
+  phone      String
+  created_at DateTime  @default(now())
 }
 
 model patient_tenant {
@@ -763,6 +776,14 @@ enum role_type {
   physician
   organization_owner
   superadmin
+}
+
+enum marital_status {
+  soltero
+  casado
+  divorciado
+  viudo
+  union_libre
 }
 
 enum status_type {

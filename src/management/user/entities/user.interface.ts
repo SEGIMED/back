@@ -1,4 +1,4 @@
-import { role_type } from '@prisma/client';
+import { marital_status, role_type } from '@prisma/client';
 /* import { Tenant } from 'src/tenant/entities/tenant.interface';
  */
 export interface User {
@@ -17,6 +17,7 @@ export interface User {
   google_id?: string;
   image?: string;
   role?: role_type;
+  marital_status?: marital_status;
   /*   tenant?: Tenant; */
   tenant_id?: string;
   createdAt?: Date;
