@@ -161,6 +161,7 @@ export class AuthService {
             image: GoogleUserDto.image ?? '',
             tenant_id: null,
             password: '',
+            marital_status: 'soltero',
           },
         });
       }
@@ -451,6 +452,7 @@ export class AuthService {
           role: 'superadmin',
           tenant_id: superAdminTenantId,
           is_superadmin: true,
+          marital_status: 'soltero',
         },
       });
 
