@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -77,9 +78,11 @@ export class BaseUserDto {
     example: 'soltero',
     enum: marital_status,
   })
-  @IsString({ message: 'El estado civil debe ser un texto válido.' })
+  @IsEnum(marital_status, {
+    message: 'El estado civil debe ser un valor válido del enum.',
+  })
   @IsOptional()
-  marital_status: marital_status;
+  marital_status?: marital_status;
 
   @ApiPropertyOptional({
     description: "User's gender",

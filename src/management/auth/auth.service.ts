@@ -18,6 +18,7 @@ import {
   LoginResponseDto,
   TenantDto,
 } from './dto/login-response.dto';
+import { marital_status } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -161,7 +162,7 @@ export class AuthService {
             image: GoogleUserDto.image ?? '',
             tenant_id: null,
             password: '',
-            marital_status: 'soltero',
+            marital_status: marital_status.soltero,
           },
         });
       }
@@ -452,7 +453,7 @@ export class AuthService {
           role: 'superadmin',
           tenant_id: superAdminTenantId,
           is_superadmin: true,
-          marital_status: 'soltero',
+          marital_status: marital_status.soltero,
         },
       });
 
