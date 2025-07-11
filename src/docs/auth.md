@@ -178,7 +178,7 @@ Verifica el código OTP enviado al usuario.
 
 ### `POST /auth/create-superadmin`
 
-Crea un usuario superadministrador con privilegios completos. Requiere una clave secreta.
+Crea un usuario superadministrador con privilegios completos. Requiere una clave secreta. Si el tenant del superadmin no existe, se creará automáticamente.
 
 #### Request Body: `CreateSuperAdminDto`
 
@@ -197,6 +197,33 @@ Crea un usuario superadministrador con privilegios completos. Requiere una clave
 
 - `201 Created`: Superadministrador creado exitosamente.
 - `400 Bad Request`: Datos inválidos o clave secreta incorrecta.
+
+#### Response Body (Success)
+
+```json
+{
+  "message": "Superadmin creado exitosamente",
+  "user": {
+    "id": "user-uuid",
+    "email": "admin@segimed.com",
+    "name": "Admin",
+    "last_name": "Principal",
+    "role": "superadmin"
+  },
+  "tenant": {
+    "id": "tenant-uuid",
+    "type": "organization",
+    "created": true
+  }
+}
+```
+
+#### Notas Importantes
+
+- **Tenant Creation**: Si el tenant especificado en `SUPER_ADMIN_TENANT_ID` no existe, se creará automáticamente como tipo `organization`.
+- **Secret Key**: La clave secreta debe coincidir con `SUPER_ADMIN_SECRET_KEY` en las variables de entorno.
+- **Tenant ID**: El ID del tenant se obtiene automáticamente de `SUPER_ADMIN_TENANT_ID` en las variables de entorno.
+- **Roles y Permisos**: Se asignan automáticamente todos los roles y permisos al superadmin creado.
 
 ## Endpoints de Gestión de Roles y Permisos
 

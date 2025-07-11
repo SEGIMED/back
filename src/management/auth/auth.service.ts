@@ -434,6 +434,25 @@ export class AuthService {
         throw new BadRequestException('Clave secreta incorrecta');
       }
 
+      // Verificar si el tenant del superadmin existe, si no, crearlo
+      let superAdminTenant = await this.prisma.tenant.findUnique({
+        where: { id: superAdminTenantId },
+      });
+
+      if (!superAdminTenant) {
+        superAdminTenant = await this.prisma.tenant.create({
+          data: {
+            id: superAdminTenantId,
+            type: 'organization',
+          },
+        });
+        console.log(
+          `✅ Tenant de superadmin creado automáticamente: ${superAdminTenantId}`,
+        );
+      } else {
+        console.log(`✅ Tenant de superadmin ya existe: ${superAdminTenantId}`);
+      }
+
       const saltRounds = parseInt(
         this.configService.get<string>('BCRYPT_SALT_ROUNDS'),
       );
@@ -449,14 +468,14 @@ export class AuthService {
           email: createSuperAdminDto.email,
           password: hashedPassword,
           role: 'superadmin',
-          tenant_id: superAdminTenantId,
+          tenant_id: superAdminTenant.id,
           is_superadmin: true,
         },
       });
 
       await this.setupSuperAdminRolesAndPermissions(
         user.id,
-        createSuperAdminDto.tenant_id,
+        superAdminTenant.id,
       );
 
       return {
@@ -467,6 +486,11 @@ export class AuthService {
           name: user.name,
           last_name: user.last_name,
           role: user.role,
+        },
+        tenant: {
+          id: superAdminTenant.id,
+          type: superAdminTenant.type,
+          created: !superAdminTenant.created_at ? false : true,
         },
       };
     } catch (error) {
