@@ -18,7 +18,7 @@ Registra un nuevo usuario en el sistema.
   "last_name": "Pérez",
   "email": "juan.perez@example.com",
   "password": "StrongP@ss123",
-  "dni": "12345678",
+  "identification_number": "12345678",
   "phone_prefix": "+52",
   "phone": "9876543210",
   "role": "patient"
