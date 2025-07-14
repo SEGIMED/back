@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Query } from '@nestjs/common';
 import { CreateEmergencyContactDto } from './dto/create-emergency-contact.dto';
 import { EmergencyContactService } from './emergency-contact.service';
 import { PaginationParams } from 'src/utils/pagination.helper';
 import { ApiQuery } from '@nestjs/swagger';
+import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto';
 
 
 @Controller('emergency-contact')
@@ -24,5 +25,10 @@ export class EmergencyContactController {
     @Query() pagination: PaginationParams
   ) {
     return this.emergencyContactService.findAllByPatientId(patient_id, pagination);
+  }
+
+  @Patch('update')
+  async update(@Body() updateEmergencyContactDto: UpdateEmergencyContactDto) {
+    return this.emergencyContactService.update(updateEmergencyContactDto);
   }
 }

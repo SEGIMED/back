@@ -3,9 +3,11 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateEmergencyContactDto } from './dto/create-emergency-contact.dto';
 import { EmergencyContact } from './entities/emergency-contact.interface';
 import { PaginationParams, parsePaginationAndSorting } from 'src/utils/pagination.helper';
+import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto';
 
 @Injectable()
 export class EmergencyContactService {
+  
   constructor(private readonly prisma: PrismaService) {}
 
   async create(request: CreateEmergencyContactDto): Promise<EmergencyContact> {
@@ -81,6 +83,36 @@ export class EmergencyContactService {
         phone_prefix: emergencyContact.phone_prefix,
         phone: emergencyContact.phone,
       })),
+    };
+  }
+
+  async update(updateEmergencyContactDto: UpdateEmergencyContactDto) {
+    const { emergency_contact_id, ...data } = updateEmergencyContactDto;
+
+    const filteredData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined)
+    );
+
+    const exists = await this.prisma.emergency_contact.findUnique({
+      where: { id: emergency_contact_id },
+    });
+
+    if (!exists) {
+      throw new NotFoundException('El contacto de emergencia no existe');
+    }
+
+    const emergencyContact = await this.prisma.emergency_contact.update({
+      where: { id: emergency_contact_id },
+      data: filteredData,
+    });
+
+    return {
+      id: emergencyContact.id,
+      contact_name: emergencyContact.contact_name,
+      relationship: emergencyContact.relationship,
+      email: emergencyContact.email,
+      phone_prefix: emergencyContact.phone_prefix,
+      phone: emergencyContact.phone,
     };
   }
 }
