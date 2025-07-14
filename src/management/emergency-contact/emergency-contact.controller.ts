@@ -1,6 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CreateEmergencyContactDto } from './dto/create-emergency-contact.dto';
 import { EmergencyContactService } from './emergency-contact.service';
+import { PaginationParams } from 'src/utils/pagination.helper';
+import { ApiQuery } from '@nestjs/swagger';
+
 
 @Controller('emergency-contact')
 export class EmergencyContactController {
@@ -9,5 +12,17 @@ export class EmergencyContactController {
   @Post('create')
   async create(@Body() createEmergencyContactDto: CreateEmergencyContactDto) {
     return this.emergencyContactService.create(createEmergencyContactDto);
+  }
+
+  @Get('find-all-by-patient-id')
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página' })
+  @ApiQuery({ name: 'pageSize', required: false, type: Number, description: 'Cantidad de resultados por página' })
+  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Campo por el cual ordenar' })
+  @ApiQuery({ name: 'orderDirection', required: false, enum: ['asc', 'desc'], description: 'Dirección de ordenamiento' })
+  async findAllByPatientId(
+    @Query('patient_id') patient_id: string,
+    @Query() pagination: PaginationParams
+  ) {
+    return this.emergencyContactService.findAllByPatientId(patient_id, pagination);
   }
 }

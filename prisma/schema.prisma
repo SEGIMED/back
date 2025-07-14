@@ -120,7 +120,7 @@ model organization_physician {
 }
 
 model patient {
-  id                                   String           @id @default(uuid())
+  id                                   String              @id @default(uuid())
   direction                            String?
   country                              String?
   province                             String?
@@ -130,29 +130,29 @@ model patient {
   apartment                            String?
   health_care_number                   String?
   notes                                String?
-  created_at                           DateTime         @default(now())
-  updated_at                           DateTime         @updatedAt
-  deleted                              Boolean          @default(false)
+  created_at                           DateTime            @default(now())
+  updated_at                           DateTime            @updatedAt
+  deleted                              Boolean             @default(false)
   deleted_at                           DateTime?
-  user_id                              String           @unique
-  medication_reminder_interval_minutes Int?             @default(30)
-  medication_reminder_max_retries      Int?             @default(3)
-  user                                 user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id                              String              @unique
+  medication_reminder_interval_minutes Int?                @default(30)
+  medication_reminder_max_retries      Int?                @default(3)
+  user                                 user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
   patient_tenant                       patient_tenant[]
   emergency_contacts                   emergency_contact[] @relation("PatientToEmergencyContacts")
 }
 
 model emergency_contact {
-  id           String  @id @default(uuid())
+  id           String   @id @default(uuid())
   patient_id   String
-  patient      patient   @relation("PatientToEmergencyContacts", fields: [patient_id], references: [id], onDelete: Cascade) 
+  patient      patient  @relation("PatientToEmergencyContacts", fields: [patient_id], references: [id], onDelete: Cascade)
   contact_name String
   relationship String
   email        String?
   phone_prefix String
   phone        String
   created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  updated_at   DateTime? @updatedAt
 }
 
 model patient_tenant {
