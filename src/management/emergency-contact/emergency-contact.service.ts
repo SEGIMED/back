@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateEmergencyContactDto } from './dto/create-emergency-contact.dto';
 import { EmergencyContact } from './entities/emergency-contact.interface';
@@ -114,5 +114,23 @@ export class EmergencyContactService {
       phone_prefix: emergencyContact.phone_prefix,
       phone: emergencyContact.phone,
     };
+  }
+
+  async delete(emergency_contact_id: string) {
+    const exists = await this.prisma.emergency_contact.findUnique({
+      where: { id: emergency_contact_id },
+    });
+
+    if (!exists) {
+      throw new NotFoundException('El contacto de emergencia no existe');
+    }
+
+    const deletedEmergencyContact = await this.prisma.emergency_contact.delete({
+      where: { id: emergency_contact_id },
+    });
+
+    if (!deletedEmergencyContact) throw new InternalServerErrorException('Error al eliminar el contacto de emergencia');
+
+    return deletedEmergencyContact;
   }
 }

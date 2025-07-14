@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Query } from '@nestjs/common';
 import { CreateEmergencyContactDto } from './dto/create-emergency-contact.dto';
 import { EmergencyContactService } from './emergency-contact.service';
 import { PaginationParams } from 'src/utils/pagination.helper';
@@ -11,7 +11,7 @@ export class EmergencyContactController {
   constructor(private readonly emergencyContactService: EmergencyContactService) {}
 
   @Post('create')
-  async create(@Body() createEmergencyContactDto: CreateEmergencyContactDto) {
+  create(@Body() createEmergencyContactDto: CreateEmergencyContactDto) {
     return this.emergencyContactService.create(createEmergencyContactDto);
   }
 
@@ -20,7 +20,7 @@ export class EmergencyContactController {
   @ApiQuery({ name: 'pageSize', required: false, type: Number, description: 'Cantidad de resultados por página' })
   @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Campo por el cual ordenar' })
   @ApiQuery({ name: 'orderDirection', required: false, enum: ['asc', 'desc'], description: 'Dirección de ordenamiento' })
-  async findAllByPatientId(
+  findAllByPatientId(
     @Query('patient_id') patient_id: string,
     @Query() pagination: PaginationParams
   ) {
@@ -28,7 +28,13 @@ export class EmergencyContactController {
   }
 
   @Patch('update')
-  async update(@Body() updateEmergencyContactDto: UpdateEmergencyContactDto) {
+  update(@Body() updateEmergencyContactDto: UpdateEmergencyContactDto) {
     return this.emergencyContactService.update(updateEmergencyContactDto);
+  }
+
+  @Delete('delete')
+  async delete(@Query('emergency_contact_id') emergency_contact_id: string) {
+    await this.emergencyContactService.delete(emergency_contact_id);
+    return {message: 'Contacto de emergencia eliminado correctamente'};
   }
 }
