@@ -378,4 +378,66 @@ export class PatientStudiesController {
   ) {
     return this.patientStudiesService.remove(id);
   }
+
+  @Delete('my-studies/:id')
+  @RequirePermission(Permission.DELETE_OWN_MEDICAL_RECORDS)
+  @ApiOperation({
+    summary: 'Delete own patient study by ID (for patients)',
+    description:
+      'Allows patients to delete their own studies. Validates that the study belongs to the authenticated patient before deletion.',
+  })
+  @ApiParam({ name: 'id', description: 'ID of the patient study to delete' })
+  @ApiResponse({
+    status: 200,
+    description: 'The patient study has been successfully deleted.',
+    content: {
+      'application/json': {
+        example: {
+          id: 'uuid-study',
+          patient_id: 'uuid-patient',
+          title: 'Mi Radiografía de Tórax',
+          description: 'Estudio eliminado por el paciente',
+          is_deleted: true,
+          updatedAt: '2024-01-15T10:30:00Z',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request - Study not found or does not belong to patient.',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid JWT token.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions.',
+  })
+  @ApiResponse({ status: 404, description: 'Patient study not found.' })
+  async removeOwnStudy(
+    @Param(
+      'id',
+      new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.NOT_FOUND }),
+    )
+    id: string,
+    @Request() req: any,
+  ) {
+    // Verificar que el usuario esté autenticado
+    if (!req.user || !req.user.id) {
+      throw new BadRequestException('Usuario no autenticado');
+    }
+
+    // Verificar que sea un paciente
+    if (req.user.role !== 'patient') {
+      throw new BadRequestException(
+        'Esta funcionalidad es solo para pacientes',
+      );
+    }
+
+    const patientId = req.user.id;
+
+    return this.patientStudiesService.removeOwnStudy(id, patientId);
+  }
 }
