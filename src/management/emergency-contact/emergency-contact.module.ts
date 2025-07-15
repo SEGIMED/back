@@ -6,6 +6,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 @Module({
   imports: [PrismaModule],
   controllers: [EmergencyContactController],
-  providers: [EmergencyContactService]
+  providers: [EmergencyContactService],
+  exports: [EmergencyContactService]
 })
 export class EmergencyContactModule {}

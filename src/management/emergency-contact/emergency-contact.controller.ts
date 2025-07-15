@@ -34,7 +34,7 @@ export class EmergencyContactController {
   findAllByPatientId(
     @Query('patient_id') patient_id: string
   ) {
-    return this.emergencyContactService.findAllByPatientId(patient_id);
+    return this.emergencyContactService.findByPatientId(patient_id);
   }
 
   

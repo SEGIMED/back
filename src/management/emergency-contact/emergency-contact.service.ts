@@ -44,19 +44,19 @@ export class EmergencyContactService {
     };
   }
 
-  async findAllByPatientId(
+  async findByPatientId(
     patient_id: string
-  ): Promise<EmergencyContact> {
+  ): Promise<EmergencyContact | null> {
     const patient = await this.prisma.patient.findUnique({
       where: { id: patient_id },
     });
-    if (!patient) throw new NotFoundException('Paciente no encontrado');
+    if (!patient) throw new NotFoundException(`Paciente con id '${patient_id}' no encontrado`);
 
     const emergencyContact = await this.prisma.emergency_contact.findUnique({
       where: { patient_id },
     });
 
-    if(!emergencyContact) throw new NotFoundException('Contacto de emergencia no encontrado');
+    if(!emergencyContact) return null;
 
     return {
       id: emergencyContact.id,
@@ -66,7 +66,6 @@ export class EmergencyContactService {
       phone_prefix: emergencyContact.phone_prefix,
       phone: emergencyContact.phone,
     };
-
   }
 
   async update(updateEmergencyContactDto: UpdateEmergencyContactDto) {

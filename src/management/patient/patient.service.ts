@@ -18,6 +18,7 @@ import { Prisma } from '@prisma/client';
 import { AuthHelper } from 'src/utils/auth.helper';
 import { ConfigService } from '@nestjs/config';
 import { calculateAge } from 'src/utils/fuctions';
+import { EmergencyContactService } from '../emergency-contact/emergency-contact.service';
 
 @Injectable()
 export class PatientService {
@@ -26,6 +27,7 @@ export class PatientService {
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly userRoleManager: UserRoleManagerService,
+    private readonly emergencyContactService: EmergencyContactService,
   ) {}
 
   async create(medicalPatientDto: MedicalPatientDto): Promise<object> {
@@ -322,6 +324,7 @@ export class PatientService {
         this.prisma.patient.findMany({
           where,
           include: {
+            emergency_contact: true,
             user: {
               include: {
                 identification_type: true,
@@ -378,6 +381,7 @@ export class PatientService {
           main_diagnostic_cie:
             user.medical_event_patient[0]?.main_diagnostic_cie.description ||
             '',
+          emergency_contact: patient.emergency_contact || null,
         };
       });
 
