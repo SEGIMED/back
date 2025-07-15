@@ -14,7 +14,6 @@ SEGIMED Frontend es una aplicación web desarrollada en **Next.js** que compleme
 
 ### Estado Actual
 
-- **Frontend:** ~75% desarrollado, interfaz funcional pero necesita optimización
 - **Documentación:** Prácticamente inexistente hasta este informe
 - **Testing:** Configurado con Jest pero sin tests implementados
 - **UI/UX:** Componentes básicos implementados con shadcn/ui
@@ -35,12 +34,14 @@ SEGIMED Frontend es una aplicación web desarrollada en **Next.js** que compleme
 ### Stack Tecnológico Principal
 
 #### **Framework y Runtime**
+
 - **Next.js 14.2.3** - Framework principal (React)
 - **React 18.2.0** - Biblioteca de interfaz de usuario
 - **TypeScript 5.2.2** - Lenguaje principal
 - **Node.js 18+** - Runtime environment
 
 #### **Styling y UI**
+
 - **Tailwind CSS 3.4.0** - Framework de CSS utilitario
 - **shadcn/ui** - Sistema de componentes base
 - **Radix UI** - Componentes primitivos accesibles
@@ -49,13 +50,15 @@ SEGIMED Frontend es una aplicación web desarrollada en **Next.js** que compleme
 - **tailwindcss-animate 1.0.7** - Animaciones CSS
 
 #### **State Management y Forms**
+
 - **Zustand 4.4.6** - Estado global
 - **React Hook Form 7.47.0** - Gestión de formularios
 - **Zod 3.22.4** - Validación de esquemas
 - **@hookform/resolvers 3.3.2** - Resolvers para validación
 
 #### **UI Components Library**
-- **@radix-ui/* (múltiples paquetes)** - Componentes primitivos
+
+- **@radix-ui/\* (múltiples paquetes)** - Componentes primitivos
 - **@tanstack/react-table 8.10.7** - Tablas de datos avanzadas
 - **react-big-calendar 1.17.1** - Componente de calendario
 - **recharts 2.12.7** - Gráficos y charts
@@ -63,12 +66,14 @@ SEGIMED Frontend es una aplicación web desarrollada en **Next.js** que compleme
 - **sonner 1.5.0** - Sistema de notificaciones toast
 
 #### **Autenticación y Comunicación**
+
 - **next-auth 4.24.11** - Autenticación
 - **axios 1.8.2** - Cliente HTTP
 - **socket.io-client 4.8.1** - WebSockets en tiempo real
 - **js-cookie 3.0.5** - Gestión de cookies
 
 #### **Utilidades y Helpers**
+
 - **date-fns 2.30.0** - Manipulación de fechas
 - **uuid 9.0.1** - Generación de IDs únicos
 - **clsx 2.0.0** - Utilidad de clases condicionales
@@ -78,12 +83,14 @@ SEGIMED Frontend es una aplicación web desarrollada en **Next.js** que compleme
 ### Características Arquitectónicas
 
 #### **App Router (Next.js 13+)**
+
 - **Estructura basada en carpetas** con App Router
 - **Layouts anidados** para diferentes secciones
 - **Server Actions** para operaciones del servidor
 - **Middleware** para autenticación y redirecciones (parcialmente deshabilitado)
 
 #### **Componentes Reutilizables**
+
 - **Sistema de diseño coherente** con shadcn/ui
 - **Componentes UI personalizados** en `/components/ui/`
 - **Iconografía consistente** con Lucide React
@@ -94,6 +101,7 @@ SEGIMED Frontend es una aplicación web desarrollada en **Next.js** que compleme
 ## 📱 FUNCIONALIDADES IMPLEMENTADAS
 
 ### 🔐 **Sistema de Autenticación**
+
 - **Ubicación:** `features/auth/`, `app/(auth)/`
 - **Funcionalidades:**
   - Login/registro con Next-Auth
@@ -112,6 +120,7 @@ if (!userData) {
 ```
 
 ### 👥 **Dashboard Principal**
+
 - **Ubicación:** `app/dashboard/`
 - **Funcionalidades:**
   - Página principal del dashboard con datos mock
@@ -121,6 +130,7 @@ if (!userData) {
   - Sistema de gráficos con Recharts
 
 **Secciones del Dashboard:**
+
 - **Pacientes** (`/dashboard/pacientes`) - Gestión de pacientes
 - **Turnos** (`/dashboard/Turnos`) - Sistema de citas médicas
 - **Consultas** (`/dashboard/consultas`) - Consultas médicas
@@ -129,6 +139,7 @@ if (!userData) {
 - **Configuración** (`/dashboard/configuracion`) - Ajustes del sistema
 
 ### 🏥 **Gestión de Pacientes**
+
 - **Ubicación:** `features/patients/`
 - **Estado:** ✅ 80% completado
 - **Funcionalidades Implementadas:**
@@ -141,6 +152,7 @@ if (!userData) {
   - Exportación de datos
 
 **Componentes Principales:**
+
 - `PatientsTable.tsx` - Tabla principal
 - `PatientDetailsModal.tsx` - Vista detallada
 - `EditPatientModal.tsx` - Edición
@@ -148,6 +160,7 @@ if (!userData) {
 - `PatientsPagination.tsx` - Paginación
 
 ### 📅 **Sistema de Citas (Turnos)**
+
 - **Ubicación:** `features/appoinments/`, `app/dashboard/Turnos/`
 - **Estado:** ✅ 70% completado
 - **Funcionalidades:**
@@ -159,11 +172,13 @@ if (!userData) {
   - Estados de citas (pendiente, confirmada, cancelada)
 
 **Componentes Principales:**
+
 - `AppointmentForm.tsx` - Formulario de citas
 - `agenda/Agenda.tsx` - Vista de calendario
 - Actions para CRUD de citas
 
 ### 💬 **Sistema de Alarmas/Chat**
+
 - **Ubicación:** `features/alarmas/`
 - **Estado:** 🔄 40% completado
 - **Funcionalidades:**
@@ -174,6 +189,7 @@ if (!userData) {
   - Manejo de errores de conexión
 
 ### 📊 **Sistema de Gráficos y Reportes**
+
 - **Ubicación:** `components/graphics/`
 - **Estado:** ✅ 60% completado (datos mock)
 - **Funcionalidades:**
@@ -184,6 +200,7 @@ if (!userData) {
   - Configuración personalizable de charts
 
 ### 🎨 **Sistema de UI/UX**
+
 - **Estado:** ✅ 90% completado
 - **Componentes UI completos** en `components/ui/`
 - **Sidebar responsive** con estado persistente
@@ -200,6 +217,7 @@ if (!userData) {
 ### Rutas Principales Implementadas
 
 #### **Autenticación**
+
 ```
 app/(auth)/
 ├── layout.tsx          # Layout para auth
@@ -210,6 +228,7 @@ app/(auth)/
 ```
 
 #### **Dashboard**
+
 ```
 app/dashboard/
 ├── layout.tsx                 # Layout principal con sidebar
@@ -225,6 +244,7 @@ app/dashboard/
 ```
 
 #### **Features (Lógica de Negocio)**
+
 ```
 features/
 ├── auth/                     # Sistema de autenticación
@@ -249,6 +269,7 @@ features/
 ### API Integration
 
 #### **Configuración de API**
+
 - **Base URL:** Configurada via `NEXT_PUBLIC_API_URL`
 - **Autenticación:** JWT tokens en cookies
 - **Headers:** Tenant-ID y Authorization automáticos
@@ -256,6 +277,7 @@ features/
 - **WebSockets:** Socket.io para real-time features
 
 #### **Endpoints Utilizados** (detectados en código)
+
 ```typescript
 // Ejemplos de endpoints implementados
 /auth/profile              # Perfil de usuario
@@ -275,22 +297,22 @@ features/
 
 ```json
 {
-  "next": "14.2.3",              // Framework principal
-  "react": "18.2.0",             // UI Library
-  "typescript": "5.2.2",         // Type safety
-  "tailwindcss": "3.4.0",       // Styling
-  "@radix-ui/*": "múltiples",    // UI primitives
-  "react-hook-form": "7.47.0",  // Formularios
-  "zod": "3.22.4",               // Validación
-  "zustand": "4.4.6",           // Estado global
-  "next-auth": "4.24.11",       // Autenticación
-  "axios": "1.8.2",             // HTTP client
-  "socket.io-client": "4.8.1",  // WebSockets
-  "recharts": "2.12.7",         // Gráficos
+  "next": "14.2.3", // Framework principal
+  "react": "18.2.0", // UI Library
+  "typescript": "5.2.2", // Type safety
+  "tailwindcss": "3.4.0", // Styling
+  "@radix-ui/*": "múltiples", // UI primitives
+  "react-hook-form": "7.47.0", // Formularios
+  "zod": "3.22.4", // Validación
+  "zustand": "4.4.6", // Estado global
+  "next-auth": "4.24.11", // Autenticación
+  "axios": "1.8.2", // HTTP client
+  "socket.io-client": "4.8.1", // WebSockets
+  "recharts": "2.12.7", // Gráficos
   "react-big-calendar": "1.17.1", // Calendario
-  "date-fns": "2.30.0",         // Fechas
-  "lucide-react": "0.447.0",    // Iconos
-  "sonner": "1.5.0"             // Notificaciones
+  "date-fns": "2.30.0", // Fechas
+  "lucide-react": "0.447.0", // Iconos
+  "sonner": "1.5.0" // Notificaciones
 }
 ```
 
@@ -298,13 +320,13 @@ features/
 
 ```json
 {
-  "@tanstack/react-table": "8.10.7",  // Tablas avanzadas (parcial)
-  "react-dropzone": "14.2.3",         // Upload de archivos (básico)
-  "@dnd-kit/*": "múltiples",           // Drag & drop (no implementado)
-  "nuqs": "1.19.1",                   // URL state (parcial)
-  "react-quill": "2.0.0",             // Rich text editor (no usado)
-  "libphonenumber-js": "1.11.17",     // Validación teléfonos (no usado)
-  "react-phone-input-2": "2.15.1"     // Input teléfonos (no usado)
+  "@tanstack/react-table": "8.10.7", // Tablas avanzadas (parcial)
+  "react-dropzone": "14.2.3", // Upload de archivos (básico)
+  "@dnd-kit/*": "múltiples", // Drag & drop (no implementado)
+  "nuqs": "1.19.1", // URL state (parcial)
+  "react-quill": "2.0.0", // Rich text editor (no usado)
+  "libphonenumber-js": "1.11.17", // Validación teléfonos (no usado)
+  "react-phone-input-2": "2.15.1" // Input teléfonos (no usado)
 }
 ```
 
@@ -314,11 +336,11 @@ features/
 {
   "jest": "configurado pero sin tests", // Testing framework
   "@testing-library/jest-dom": "disponible",
-  "@faker-js/faker": "9.0.3",          // Mock data
-  "prettier": "3.0.3",                 // Formateo código
-  "eslint": "8.48.0",                  // Linting
-  "husky": "9.0.11",                   // Git hooks
-  "lint-staged": "15.2.7"              // Pre-commit hooks
+  "@faker-js/faker": "9.0.3", // Mock data
+  "prettier": "3.0.3", // Formateo código
+  "eslint": "8.48.0", // Linting
+  "husky": "9.0.11", // Git hooks
+  "lint-staged": "15.2.7" // Pre-commit hooks
 }
 ```
 
@@ -326,10 +348,10 @@ features/
 
 ```json
 {
-  "react-country-state-city": "1.1.12",    // Library externa sin TS
-  "react-responsive": "10.0.0",            // Duplica useIsMobile
-  "match-sorter": "6.3.4",                 // Solo para mock data
-  "sort-by": "1.2.0"                       // Utilidad simple
+  "react-country-state-city": "1.1.12", // Library externa sin TS
+  "react-responsive": "10.0.0", // Duplica useIsMobile
+  "match-sorter": "6.3.4", // Solo para mock data
+  "sort-by": "1.2.0" // Utilidad simple
 }
 ```
 
@@ -358,13 +380,13 @@ NODE_ENV=development
 
 ```json
 {
-  "dev": "next dev --turbo -p 3001",        // Desarrollo con Turbo
+  "dev": "next dev --turbo -p 3001", // Desarrollo con Turbo
   "mock:server": "json-server --watch features/auth/lib/json-server/db.json --port 4000",
-  "build": "next build",                    // Build de producción
-  "start": "next start",                    // Servidor de producción
-  "lint": "next lint",                      // Linting
-  "format": "prettier . --write",          // Formateo
-  "prepare": "husky"                        // Git hooks setup
+  "build": "next build", // Build de producción
+  "start": "next start", // Servidor de producción
+  "lint": "next lint", // Linting
+  "format": "prettier . --write", // Formateo
+  "prepare": "husky" // Git hooks setup
 }
 ```
 
@@ -393,12 +415,14 @@ NODE_ENV=development
 ### ✅ **Funcionalidades Completas (70-80%)**
 
 1. **Sistema de UI/UX**
+
    - Componentes base implementados
    - Theming dark/light funcionando
    - Responsive design implementado
    - Sidebar y navegación completada
 
 2. **Gestión de Pacientes**
+
    - CRUD básico implementado
    - Tablas con paginación
    - Filtros y búsqueda
@@ -412,11 +436,13 @@ NODE_ENV=development
 ### 🔄 **En Desarrollo (40-60%)**
 
 1. **Sistema de Autenticación**
+
    - Estructura básica implementada
    - Necesita integración completa con backend
    - Middleware parcialmente configurado
 
 2. **WebSockets/Real-time**
+
    - Socket.io configurado
    - Conexión básica implementada
    - Necesita más features de chat
@@ -429,14 +455,17 @@ NODE_ENV=development
 ### ❌ **Faltantes o Incompletas (0-30%)**
 
 1. **Testing**
+
    - Jest configurado pero sin tests implementados
    - 0% coverage actual
 
 2. **Validación Avanzada**
+
    - Formularios básicos con validación
    - Necesita esquemas Zod más complejos
 
 3. **Optimización de Performance**
+
    - Sin lazy loading implementado
    - Sin memoización de componentes
    - Sin optimización de bundle
@@ -452,11 +481,13 @@ NODE_ENV=development
 ### **📋 Problemas de Arquitectura**
 
 1. **Inconsistencia en Estructura**
+
    - Mezcla de patrones de desarrollo
    - Features incompletas mezcladas con completas
    - Falta estándares de código
 
 2. **Dependencias Excesivas**
+
    - Múltiples librerías para misma funcionalidad
    - Dependencias no utilizadas aumentan bundle size
    - Versiones desactualizadas de algunas librerías
@@ -469,6 +500,7 @@ NODE_ENV=development
 ### **🔧 Problemas Técnicos**
 
 1. **Autenticación Deficiente**
+
    ```typescript
    // middleware.ts - Autenticación deshabilitada
    if (!userData) {
@@ -477,6 +509,7 @@ NODE_ENV=development
    ```
 
 2. **Datos Mock Mezclados**
+
    - Datos reales mezclados con mock data
    - Mock APIs sin documentación clara
    - Endpoints reales vs mock sin diferenciación
@@ -489,6 +522,7 @@ NODE_ENV=development
 ### **⚡ Problemas de Performance**
 
 1. **Bundle Size Excesivo**
+
    - Múltiples librerías de UI
    - Dependencias no utilizadas
    - Sin tree-shaking optimizado
@@ -506,15 +540,15 @@ NODE_ENV=development
 
 ```json
 {
-  "@dnd-kit/core": "6.1.0",           // Drag & drop - 0% uso
-  "@dnd-kit/sortable": "8.0.0",       // Sorting - 0% uso
-  "react-quill": "2.0.0",             // Rich editor - 0% uso
-  "libphonenumber-js": "1.11.17",     // Phone validation - 0% uso
-  "react-phone-input-2": "2.15.1",    // Phone input - 0% uso
+  "@dnd-kit/core": "6.1.0", // Drag & drop - 0% uso
+  "@dnd-kit/sortable": "8.0.0", // Sorting - 0% uso
+  "react-quill": "2.0.0", // Rich editor - 0% uso
+  "libphonenumber-js": "1.11.17", // Phone validation - 0% uso
+  "react-phone-input-2": "2.15.1", // Phone input - 0% uso
   "react-phone-number-input": "3.4.10", // Duplicate phone - 0% uso
   "react-country-state-city": "1.1.12", // Location picker - 0% uso
-  "sharp": "0.32.5",                  // Image optimization - 0% uso
-  "uuid": "9.0.1"                     // ID generation - <10% uso
+  "sharp": "0.32.5", // Image optimization - 0% uso
+  "uuid": "9.0.1" // ID generation - <10% uso
 }
 ```
 
@@ -532,6 +566,7 @@ NODE_ENV=development
 ### **🔥 Críticas (1-2 semanas)**
 
 #### **1. Limpieza de Dependencias**
+
 ```bash
 # Remover dependencias no utilizadas
 npm remove @dnd-kit/core @dnd-kit/sortable @dnd-kit/modifiers @dnd-kit/utilities
@@ -540,20 +575,22 @@ npm remove libphonenumber-js react-phone-number-input
 ```
 
 #### **2. Autenticación Funcional**
+
 ```typescript
 // Habilitar middleware de autenticación
 export function middleware(req: NextRequest) {
   const token = req.cookies.get('auth_token');
-  
+
   if (!token && req.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/auth/login', req.url));
   }
-  
+
   return NextResponse.next();
 }
 ```
 
 #### **3. Variables de Entorno**
+
 ```bash
 # Crear .env.example completo
 NEXT_PUBLIC_API_URL=http://localhost:3000
@@ -566,6 +603,7 @@ NODE_ENV=development
 ### **📊 Importantes (2-3 semanas)**
 
 #### **1. Testing Implementation**
+
 ```javascript
 // Implementar tests básicos
 describe('PatientTable', () => {
@@ -577,6 +615,7 @@ describe('PatientTable', () => {
 ```
 
 #### **2. Error Boundaries**
+
 ```typescript
 // Implementar error handling
 export function GlobalErrorBoundary({ children }: { children: ReactNode }) {
@@ -592,6 +631,7 @@ export function GlobalErrorBoundary({ children }: { children: ReactNode }) {
 ```
 
 #### **3. Performance Optimization**
+
 ```typescript
 // Lazy loading de páginas
 const PatientsPage = lazy(() => import('./patients/page'));
@@ -601,6 +641,7 @@ const AppointmentsPage = lazy(() => import('./appointments/page'));
 ### **🚀 Avanzadas (3-4 semanas)**
 
 #### **1. State Management Optimizado**
+
 ```typescript
 // Zustand stores optimizados
 interface PatientStore {
@@ -614,20 +655,21 @@ interface PatientStore {
 ```
 
 #### **2. Real-time Features Completas**
+
 ```typescript
 // WebSocket hooks optimizados
 export function useRealTimeNotifications() {
   const { socket } = useSocket();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  
+
   useEffect(() => {
     socket.on('notification', (notification) => {
-      setNotifications(prev => [notification, ...prev]);
+      setNotifications((prev) => [notification, ...prev]);
     });
-    
+
     return () => socket.off('notification');
   }, [socket]);
-  
+
   return notifications;
 }
 ```
@@ -639,6 +681,7 @@ export function useRealTimeNotifications() {
 ### **Desarrollo (Horas Estimadas)**
 
 #### **Críticas (1-2 semanas) - 60-80 horas**
+
 - Limpieza dependencias: 8 horas
 - Autenticación funcional: 20 horas
 - Variables de entorno: 4 horas
@@ -646,6 +689,7 @@ export function useRealTimeNotifications() {
 - Documentación básica: 12 horas
 
 #### **Importantes (2-3 semanas) - 80-120 horas**
+
 - Testing implementation: 40 horas
 - Error boundaries: 16 horas
 - Performance optimization: 24 horas
@@ -653,6 +697,7 @@ export function useRealTimeNotifications() {
 - Logging y monitoring: 20 horas
 
 #### **Avanzadas (3-4 semanas) - 60-100 horas**
+
 - State management optimizado: 30 horas
 - Real-time features completas: 40 horas
 - UI/UX improvements: 30 horas
@@ -676,6 +721,7 @@ SEGIMED es una plataforma médica frontend desarrollada en Next.js 14 con TypeSc
 Gestiona pacientes, citas médicas, consultas y certificados para múltiples organizaciones.
 
 TECNOLOGÍAS PRINCIPALES:
+
 - Next.js 14.2.3 (App Router)
 - React 18.2.0 + TypeScript 5.2.2
 - Tailwind CSS + shadcn/ui
@@ -685,12 +731,14 @@ TECNOLOGÍAS PRINCIPALES:
 - Recharts (gráficos), React Big Calendar
 
 ESTRUCTURA:
+
 - /app: Pages con App Router
 - /features: Lógica de negocio por dominio
 - /components: UI components reutilizables
 - /lib: Utilidades y configuraciones
 
 ESTADO ACTUAL:
+
 - Dashboard funcional con sidebar responsiva
 - CRUD de pacientes ~80% completo
 - Sistema de citas con calendario ~70% completo
@@ -699,14 +747,16 @@ ESTADO ACTUAL:
 - 0% testing coverage
 
 PROBLEMAS CRÍTICOS:
+
 - Múltiples dependencias no utilizadas
 - Middleware de auth deshabilitado
 - Datos mock mezclados con reales
 - Sin error boundaries ni testing
 
 PRIORIDADES:
+
 1. Completar autenticación funcional
-2. Limpiar dependencias innecesarias  
+2. Limpiar dependencias innecesarias
 3. Implementar testing básico
 4. Optimizar performance y bundle size
 ```
@@ -720,7 +770,7 @@ BASE_URL: process.env.NEXT_PUBLIC_API_URL
 Endpoints detectados:
 - GET /auth/profile - Perfil usuario
 - GET /patients - Lista pacientes (paginada)
-- POST /patients - Crear paciente  
+- POST /patients - Crear paciente
 - PUT/PATCH /patients/:id - Actualizar paciente
 - DELETE /patients/:id - Eliminar paciente
 - GET /appointments - Lista citas
@@ -741,7 +791,7 @@ app/dashboard/layout.tsx - Sidebar principal
 components/app-sidebar.tsx - Navegación lateral
 components/breadcrumbs.tsx - Navegación contextual
 
-// Gestión Pacientes  
+// Gestión Pacientes
 features/patients/components/PatientsTable.tsx - Tabla principal
 features/patients/components/PatientDetailsModal.tsx - Vista detalle
 features/patients/components/SearchAndFilterBar.tsx - Filtros
@@ -767,7 +817,7 @@ features/patients/hooks/usePatientFiltering.ts - Filtros pacientes
 
 // Utilidades
 lib/api.ts - Cliente HTTP con auth automática
-lib/socketio.ts - WebSocket connection manager  
+lib/socketio.ts - WebSocket connection manager
 lib/utils.ts - Utilidades Tailwind y formateo
 lib/searchparams.ts - Gestión URL parameters
 ```
@@ -781,11 +831,13 @@ lib/searchparams.ts - Gestión URL parameters
 El frontend está diseñado para integrarse con el backend NestJS documentado anteriormente:
 
 #### **Autenticación Multitenant**
+
 - JWT tokens con información de tenants
 - Headers `X-Tenant-ID` automáticos
 - Filtrado automático por organización
 
 #### **Endpoints Compatibles**
+
 ```typescript
 // Estructura esperada del backend
 {
@@ -798,6 +850,7 @@ El frontend está diseñado para integrarse con el backend NestJS documentado an
 ```
 
 #### **WebSocket Integration**
+
 ```typescript
 // Configuración Socket.io compatible
 SOCKET_URL: ws://localhost:3000/alarmas
@@ -810,15 +863,18 @@ Auth: Bearer token en headers
 ## 📋 CONCLUSIONES Y SIGUIENTES PASOS
 
 ### **Estado General**
+
 El frontend de SEGIMED tiene una **base sólida** con ~75% de funcionalidades implementadas, pero requiere **limpieza técnica** y **finalización de features críticas** para ser production-ready.
 
 ### **Fortalezas Identificadas**
+
 - ✅ Arquitectura moderna con Next.js 14 App Router
-- ✅ Sistema de UI coherente con shadcn/ui  
+- ✅ Sistema de UI coherente con shadcn/ui
 - ✅ Funcionalidades core de pacientes y citas funcionales
 - ✅ Integración preparada para backend multitenant
 
 ### **Debilidades Críticas**
+
 - 🚨 Sistema de autenticación deshabilitado
 - 🚨 0% test coverage
 - 🚨 Dependencias excesivas no utilizadas
@@ -831,6 +887,7 @@ El frontend de SEGIMED tiene una **base sólida** con ~75% de funcionalidades im
 3. **Fase 3 (3-4 semanas):** Optimización y features avanzadas
 
 ### **Inversión Recomendada**
+
 - **Tiempo:** 5-8 semanas con equipo adecuado
 - **Perfiles:** Lead Frontend + Frontend Mid-Senior + QA
 - **ROI:** Alto - base sólida con correcciones específicas
