@@ -420,6 +420,7 @@ export class PatientService {
         },
         include: {
           user: true,
+          emergency_contact: true,
         },
       });
 
@@ -741,6 +742,7 @@ export class PatientService {
         files: formattedFiles,
         evaluation: evaluation,
         background: backgroundData,
+        emergency_contact: patient.emergency_contact || null,
         current_medication: medications.map((med) => {
           const lastModification =
             med.pres_mod_history && med.pres_mod_history.length > 0

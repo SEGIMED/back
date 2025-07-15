@@ -1,3 +1,5 @@
+import { EmergencyContact } from "src/management/emergency-contact/entities/emergency-contact.interface";
+
 export class GetPatientsDto {
   id: string;
   name: string;
@@ -30,6 +32,7 @@ export class GetPatientDto {
   current_medication: MedicationDto[];
   future_medical_events: MedicalEventDto[];
   past_medical_events: MedicalEventDto[];
+  emergency_contact?: EmergencyContact;
 }
 
 export class VitalSignDto {
