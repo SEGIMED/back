@@ -1,8 +1,7 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateEmergencyContactDto } from './dto/create-emergency-contact.dto';
 import { EmergencyContact } from './entities/emergency-contact.interface';
-import { PaginationParams, parsePaginationAndSorting } from 'src/utils/pagination.helper';
 import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto';
 
 @Injectable()
@@ -46,44 +45,28 @@ export class EmergencyContactService {
   }
 
   async findAllByPatientId(
-    patient_id: string,
-    pagination: PaginationParams
-  ): Promise<{
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    data: EmergencyContact[];
-  }> {
-    const { skip, take, orderBy, orderDirection } = parsePaginationAndSorting(pagination);
+    patient_id: string
+  ): Promise<EmergencyContact> {
+    const patient = await this.prisma.patient.findUnique({
+      where: { id: patient_id },
+    });
+    if (!patient) throw new NotFoundException('Paciente no encontrado');
 
-    const [emergencyContacts, totalItems] = await this.prisma.$transaction([
-      this.prisma.emergency_contact.findMany({
-        where: { patient_id },
-        skip,
-        take,
-        orderBy: { [orderBy]: orderDirection },
-      }),
-      this.prisma.emergency_contact.count({
-        where: { patient_id },
-      }),
-    ]);
+    const emergencyContact = await this.prisma.emergency_contact.findUnique({
+      where: { patient_id },
+    });
 
-    const totalPages = Math.ceil(totalItems / take);
-    const page = pagination.page ? parseInt(String(pagination.page), 10) : 1;
+    if(!emergencyContact) throw new NotFoundException('Contacto de emergencia no encontrado');
 
     return {
-      currentPage: page,
-      totalPages,
-      totalItems,
-      data: emergencyContacts.map((emergencyContact) => ({
-        id: emergencyContact.id,
-        contact_name: emergencyContact.contact_name,
-        relationship: emergencyContact.relationship,
-        email: emergencyContact.email,
-        phone_prefix: emergencyContact.phone_prefix,
-        phone: emergencyContact.phone,
-      })),
+      id: emergencyContact.id,
+      contact_name: emergencyContact.contact_name,
+      relationship: emergencyContact.relationship,
+      email: emergencyContact.email,
+      phone_prefix: emergencyContact.phone_prefix,
+      phone: emergencyContact.phone,
     };
+
   }
 
   async update(updateEmergencyContactDto: UpdateEmergencyContactDto) {
@@ -116,21 +99,4 @@ export class EmergencyContactService {
     };
   }
 
-  async delete(emergency_contact_id: string) {
-    const exists = await this.prisma.emergency_contact.findUnique({
-      where: { id: emergency_contact_id },
-    });
-
-    if (!exists) {
-      throw new NotFoundException('El contacto de emergencia no existe');
-    }
-
-    const deletedEmergencyContact = await this.prisma.emergency_contact.delete({
-      where: { id: emergency_contact_id },
-    });
-
-    if (!deletedEmergencyContact) throw new InternalServerErrorException('Error al eliminar el contacto de emergencia');
-
-    return deletedEmergencyContact;
-  }
 }

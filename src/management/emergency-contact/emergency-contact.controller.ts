@@ -1,40 +1,54 @@
-import { Body, Controller, Delete, Get, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Query, HttpStatus } from '@nestjs/common';
 import { CreateEmergencyContactDto } from './dto/create-emergency-contact.dto';
 import { EmergencyContactService } from './emergency-contact.service';
-import { PaginationParams } from 'src/utils/pagination.helper';
-import { ApiQuery } from '@nestjs/swagger';
+import { ApiQuery, ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto';
 
-
+@ApiTags('Emergency Contact')
+@ApiBearerAuth('JWT')
 @Controller('emergency-contact')
 export class EmergencyContactController {
   constructor(private readonly emergencyContactService: EmergencyContactService) {}
 
   @Post('create')
+  @ApiOperation({
+    summary: 'Crear contacto de emergencia',
+    description: 'Crea un nuevo contacto de emergencia para un paciente.'
+  })
+  @ApiBody({ type: CreateEmergencyContactDto })
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'Contacto de emergencia creado correctamente' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Datos inválidos para crear el contacto de emergencia' })
   create(@Body() createEmergencyContactDto: CreateEmergencyContactDto) {
     return this.emergencyContactService.create(createEmergencyContactDto);
   }
 
-  @Get('find-all-by-patient-id')
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número de página' })
-  @ApiQuery({ name: 'pageSize', required: false, type: Number, description: 'Cantidad de resultados por página' })
-  @ApiQuery({ name: 'orderBy', required: false, type: String, description: 'Campo por el cual ordenar' })
-  @ApiQuery({ name: 'orderDirection', required: false, enum: ['asc', 'desc'], description: 'Dirección de ordenamiento' })
+  @Get('find-by-patient-id')
+  @ApiOperation({
+    summary: 'Listar contactos de emergencia por paciente',
+    description: 'Obtiene todos los contactos de emergencia asociados a un paciente, con paginación y ordenamiento opcional.'
+  })
+  @ApiQuery({ name: 'patient_id', required: true, type: String, description: 'ID del paciente' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Lista de contactos de emergencia obtenida correctamente' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Parámetros inválidos' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Paciente no encontrado' })
   findAllByPatientId(
-    @Query('patient_id') patient_id: string,
-    @Query() pagination: PaginationParams
+    @Query('patient_id') patient_id: string
   ) {
-    return this.emergencyContactService.findAllByPatientId(patient_id, pagination);
+    return this.emergencyContactService.findAllByPatientId(patient_id);
   }
 
+  
   @Patch('update')
+  @ApiOperation({
+    summary: 'Actualizar contacto de emergencia',
+    description: 'Actualiza los datos de un contacto de emergencia existente.'
+  })
+  @ApiBody({ type: UpdateEmergencyContactDto })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Contacto de emergencia actualizado correctamente' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Datos inválidos para actualizar el contacto de emergencia' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Contacto de emergencia no encontrado' })
   update(@Body() updateEmergencyContactDto: UpdateEmergencyContactDto) {
     return this.emergencyContactService.update(updateEmergencyContactDto);
   }
 
-  @Delete('delete')
-  async delete(@Query('emergency_contact_id') emergency_contact_id: string) {
-    await this.emergencyContactService.delete(emergency_contact_id);
-    return {message: 'Contacto de emergencia eliminado correctamente'};
-  }
 }

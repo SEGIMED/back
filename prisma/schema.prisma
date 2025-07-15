@@ -139,13 +139,13 @@ model patient {
   medication_reminder_max_retries      Int?                @default(3)
   user                                 user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
   patient_tenant                       patient_tenant[]
-  emergency_contacts                   emergency_contact[] @relation("PatientToEmergencyContacts")
+  emergency_contact                    emergency_contact?  @relation("PatientToEmergencyContact")
 }
 
 model emergency_contact {
   id           String   @id @default(uuid())
-  patient_id   String
-  patient      patient  @relation("PatientToEmergencyContacts", fields: [patient_id], references: [id], onDelete: Cascade)
+  patient_id   String   @unique
+  patient      patient  @relation("PatientToEmergencyContact", fields: [patient_id], references: [id], onDelete: Cascade)
   contact_name String
   relationship String
   email        String?
