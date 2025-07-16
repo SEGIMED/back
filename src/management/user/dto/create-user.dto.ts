@@ -1,13 +1,15 @@
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
   Length,
 } from 'class-validator';
-import { role_type } from '@prisma/client';
+import { marital_status, role_type } from '@prisma/client';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class BaseUserDto {
   @ApiProperty({
@@ -45,16 +47,21 @@ export class BaseUserDto {
     minLength: 7,
     maxLength: 9,
   })
-  @IsString({ message: 'El DNI debe ser un texto válido.' })
-  @Length(7, 9, { message: 'El DNI debe tener entre 7 y 9 caracteres.' })
+  @IsString({
+    message: 'El número de identificación debe ser un texto válido.',
+  })
+  @Length(7, 9, {
+    message: 'El número de identificación debe tener entre 7 y 9 caracteres.',
+  })
   @IsOptional()
-  dni?: string;
+  identification_number?: string;
 
   @ApiPropertyOptional({
     description: "User's birth date",
     example: '1990-01-01',
   })
   @IsOptional()
+  @Type(() => Date)
   birth_date?: Date;
 
   @ApiPropertyOptional({
@@ -69,6 +76,17 @@ export class BaseUserDto {
   })
   @IsOptional()
   nationality: string;
+
+  @ApiPropertyOptional({
+    description: "User's marital status",
+    example: 'soltero',
+    enum: marital_status,
+  })
+  @IsEnum(marital_status, {
+    message: 'El estado civil debe ser un valor válido del enum.',
+  })
+  @IsOptional()
+  marital_status?: marital_status;
 
   @ApiPropertyOptional({
     description: "User's gender",

@@ -163,4 +163,30 @@ export class PatientStudiesService {
       data: { is_deleted: true },
     });
   }
+
+  /**
+   * Elimina un estudio propio del paciente (con validación de propiedad)
+   */
+  async removeOwnStudy(id: string, patientId: string): Promise<PatientStudy> {
+    // Primero verificar que el estudio existe y pertenece al paciente
+    const study = await this.prisma.patient_study.findFirst({
+      where: {
+        id,
+        patient_id: patientId,
+        is_deleted: false,
+      },
+    });
+
+    if (!study) {
+      throw new BadRequestException(
+        'Estudio no encontrado o no pertenece al paciente autenticado',
+      );
+    }
+
+    // Eliminar el estudio (soft delete)
+    return this.prisma.patient_study.update({
+      where: { id },
+      data: { is_deleted: true },
+    });
+  }
 }

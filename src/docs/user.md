@@ -181,7 +181,7 @@ Elimina un usuario del tenant actual.
   name?: string;
   last_name?: string;
   email?: string;
-  dni?: string;
+  identification_number?: string;
   dniType?: string;
   birthdate?: Date;
   nationality?: string;
@@ -209,7 +209,7 @@ Contiene las propiedades básicas para un usuario:
   name: string;               // Nombre del usuario
   last_name: string;          // Apellido del usuario
   email: string;              // Correo electrónico
-  dni?: string;               // Número de documento de identidad
+  identification_number?: string; // Número de documento de identidad
   birth_date?: Date;          // Fecha de nacimiento
   nationality?: string;       // Nacionalidad
   gender?: string;            // Género
