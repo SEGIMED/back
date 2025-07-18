@@ -1004,6 +1004,8 @@ export class PatientService {
         },
         include: {
           user: true,
+          patient_insurance: true,
+          emergency_contact: true,
         },
       });
 
@@ -1293,6 +1295,22 @@ export class PatientService {
         });
 
       const user = patient.user;
+      const patientInsurance: PatientInsurance = patient.patient_insurance ? {
+        id: patient.patient_insurance.id,
+        patient_id: patient.id,
+        insurance_provider: patient.patient_insurance.insurance_provider,
+        insurance_number: patient.patient_insurance.insurance_number,
+        insurance_status: patient.patient_insurance.insurance_status,
+      } : null;
+      
+      const emergencyContact: EmergencyContact = patient.emergency_contact ? {
+        id: patient.emergency_contact.id,
+        contact_name: patient.emergency_contact.contact_name,
+        relationship: patient.emergency_contact.relationship || '',
+        email: patient.emergency_contact.email || '',
+        phone: patient.emergency_contact.phone || '',
+        phone_prefix: patient.emergency_contact.phone_prefix || '',
+      } : null;
 
       return {
         id: user.id,
@@ -1326,6 +1344,8 @@ export class PatientService {
         }),
         future_medical_events: formatMedicalEvents(futureMedicalEvents),
         past_medical_events: formatMedicalEvents(pastMedicalEvents),
+        insurance: patientInsurance,
+        emergency_contact: emergencyContact,
       };
     } catch (error) {
       console.error('Error en findMyProfile:', error);
