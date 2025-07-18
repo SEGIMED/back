@@ -350,12 +350,32 @@ export class PatientController {
     }
   }
 
-  @Get('by-user-id/:userId')
+/*   @Get('by-user-id/:userId')
   findByUserId(@Param('userId') userId: string): Promise<GetPatientSimpleDto> {
     return this.patientService.findMyProfileSimple(userId); //Utiliza el mismo servicio que el de findMyProfileSimple. Es sólo de prueba.
-  }
+  } */
 
   @Get('my-profile/simple')
+  @ApiTags('Mobile - Patient Simple Profile')
+  @RequirePermission(Permission.VIEW_OWN_SETTINGS)
+  @ApiOperation({
+    summary: 'Get patient own profile with multitenant support',
+    description:
+      'Gets the complete profile for the authenticated patient across all their associated organizations. Patient ID is extracted from JWT token automatically. This endpoint is designed for mobile applications.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Patient profile retrieved successfully',
+    type: GetPatientSimpleDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Bad Request - User is not a patient or request is invalid',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Unauthorized - Invalid or missing JWT token',
+  })
   findMyProfileSimple(@Request() req: any): Promise<GetPatientSimpleDto> {
     if (!req.user || !req.user.id) {
       throw new BadRequestException('Usuario no autenticado');
