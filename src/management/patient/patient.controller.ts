@@ -32,6 +32,7 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
+import { GetPatientSimpleDto } from './dto/get-patient.dto';
 
 @ApiTags('Patients')
 @ApiBearerAuth('JWT')
@@ -62,6 +63,7 @@ export class PatientController {
   create(@Body() medicalPatientDto: MedicalPatientDto): Promise<object> {
     return this.patientService.create(medicalPatientDto);
   }
+
   @Get()
   @ApiOperation({
     summary: 'Get all patients',
@@ -347,6 +349,23 @@ export class PatientController {
       );
     }
   }
+
+  @Get('by-user-id/:userId')
+  findByUserId(@Param('userId') userId: string): Promise<GetPatientSimpleDto> {
+    return this.patientService.findMyProfileSimple(userId); //Utiliza el mismo servicio que el de findMyProfileSimple. Es sólo de prueba.
+  }
+
+  @Get('my-profile/simple')
+  findMyProfileSimple(@Request() req: any): Promise<GetPatientSimpleDto> {
+    if (!req.user || !req.user.id) {
+      throw new BadRequestException('Usuario no autenticado');
+    }
+    if (req.user.role !== 'patient') {
+      throw new BadRequestException('Esta funcionalidad es solo para pacientes');
+    }
+    return this.patientService.findMyProfileSimple(req.user.id);
+  }
+
   @Patch('my-profile')
   @ApiTags('Mobile - Patient Profile')
   @RequirePermission(Permission.UPDATE_OWN_SETTINGS)

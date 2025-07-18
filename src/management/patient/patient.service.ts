@@ -8,7 +8,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { EmailService } from 'src/services/email/email.service';
 import { MedicalPatientDto } from './dto/medical-patient.dto';
 import { sendCredentialsHtml } from 'src/services/email/templates/credentialsHtml';
-import { GetPatientDto, GetPatientsDto } from './dto/get-patient.dto';
+import { GetPatientDto, GetPatientsDto, GetPatientSimpleDto } from './dto/get-patient.dto';
 import {
   PaginationParams,
   parsePaginationAndSorting,
@@ -19,9 +19,12 @@ import { AuthHelper } from 'src/utils/auth.helper';
 import { ConfigService } from '@nestjs/config';
 import { calculateAge } from 'src/utils/fuctions';
 import { EmergencyContactService } from '../emergency-contact/emergency-contact.service';
+import { PatientInsurance } from '../patient-insurance/entities/patient-insurance.interface';
+import { EmergencyContact } from '../emergency-contact/entities/emergency-contact.interface';
 
 @Injectable()
 export class PatientService {
+  
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
@@ -257,6 +260,8 @@ export class PatientService {
       action: 'created',
     };
   }
+
+  
 
   async findAll(
     pagination: PaginationParams,
@@ -911,6 +916,61 @@ export class PatientService {
       select: { tenant_id: true },
     });
     return patientTenants.map((pt) => pt.tenant_id);
+  }
+
+  async findMyProfileSimple(userId: string): Promise<GetPatientSimpleDto> {
+    const patient = await this.prisma.patient.findUnique({
+      where: {
+        user_id: userId,
+      },
+      include:{
+        user:true,
+        emergency_contact:true,
+        patient_insurance:true,
+      }
+    });
+
+    if(!patient) throw new NotFoundException('Paciente no encontrado');
+    if(!patient.user) throw new NotFoundException('Usuario no encontrado');
+
+    const patientInsurance: PatientInsurance = patient.patient_insurance ? {
+      id: patient.patient_insurance.id,
+      patient_id: patient.id,
+      insurance_provider: patient.patient_insurance.insurance_provider,
+      insurance_number: patient.patient_insurance.insurance_number,
+      insurance_status: patient.patient_insurance.insurance_status,
+    } : null;
+
+    const emergencyContact: EmergencyContact = patient.emergency_contact ? {
+      id: patient.emergency_contact.id,
+      contact_name: patient.emergency_contact.contact_name,
+      relationship: patient.emergency_contact.relationship || '',
+      email: patient.emergency_contact.email || '',
+      phone: patient.emergency_contact.phone || '',
+      phone_prefix: patient.emergency_contact.phone_prefix || '',
+    } : null;
+
+    return{
+      id: patient.id,
+      name: patient.user.name,
+      last_name: patient.user.last_name || '',
+      gender: patient.user.gender,
+      nationality: patient.user.nationality || '',
+      email: patient.user.email,
+      phone: patient.user.phone || '',
+      phone_prefix: patient.user.phone_prefix || '',
+      marital_status: patient.user.marital_status || '',
+      birth_date: patient.user.birth_date || null,
+      image: patient.user.image || '',
+      direction: patient.direction || '',
+      country: patient.country || '',
+      city: patient.city || '',
+      postal_code: patient.postal_code || '',
+      direction_number: patient.direction_number || '',
+      apartment: patient.apartment || '',
+      emergency_contact: emergencyContact,
+      insurance: patientInsurance,
+    }
   }
 
   /**
