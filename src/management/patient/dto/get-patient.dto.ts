@@ -1,3 +1,6 @@
+import { EmergencyContact } from "src/management/emergency-contact/entities/emergency-contact.interface";
+import { PatientInsurance } from "src/management/patient-insurance/entities/patient-insurance.interface";
+
 export class GetPatientsDto {
   id: string;
   name: string;
@@ -30,6 +33,30 @@ export class GetPatientDto {
   current_medication: MedicationDto[];
   future_medical_events: MedicalEventDto[];
   past_medical_events: MedicalEventDto[];
+  emergency_contact?: EmergencyContact;
+  insurance?: PatientInsurance;
+}
+
+export class GetPatientSimpleDto {
+  id: string;
+  name: string;
+  last_name?: string;
+  gender: string;
+  nationality?: string;
+  email: string;
+  phone?: string;
+  phone_prefix?: string;
+  marital_status?: string;
+  birth_date?: Date;
+  image?: string;
+  direction?: string;
+  country?: string;
+  city?: string;
+  postal_code?: string;
+  direction_number?: string;
+  apartment?: string;
+  emergency_contact?: EmergencyContact;
+  insurance?: PatientInsurance;
 }
 
 export class VitalSignDto {

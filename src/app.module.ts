@@ -46,6 +46,8 @@ import { TenantAccessGuard } from './auth/guards/tenant-access.guard';
 import { SettingsModule } from './medical-scheduling/modules/settings/settings.module';
 import { MedicationSchedulerModule } from './services/medication-scheduler/medication-scheduler.module';
 import { AppointmentSchedulerModule } from './services/appointment-scheduler/appointment-scheduler.module';
+import { EmergencyContactModule } from './management/emergency-contact/emergency-contact.module';
+import { PatientInsuranceModule } from './management/patient-insurance/patient-insurance.module';
 
 config({ path: '.env' });
 
@@ -107,6 +109,8 @@ config({ path: '.env' });
     SettingsModule,
     MedicationSchedulerModule,
     AppointmentSchedulerModule,
+    EmergencyContactModule,
+    PatientInsuranceModule,
   ],
   controllers: [AppController],
   providers: [
