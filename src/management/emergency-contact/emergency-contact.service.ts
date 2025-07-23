@@ -6,16 +6,12 @@ import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto';
 
 @Injectable()
 export class EmergencyContactService {
-  
   constructor(private readonly prisma: PrismaService) {}
 
   async create(request: CreateEmergencyContactDto): Promise<EmergencyContact> {
-    console.log(request);
     const patient = await this.prisma.patient.findUnique({
       where: { id: request.patient_id },
     });
-
-    console.log(patient);
 
     if (!patient) {
       throw new NotFoundException('Paciente no encontrado');
@@ -44,19 +40,20 @@ export class EmergencyContactService {
     };
   }
 
-  async findByPatientId(
-    patient_id: string
-  ): Promise<EmergencyContact | null> {
+  async findByPatientId(patient_id: string): Promise<EmergencyContact | null> {
     const patient = await this.prisma.patient.findUnique({
       where: { id: patient_id },
     });
-    if (!patient) throw new NotFoundException(`Paciente con id '${patient_id}' no encontrado`);
+    if (!patient)
+      throw new NotFoundException(
+        `Paciente con id '${patient_id}' no encontrado`,
+      );
 
     const emergencyContact = await this.prisma.emergency_contact.findUnique({
       where: { patient_id },
     });
 
-    if(!emergencyContact) return null;
+    if (!emergencyContact) return null;
 
     return {
       id: emergencyContact.id,
@@ -72,7 +69,7 @@ export class EmergencyContactService {
     const { emergency_contact_id, ...data } = updateEmergencyContactDto;
 
     const filteredData = Object.fromEntries(
-      Object.entries(data).filter(([_, v]) => v !== undefined)
+      Object.entries(data).filter(([, v]) => v !== undefined),
     );
 
     const exists = await this.prisma.emergency_contact.findUnique({
@@ -97,5 +94,4 @@ export class EmergencyContactService {
       phone: emergencyContact.phone,
     };
   }
-
 }
