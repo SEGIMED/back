@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -46,10 +47,14 @@ export class BaseUserDto {
     minLength: 7,
     maxLength: 9,
   })
-  @IsString({ message: 'El DNI debe ser un texto válido.' })
-  @Length(7, 9, { message: 'El DNI debe tener entre 7 y 9 caracteres.' })
+  @IsString({
+    message: 'El número de identificación debe ser un texto válido.',
+  })
+  @Length(7, 9, {
+    message: 'El número de identificación debe tener entre 7 y 9 caracteres.',
+  })
   @IsOptional()
-  dni?: string;
+  identification_number?: string;
 
   @ApiPropertyOptional({
     description: "User's birth date",
@@ -77,9 +82,11 @@ export class BaseUserDto {
     example: 'soltero',
     enum: marital_status,
   })
-  @IsString({ message: 'El estado civil debe ser un texto válido.' })
+  @IsEnum(marital_status, {
+    message: 'El estado civil debe ser un valor válido del enum.',
+  })
   @IsOptional()
-  marital_status: marital_status;
+  marital_status?: marital_status;
 
   @ApiPropertyOptional({
     description: "User's gender",

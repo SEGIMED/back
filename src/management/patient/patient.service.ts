@@ -43,7 +43,7 @@ export class PatientService {
         throw new BadRequestException('No se ha especificado un tenant válido');
       }
 
-      const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.dni}`;
+      const newPassword = `${user.name.charAt(0).toUpperCase() + user.name.slice(1) + '.' + user.identification_number}`;
 
       // Buscar si ya existe un usuario con ese email
       const existingUser = await this.prisma.user.findFirst({
@@ -357,7 +357,7 @@ export class PatientService {
             orderBy === 'name' ||
             orderBy === 'last_name' ||
             orderBy === 'email' ||
-            orderBy === 'dni'
+            orderBy === 'identification_number'
               ? { user: { [orderBy]: orderDirection } }
               : { [orderBy]: orderDirection },
         }),

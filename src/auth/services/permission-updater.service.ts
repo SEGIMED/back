@@ -79,6 +79,7 @@ export class PermissionUpdaterService {
         Permission.VIEW_OWN_APPOINTMENTS,
         Permission.SCHEDULE_OWN_APPOINTMENT,
         Permission.VIEW_OWN_MEDICAL_RECORDS,
+        Permission.DELETE_OWN_MEDICAL_RECORDS,
         Permission.SUBMIT_SELF_EVALUATION,
         Permission.VIEW_PATIENT_DETAILS,
         Permission.VIEW_MEDICAL_ORDERS,

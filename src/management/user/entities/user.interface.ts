@@ -6,7 +6,7 @@ export interface User {
   name?: string;
   last_name?: string;
   email?: string;
-  dni?: string;
+  identification_number?: string;
   dniType?: string;
   birthdate?: Date;
   nationality?: string;

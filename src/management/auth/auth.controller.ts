@@ -39,11 +39,39 @@ export class AuthController {
   @Post('create-superadmin')
   @ApiOperation({
     summary: 'Create a super admin user',
-    description: 'Creates a super admin user with full privileges',
+    description:
+      'Creates a super admin user with full privileges. If the super admin tenant does not exist, it will be created automatically.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Super admin successfully created',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Superadmin creado exitosamente',
+        },
+        user: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            email: { type: 'string' },
+            name: { type: 'string' },
+            last_name: { type: 'string' },
+            role: { type: 'string' },
+          },
+        },
+        tenant: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            type: { type: 'string' },
+            created: { type: 'boolean' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid data' })
   createSuperAdmin(@Body() createSuperAdminDto: CreateSuperAdminDto) {
