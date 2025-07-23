@@ -135,22 +135,12 @@ model patient {
   deleted                              Boolean          @default(false)
   deleted_at                           DateTime?
   user_id                              String           @unique
-  medication_reminder_interval_minutes Int?             @default(30)
-  medication_reminder_max_retries      Int?             @default(3)
-  user                                 user             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  medication_reminder_interval_minutes Int?                @default(30)
+  medication_reminder_max_retries      Int?                @default(3)
+  user                                 user                @relation(fields: [user_id], references: [id], onDelete: Cascade)
   patient_tenant                       patient_tenant[]
-}
-
-model emergency_contact {
-  id         String    @id @default(uuid())
-  patient_id String
-  contact_name String
-  relationship String
-  email String?
-  
-  phone_prefix       String
-  phone      String
-  created_at DateTime  @default(now())
+  emergency_contact                    emergency_contact?  @relation("PatientToEmergencyContact")
+  patient_insurance                    patient_insurance?  @relation("PatientToInsurance")
 }
 
 model patient_tenant {
@@ -167,6 +157,32 @@ model patient_tenant {
   @@unique([patient_id, tenant_id])
   @@index([deleted])
   @@index([tenant_id, deleted])
+}
+
+model emergency_contact {
+  id           String    @id @default(uuid())
+  patient_id   String    @unique
+  patient      patient   @relation("PatientToEmergencyContact", fields: [patient_id], references: [id], onDelete: Cascade)
+  contact_name String
+  relationship String
+  email        String?
+  phone_prefix String
+  phone        String
+  created_at   DateTime  @default(now())
+  updated_at   DateTime? @updatedAt
+}
+
+model patient_insurance {
+  id                 String           @id @default(uuid())
+  patient_id         String           @unique
+  patient            patient          @relation("PatientToInsurance", fields: [patient_id], references: [id], onDelete: Cascade)
+  insurance_provider String
+  insurance_number   String
+  insurance_status   insurance_status
+  created_at         DateTime         @default(now())
+  updated_at         DateTime?        @updatedAt
+  deleted            Boolean          @default(false)
+  deleted_at         DateTime?
 }
 
 model physician {
@@ -778,19 +794,10 @@ enum role_type {
   superadmin
 }
 
-enum marital_status {
-  soltero
-  casado
-  divorciado
-  viudo
-  union_libre
-}
-
 enum status_type {
   atendida
   cancelada
   pendiente
-  no_asistida
 }
 
 enum tenant_type {
@@ -809,4 +816,18 @@ enum medication_dose_status {
   MISSED_AUTOMATIC
   MISSED_REPORTED
   SKIPPED_BY_USER
+}
+
+enum insurance_status {
+  active
+  inactive
+  pending
+}
+
+enum marital_status {
+  soltero
+  casado
+  divorciado
+  viudo
+  union_libre
 }
